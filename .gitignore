@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.backup
+.env.production
+!.env.example
+
+# Build artifacts
+dist/
+dist-electron/
+release/
+build/
+.vite/
+
+# Laravel Storage & Cache
+backend/laravel-api/storage/*.key
+backend/laravel-api/storage/logs/*.log
+backend/laravel-api/storage/framework/cache/*
+backend/laravel-api/storage/framework/sessions/*
+backend/laravel-api/storage/framework/views/*
+backend/laravel-api/bootstrap/cache/*
+!backend/laravel-api/storage/framework/cache/.gitignore
+!backend/laravel-api/storage/framework/sessions/.gitignore
+!backend/laravel-api/storage/framework/views/.gitignore
+!backend/laravel-api/bootstrap/cache/.gitignore
+
+# Databases
+*.sqlite
+*.sqlite-journal
+*.db
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
