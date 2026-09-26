@@ -104,6 +104,10 @@ app.whenReady().then(() => {
     return getOfflineSales().filter((s) => s.sync_status === 'pending');
   });
 
+  ipcMain.handle('storage:get-all-offline-sales', async () => {
+    return getOfflineSales();
+  });
+
   ipcMain.handle('storage:mark-synced', async (_event, uuids: string[]) => {
     const current = getOfflineSales();
     const updated = current.map((s) => (uuids.includes(s.transaction_uuid) ? { ...s, sync_status: 'synced' } : s));

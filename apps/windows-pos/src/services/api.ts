@@ -62,6 +62,36 @@ export const api = {
     const res = await apiClient.get('/sales');
     return res.data;
   },
+  getSale: async (uuidOrInvoice: string) => {
+    const res = await apiClient.get(`/sales/${uuidOrInvoice}`);
+    return res.data;
+  },
+  processRefund: async (saleUuid: string, payload: { items: { sale_item_id?: number; sale_item_uuid?: string; quantity: number }[]; reason?: string; restock?: boolean }) => {
+    const res = await apiClient.post(`/sales/${saleUuid}/refund`, payload);
+    return res.data;
+  },
+  getRefunds: async (params?: { search?: string }) => {
+    const res = await apiClient.get('/refunds', { params });
+    return res.data;
+  },
+
+  // Customers & Loyalty
+  getCustomers: async (params?: { search?: string; page?: number; per_page?: number }) => {
+    const res = await apiClient.get('/customers', { params });
+    return res.data;
+  },
+  createCustomer: async (customerData: { name: string; phone?: string; email?: string; address?: string }) => {
+    const res = await apiClient.post('/customers', customerData);
+    return res.data;
+  },
+  getCustomer: async (uuid: string) => {
+    const res = await apiClient.get(`/customers/${uuid}`);
+    return res.data;
+  },
+  redeemCustomerLoyalty: async (uuid: string, points: number) => {
+    const res = await apiClient.post(`/customers/${uuid}/redeem-loyalty`, { points });
+    return res.data;
+  },
 
   // Cash Register Sessions
   openCashSession: async (data: { opening_balance: number; notes?: string }) => {
@@ -70,6 +100,10 @@ export const api = {
   },
   getCurrentCashSession: async () => {
     const res = await apiClient.get('/cash-sessions/current');
+    return res.data;
+  },
+  getXReport: async () => {
+    const res = await apiClient.get('/cash-sessions/x-report');
     return res.data;
   },
   closeCashSession: async (data: { closing_balance: number; notes?: string }) => {

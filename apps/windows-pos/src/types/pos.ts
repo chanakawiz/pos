@@ -24,6 +24,18 @@ export interface Category {
   slug: string;
 }
 
+export interface Customer {
+  id: number;
+  uuid: string;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  loyalty_points: number;
+  credit_limit: number;
+  balance: number;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -73,6 +85,16 @@ export interface SaleReceipt {
   receipt_footer?: string;
 }
 
+export interface RefundReceipt {
+  refund_number: string;
+  invoice_number: string;
+  store_name: string;
+  cashier_name: string;
+  total_refunded: number;
+  reason: string;
+  refunded_at: string;
+}
+
 export interface PosBridgeApi {
   printReceipt: (receiptData: any) => Promise<{ success: boolean; message?: string }>;
   openCashDrawer: () => Promise<{ success: boolean }>;
@@ -80,6 +102,7 @@ export interface PosBridgeApi {
   onBarcodeScan: (callback: (barcode: string) => void) => () => void;
   saveOfflineSale: (sale: any) => Promise<{ success: boolean; id: string }>;
   getPendingOfflineSales: () => Promise<any[]>;
+  getAllOfflineSales: () => Promise<any[]>;
   markSalesSynced: (uuids: string[]) => Promise<boolean>;
 }
 

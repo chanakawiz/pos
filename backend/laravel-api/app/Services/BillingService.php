@@ -7,6 +7,8 @@ use App\Models\Device;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Refund;
+use App\Models\RefundItem;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Store;
@@ -189,5 +191,118 @@ class BillingService
 
         $sequence = str_pad((string) ($countToday + 1), 5, '0', STR_PAD_LEFT);
         return "INV-{$store->code}-{$datePrefix}-{$sequence}";
+    }
+
+    /**
+     * Process a return/refund transaction and restock inventory.
+     */
+    public function processRefund(
+        Sale $sale,
+        array $items,
+        string $reason,
+        User $cashier,
+        bool $restock = true
+    ): Refund {
+        return DB::transaction(function () use ($sale, $items, $reason, $cashier, $restock) {
+            $refundNumber = $this->generateRefundNumber($sale->store);
+            $totalRefundAmount = 0.00;
+            $refundItemsData = [];
+
+            foreach ($items as $item) {
+                $saleItem = null;
+                if (!empty($item['sale_item_id'])) {
+                    $saleItem = SaleItem::where('id', $item['sale_item_id'])->where('sale_id', $sale->id)->first();
+                } elseif (!empty($item['sale_item_uuid'])) {
+                    $saleItem = SaleItem::where('uuid', $item['sale_item_uuid'])->where('sale_id', $sale->id)->first();
+                }
+
+                if (!$saleItem) {
+                    throw new Exception("Sale item not found for refund.");
+                }
+
+                $requestedQty = (float) $item['quantity'];
+                if ($requestedQty <= 0) {
+                    continue;
+                }
+
+                $alreadyRefundedQty = (float) $saleItem->refundItems()->sum('quantity');
+                $maxAvailable = (float) $saleItem->quantity - $alreadyRefundedQty;
+
+                if ($requestedQty > $maxAvailable + 0.0001) {
+                    throw new Exception("Cannot refund {$requestedQty} units for item '{$saleItem->product->name}'. Only {$maxAvailable} available to refund.");
+                }
+
+                $unitPriceEffective = (float) ($saleItem->total / $saleItem->quantity);
+                $lineAmount = round($requestedQty * $unitPriceEffective, 2);
+                $totalRefundAmount += $lineAmount;
+
+                $refundItemsData[] = [
+                    'sale_item' => $saleItem,
+                    'quantity' => $requestedQty,
+                    'amount' => $lineAmount,
+                    'restock' => $restock,
+                ];
+            }
+
+            if (empty($refundItemsData)) {
+                throw new Exception("No valid items to refund.");
+            }
+
+            // Create Refund Record
+            $refund = Refund::create([
+                'refund_number' => $refundNumber,
+                'sale_id' => $sale->id,
+                'store_id' => $sale->store_id,
+                'cashier_id' => $cashier->id,
+                'amount' => $totalRefundAmount,
+                'reason' => $reason,
+            ]);
+
+            // Create Refund Items and Restock Inventory
+            foreach ($refundItemsData as $data) {
+                RefundItem::create([
+                    'refund_id' => $refund->id,
+                    'sale_item_id' => $data['sale_item']->id,
+                    'quantity' => $data['quantity'],
+                    'amount' => $data['amount'],
+                    'restock' => $data['restock'],
+                ]);
+
+                if ($data['restock']) {
+                    $this->inventoryService->addStock(
+                        store: $sale->store,
+                        product: $data['sale_item']->product,
+                        variant: $data['sale_item']->variant,
+                        quantity: $data['quantity'],
+                        type: 'refund',
+                        referenceUuid: $refund->uuid,
+                        user: $cashier,
+                        notes: "Restock from Refund #{$refundNumber}"
+                    );
+                }
+            }
+
+            // Update Sale Status
+            $allRefunded = (float) $sale->refunds()->sum('amount');
+            if ($allRefunded >= ((float) $sale->total_amount - 0.01)) {
+                $sale->update(['payment_status' => 'refunded']);
+            }
+
+            return $refund->load(['items.saleItem.product', 'sale.customer', 'cashier', 'store']);
+        });
+    }
+
+    /**
+     * Generate a refund number.
+     */
+    public function generateRefundNumber(Store $store): string
+    {
+        $datePrefix = Carbon::now()->format('Ymd');
+        $countToday = Refund::where('store_id', $store->id)
+            ->whereDate('created_at', Carbon::today())
+            ->count();
+
+        $sequence = str_pad((string) ($countToday + 1), 5, '0', STR_PAD_LEFT);
+        return "REF-{$store->code}-{$datePrefix}-{$sequence}";
     }
 }

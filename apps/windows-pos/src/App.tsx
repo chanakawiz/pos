@@ -13,6 +13,10 @@ import { PaymentModal } from './modals/PaymentModal';
 import { ReceiptModal } from './modals/ReceiptModal';
 import { HoldBillsModal } from './modals/HoldBillsModal';
 import { CashSessionModal } from './modals/CashSessionModal';
+import { CustomerModal } from './modals/CustomerModal';
+import { RefundModal } from './modals/RefundModal';
+import { SyncStatusModal } from './modals/SyncStatusModal';
+import { syncWorker } from './services/syncWorker';
 
 export const App: React.FC = () => {
   const { token, checkAuth } = useAuthStore();
@@ -101,11 +105,27 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Keyboard shortcut for Escape key to close modals
+  // Start background sync daemon when authenticated
+  useEffect(() => {
+    if (token) {
+      syncWorker.start();
+      return () => {
+        syncWorker.stop();
+      };
+    }
+  }, [token]);
+
+  // Keyboard shortcut for Escape key to close modals, F3 for returns, F8 for sync status
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && activeModal) {
         closeModal();
+      } else if (e.key === 'F3' && !activeModal) {
+        e.preventDefault();
+        usePosStore.getState().openModal('refund');
+      } else if (e.key === 'F8' && !activeModal) {
+        e.preventDefault();
+        usePosStore.getState().openModal('syncStatus');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -151,6 +171,9 @@ export const App: React.FC = () => {
       {activeModal === 'receipt' && <ReceiptModal />}
       {activeModal === 'hold' && <HoldBillsModal />}
       {activeModal === 'cashSession' && <CashSessionModal />}
+      {activeModal === 'customer' && <CustomerModal />}
+      {activeModal === 'refund' && <RefundModal />}
+      {activeModal === 'syncStatus' && <SyncStatusModal />}
     </div>
   );
 };

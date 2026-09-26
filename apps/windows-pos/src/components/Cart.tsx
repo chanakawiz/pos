@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useCartStore } from '../stores/useCartStore';
 import { usePosStore } from '../stores/usePosStore';
-import { Trash2, Plus, Minus, ShoppingBag, PauseCircle, ArrowRight, UserCheck, Tag, X } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, PauseCircle, ArrowRight, UserCheck, Tag, X, UserPlus, Star } from 'lucide-react';
+import { api } from '../services/api';
 
 export const Cart: React.FC = () => {
   const {
@@ -27,10 +28,13 @@ export const Cart: React.FC = () => {
   const totalDiscount = getTotalDiscount();
   const grandTotal = getGrandTotal();
 
-  // Keyboard shortcut listener for F4 (Hold) and F9 (Pay)
+  // Keyboard shortcut listener for F2 (Customer), F4 (Hold) and F9 (Pay)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F4') {
+      if (e.key === 'F2') {
+        e.preventDefault();
+        openModal('customer');
+      } else if (e.key === 'F4') {
         e.preventDefault();
         holdCurrentBill();
       } else if (e.key === 'F9' && items.length > 0) {
@@ -81,21 +85,70 @@ export const Cart: React.FC = () => {
         </div>
       </div>
 
-      {/* Customer Header Tag if assigned */}
-      {customer && (
-        <div className="px-4 py-2 bg-indigo-950/40 border-b border-indigo-900/40 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-indigo-300">
-            <UserCheck className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="font-semibold">{customer.name}</span>
+      {/* Customer Header Tag & Loyalty points */}
+      <div className="px-4 py-2 bg-slate-950/40 border-b border-slate-800 flex items-center justify-between text-xs">
+        {customer ? (
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2 text-indigo-300 min-w-0">
+              <UserCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+              <div className="truncate">
+                <span className="font-semibold text-white">{customer.name}</span>
+                {customer.phone && <span className="text-[10px] text-slate-400 ml-1.5">({customer.phone})</span>}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {Number(customer.loyalty_points) > 0 && (
+                <button
+                  onClick={async () => {
+                    if (!customer.uuid) return;
+                    const pointsStr = prompt(`Redeem points (Available: ${customer.loyalty_points}):`, '50');
+                    if (!pointsStr) return;
+                    const points = parseInt(pointsStr, 10);
+                    if (isNaN(points) || points <= 0) return;
+
+                    try {
+                      const res = await api.redeemCustomerLoyalty(customer.uuid, points);
+                      setBillDiscount(billDiscount + res.discount_value);
+                      useCartStore.getState().setCustomer({
+                        ...customer,
+                        loyalty_points: res.remaining_points,
+                      });
+                      alert(`Successfully applied $${res.discount_value} discount!`);
+                    } catch (err: any) {
+                      alert(err.response?.data?.message || 'Failed to redeem points');
+                    }
+                  }}
+                  title="Redeem points for discount"
+                  className="flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer"
+                >
+                  <Star className="w-3 h-3 fill-amber-400" />
+                  <span>{customer.loyalty_points} pts</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => useCartStore.getState().setCustomer(null)}
+                title="Remove Customer"
+                className="text-slate-400 hover:text-white p-1 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
+        ) : (
           <button
-            onClick={() => useCartStore.getState().setCustomer(null)}
-            className="text-slate-400 hover:text-white"
+            onClick={() => openModal('customer')}
+            className="w-full flex items-center justify-between text-slate-400 hover:text-indigo-300 hover:bg-slate-800/40 py-1 px-1.5 rounded-lg transition-colors cursor-pointer"
           >
-            <X className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5">
+              <UserPlus className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-[11px] font-medium">Add Customer to Sale (F2)</span>
+            </div>
+            <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono">F2</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Cart Items List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">

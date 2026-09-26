@@ -4,7 +4,7 @@ import type { Product, CartItem } from '../types/pos';
 interface CartState {
   items: CartItem[];
   billDiscount: number;
-  customer: { id?: number; uuid?: string; name?: string } | null;
+  customer: { id?: number; uuid?: string; name: string; phone?: string | null; email?: string | null; loyalty_points?: number } | null;
   heldBills: { id: string; timestamp: string; note: string; items: CartItem[]; subtotal: number }[];
 
   // Actions
@@ -13,7 +13,7 @@ interface CartState {
   updateQuantity: (productId: number, quantity: number) => void;
   updateDiscount: (productId: number, discountAmount: number) => void;
   setBillDiscount: (amount: number) => void;
-  setCustomer: (customer: { id?: number; uuid?: string; name?: string } | null) => void;
+  setCustomer: (customer: { id?: number; uuid?: string; name: string; phone?: string | null; email?: string | null; loyalty_points?: number } | null) => void;
   clearCart: () => void;
   holdCurrentBill: (note?: string) => void;
   restoreHeldBill: (heldId: string) => void;

@@ -49,4 +49,9 @@ class SaleItem extends Model
     {
         return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
+
+    public function refundItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(RefundItem::class);
+    }
 }

@@ -30,10 +30,20 @@ Route::prefix('v1')->group(function () {
         Route::post('/sales', [SaleController::class, 'store']);
         Route::get('/sales', [SaleController::class, 'index']);
         Route::get('/sales/{uuid}', [SaleController::class, 'show']);
+        Route::post('/sales/{uuid}/refund', [\App\Http\Controllers\Api\v1\RefundController::class, 'store']);
+        Route::get('/refunds', [\App\Http\Controllers\Api\v1\RefundController::class, 'index']);
+        Route::get('/refunds/{uuid}', [\App\Http\Controllers\Api\v1\RefundController::class, 'show']);
+
+        // Customers & Loyalty
+        Route::get('/customers', [\App\Http\Controllers\Api\v1\CustomerController::class, 'index']);
+        Route::post('/customers', [\App\Http\Controllers\Api\v1\CustomerController::class, 'store']);
+        Route::get('/customers/{uuid}', [\App\Http\Controllers\Api\v1\CustomerController::class, 'show']);
+        Route::post('/customers/{uuid}/redeem-loyalty', [\App\Http\Controllers\Api\v1\CustomerController::class, 'redeemLoyalty']);
 
         // Cash Register Sessions
         Route::post('/cash-sessions/open', [CashSessionController::class, 'open']);
         Route::get('/cash-sessions/current', [CashSessionController::class, 'current']);
+        Route::get('/cash-sessions/x-report', [CashSessionController::class, 'xReport']);
         Route::post('/cash-sessions/close', [CashSessionController::class, 'close']);
 
         // Offline Synchronization Engine

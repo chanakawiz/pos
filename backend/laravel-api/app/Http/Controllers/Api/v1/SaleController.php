@@ -76,6 +76,8 @@ class SaleController extends Controller
                     'sold_at' => $sale->sold_at->toIso8601String(),
                     'items_count' => $sale->items->count(),
                     'items' => $sale->items->map(fn ($item) => [
+                        'id' => $item->id,
+                        'uuid' => $item->uuid,
                         'product_name' => $item->product->name,
                         'sku' => $item->product->sku,
                         'quantity' => (float) $item->quantity,

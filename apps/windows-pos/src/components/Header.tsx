@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Wifi, WifiOff, RefreshCw, LogOut, Store, User, Clock, CheckCircle2 } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, LogOut, Store, User, Clock, CheckCircle2, RotateCcw } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { usePosStore } from '../stores/usePosStore';
 
@@ -38,17 +38,30 @@ export const Header: React.FC = () => {
         </div>
         <button
           onClick={() => openModal('cashSession')}
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg transition-colors cursor-pointer"
         >
           <CheckCircle2 className="w-4 h-4" />
-          <span>Register Open</span>
+          <span>Register</span>
+        </button>
+
+        <button
+          onClick={() => openModal('refund')}
+          title="Sales Returns & Refunds (F3)"
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-colors cursor-pointer"
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>Returns (F3)</span>
         </button>
       </div>
 
       {/* Right: Sync Status, Network & Cashier Profile */}
       <div className="flex items-center gap-4">
         {/* Network & Sync indicator */}
-        <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
+        <div
+          onClick={() => openModal('syncStatus')}
+          title="Click to view Offline & Sync Diagnostics"
+          className="flex items-center gap-2 bg-slate-950/80 hover:bg-slate-800/80 cursor-pointer px-3 py-1.5 rounded-lg border border-slate-800 transition-colors"
+        >
           {isOnline ? (
             <div className="flex items-center gap-1.5 text-xs text-emerald-400">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -67,10 +80,13 @@ export const Header: React.FC = () => {
 
           {/* Sync status & Manual trigger */}
           <button
-            onClick={triggerManualSync}
+            onClick={(e) => {
+              e.stopPropagation();
+              triggerManualSync();
+            }}
             disabled={syncStatus === 'syncing'}
-            title="Trigger Sync"
-            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors"
+            title="Trigger Immediate Sync"
+            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-indigo-400 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
             {pendingCount > 0 ? (

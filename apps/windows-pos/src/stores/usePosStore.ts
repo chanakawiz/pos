@@ -1,18 +1,19 @@
 import { create } from 'zustand';
-import { api } from '../services/api';
+
+export type PosModalType = 'payment' | 'hold' | 'cashSession' | 'receipt' | 'customer' | 'refund' | 'syncStatus';
 
 interface PosState {
   isOnline: boolean;
   syncStatus: 'synced' | 'pending' | 'syncing' | 'error';
   pendingCount: number;
-  activeModal: 'payment' | 'hold' | 'cashSession' | 'receipt' | null;
+  activeModal: PosModalType | null;
   lastCompletedSale: any | null;
   cashSession: any | null;
 
   setOnline: (online: boolean) => void;
   setSyncStatus: (status: 'synced' | 'pending' | 'syncing' | 'error') => void;
   setPendingCount: (count: number) => void;
-  openModal: (modal: 'payment' | 'hold' | 'cashSession' | 'receipt') => void;
+  openModal: (modal: PosModalType) => void;
   closeModal: () => void;
   setLastCompletedSale: (sale: any) => void;
   setCashSession: (session: any) => void;
@@ -38,8 +39,8 @@ export const usePosStore = create<PosState>((set) => ({
   triggerManualSync: async () => {
     set({ syncStatus: 'syncing' });
     try {
-      await api.syncStatus();
-      set({ syncStatus: 'synced' });
+      const { syncWorker } = await import('../services/syncWorker');
+      await syncWorker.triggerImmediateSync();
     } catch {
       set({ syncStatus: 'error' });
     }
