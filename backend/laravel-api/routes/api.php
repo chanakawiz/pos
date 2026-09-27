@@ -40,11 +40,31 @@ Route::prefix('v1')->group(function () {
         Route::get('/customers/{uuid}', [\App\Http\Controllers\Api\v1\CustomerController::class, 'show']);
         Route::post('/customers/{uuid}/redeem-loyalty', [\App\Http\Controllers\Api\v1\CustomerController::class, 'redeemLoyalty']);
 
+        // Held Bills (Persistent Multi-Lane)
+        Route::get('/held-bills', [\App\Http\Controllers\Api\v1\HeldBillController::class, 'index']);
+        Route::post('/held-bills', [\App\Http\Controllers\Api\v1\HeldBillController::class, 'store']);
+        Route::delete('/held-bills/{uuid}', [\App\Http\Controllers\Api\v1\HeldBillController::class, 'destroy']);
+
         // Cash Register Sessions
         Route::post('/cash-sessions/open', [CashSessionController::class, 'open']);
         Route::get('/cash-sessions/current', [CashSessionController::class, 'current']);
         Route::get('/cash-sessions/x-report', [CashSessionController::class, 'xReport']);
         Route::post('/cash-sessions/close', [CashSessionController::class, 'close']);
+
+        // Supply Chain — Suppliers
+        Route::get('/suppliers', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'suppliers']);
+        Route::post('/suppliers', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'storeSupplier']);
+
+        // Supply Chain — Purchase Orders
+        Route::get('/purchases', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'index']);
+        Route::post('/purchases', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'store']);
+        Route::get('/purchases/{uuid}', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'show']);
+        Route::post('/purchases/{uuid}/receive', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'receive']);
+
+        // Analytics & Reporting
+        Route::get('/reports/sales-summary', [\App\Http\Controllers\Api\v1\ReportController::class, 'salesSummary']);
+        Route::get('/reports/top-products', [\App\Http\Controllers\Api\v1\ReportController::class, 'topProducts']);
+        Route::get('/reports/low-stock', [\App\Http\Controllers\Api\v1\ReportController::class, 'lowStock']);
 
         // Offline Synchronization Engine
         Route::post('/sync/push', [SyncController::class, 'push']);
