@@ -16,7 +16,10 @@ import { CashSessionModal } from './modals/CashSessionModal';
 import { CustomerModal } from './modals/CustomerModal';
 import { RefundModal } from './modals/RefundModal';
 import { SyncStatusModal } from './modals/SyncStatusModal';
+import { HelpModal } from './modals/HelpModal';
 import { syncWorker } from './services/syncWorker';
+import { useBarcodeScanner } from './hooks/useBarcodeScanner';
+import { posSounds } from './utils/audio';
 
 export const App: React.FC = () => {
   const { token, checkAuth } = useAuthStore();
@@ -83,17 +86,37 @@ export const App: React.FC = () => {
   }, [token, fetchCategories, fetchProducts]);
 
   // Fast Barcode submission
-  const handleBarcodeSubmit = async (barcode: string) => {
+  const handleBarcodeSubmit = useCallback(async (barcode: string) => {
     try {
       const res = await api.getProductByBarcode(barcode);
       if (res.product) {
         addItem(res.product, 1);
+        posSounds.playScannerBeep();
         setSearchTerm('');
+        return;
       }
     } catch {
-      // If barcode not found directly, keep search term filtered
+      // Direct barcode endpoint lookup failed, check in-memory catalog
+      const matched = products.find(
+        (p) => p.barcode === barcode || p.sku.toLowerCase() === barcode.toLowerCase()
+      );
+      if (matched) {
+        addItem(matched, 1);
+        posSounds.playScannerBeep();
+        setSearchTerm('');
+        return;
+      }
+      posSounds.playErrorChirp();
     }
-  };
+  }, [addItem, products]);
+
+  // Global USB/Bluetooth Barcode Scanner Hardware Hook
+  useBarcodeScanner({
+    onScan: (scanned) => {
+      handleBarcodeSubmit(scanned);
+    },
+    enabled: !!token,
+  });
 
   // Hardware Barcode Scanner listener if Electron Bridge is attached
   useEffect(() => {
@@ -103,7 +126,7 @@ export const App: React.FC = () => {
       });
       return unsubscribe;
     }
-  }, []);
+  }, [handleBarcodeSubmit]);
 
   // Start background sync daemon when authenticated
   useEffect(() => {
@@ -115,15 +138,25 @@ export const App: React.FC = () => {
     }
   }, [token]);
 
-  // Keyboard shortcut for Escape key to close modals, F3 for returns, F8 for sync status
+  // Keyboard shortcuts: Esc to close modals, F1 Help, F3 Returns, F8 Cash Drawer, F7 Sync Status
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && activeModal) {
         closeModal();
+      } else if (e.key === 'F1') {
+        e.preventDefault();
+        usePosStore.getState().openModal('help');
       } else if (e.key === 'F3' && !activeModal) {
         e.preventDefault();
         usePosStore.getState().openModal('refund');
-      } else if (e.key === 'F8' && !activeModal) {
+      } else if (e.key === 'F8') {
+        e.preventDefault();
+        if (window.posApi?.openCashDrawer) {
+          window.posApi.openCashDrawer();
+        } else {
+          console.log('[POS UI] Drawer kick pulse triggered (F8)');
+        }
+      } else if (e.key === 'F7' && !activeModal) {
         e.preventDefault();
         usePosStore.getState().openModal('syncStatus');
       }
@@ -174,6 +207,7 @@ export const App: React.FC = () => {
       {activeModal === 'customer' && <CustomerModal />}
       {activeModal === 'refund' && <RefundModal />}
       {activeModal === 'syncStatus' && <SyncStatusModal />}
+      {activeModal === 'help' && <HelpModal />}
     </div>
   );
 };

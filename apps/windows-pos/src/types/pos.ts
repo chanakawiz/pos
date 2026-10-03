@@ -2,6 +2,7 @@ export interface Product {
   id: number;
   uuid: string;
   name: string;
+  sinhala_name?: string | null;
   sku: string;
   barcode: string | null;
   unit: string;
@@ -14,6 +15,8 @@ export interface Product {
     uuid: string;
     name: string;
   } | null;
+  warranty_period?: string | null;
+  requires_serial?: boolean;
   has_variants: boolean;
 }
 
@@ -45,6 +48,8 @@ export interface CartItem {
   taxAmount: number;
   subtotal: number;
   total: number;
+  serial_number?: string | null;
+  warranty_notes?: string | null;
 }
 
 export type PaymentType = 'cash' | 'card' | 'bank_transfer' | 'credit';

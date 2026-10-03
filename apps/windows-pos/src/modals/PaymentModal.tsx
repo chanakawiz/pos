@@ -4,6 +4,7 @@ import { usePosStore } from '../stores/usePosStore';
 import { api } from '../services/api';
 import type { PaymentType } from '../types/pos';
 import { X, Banknote, CreditCard, Landmark, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { posSounds } from '../utils/audio';
 
 export const PaymentModal: React.FC = () => {
   const { items, customer, billDiscount, getGrandTotal, clearCart } = useCartStore();
@@ -43,6 +44,8 @@ export const PaymentModal: React.FC = () => {
           quantity: i.quantity,
           unit_price: i.unitPrice,
           discount_amount: i.discountAmount,
+          serial_number: i.serial_number || null,
+          warranty_notes: i.warranty_notes || (i.product.warranty_period ? `Warranty: ${i.product.warranty_period}` : null),
         })),
         payments: [
           {
@@ -54,6 +57,7 @@ export const PaymentModal: React.FC = () => {
       };
 
       const result = await api.createSale(payload);
+      posSounds.playSuccessChime();
 
       // Trigger hardware cash drawer if electron bridge is present
       if (window.posApi && paymentMethod === 'cash') {

@@ -17,6 +17,8 @@ class SaleItem extends Model
         'product_id',
         'variant_id',
         'quantity',
+        'serial_number',
+        'warranty_notes',
         'unit_cost',
         'unit_price',
         'discount_amount',

@@ -11,6 +11,7 @@ export const Cart: React.FC = () => {
     heldBills,
     billDiscount,
     updateQuantity,
+    updateSerial,
     removeItem,
     clearCart,
     holdCurrentBill,
@@ -21,12 +22,33 @@ export const Cart: React.FC = () => {
     getGrandTotal,
   } = useCartStore();
 
-  const { openModal } = usePosStore();
+  const { openModal, language } = usePosStore();
 
   const subtotal = getSubtotal();
   const taxTotal = getTaxTotal();
   const totalDiscount = getTotalDiscount();
   const grandTotal = getGrandTotal();
+
+  const handleHoldBill = async () => {
+    if (items.length === 0) return;
+    const ref = `HOLD-${Math.floor(1000 + Math.random() * 9000)}`;
+    const currentItems = [...items];
+    const currentSubtotal = grandTotal;
+    const customerUuid = customer?.uuid;
+
+    holdCurrentBill(ref);
+
+    try {
+      await api.createHeldBill({
+        hold_reference: ref,
+        cart_items_json: currentItems,
+        subtotal: currentSubtotal,
+        customer_uuid: customerUuid,
+      });
+    } catch (err) {
+      console.warn('Held bill kept in local store (offline):', err);
+    }
+  };
 
   // Keyboard shortcut listener for F2 (Customer), F4 (Hold) and F9 (Pay)
   useEffect(() => {
@@ -36,7 +58,7 @@ export const Cart: React.FC = () => {
         openModal('customer');
       } else if (e.key === 'F4') {
         e.preventDefault();
-        holdCurrentBill();
+        handleHoldBill();
       } else if (e.key === 'F9' && items.length > 0) {
         e.preventDefault();
         openModal('payment');
@@ -161,15 +183,75 @@ export const Cart: React.FC = () => {
             </p>
           </div>
         ) : (
-          items.map(({ product, quantity, unitPrice, taxAmount, total, discountAmount }) => (
+          items.map(({ product, quantity, unitPrice, taxAmount, total, discountAmount, serial_number }) => (
             <div
               key={product.id}
               className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 flex flex-col gap-2 hover:border-slate-700 transition-colors"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-xs font-semibold text-white truncate">{product.name}</h4>
-                  <div className="text-[11px] text-slate-400 font-mono">
+                  {language === 'si' ? (
+                    <>
+                      <h4 className="text-xs font-semibold text-white truncate">
+                        {product.sinhala_name || product.name}
+                      </h4>
+                      {product.sinhala_name && (
+                        <div className="text-[10px] text-slate-400 truncate">
+                          {product.name}
+                        </div>
+                      )}
+                    </>
+                  ) : language === 'en' ? (
+                    <h4 className="text-xs font-semibold text-white truncate">{product.name}</h4>
+                  ) : (
+                    <>
+                      <h4 className="text-xs font-semibold text-white truncate">{product.name}</h4>
+                      {product.sinhala_name && (
+                        <div className="text-[11px] text-amber-300/80 truncate font-medium">
+                          {product.sinhala_name}
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Warranty and Serial Number / IMEI for Smart/Tech goods */}
+                  <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                    {product.warranty_period && (
+                      <span className="text-[9px] text-cyan-400 bg-cyan-950/70 px-1.5 py-0.5 rounded border border-cyan-800/40">
+                        🛡️ {product.warranty_period}
+                      </span>
+                    )}
+
+                    {/* Serial Number / IMEI input trigger */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = prompt(
+                          `Enter IMEI or Serial Number for ${product.name}:`,
+                          serial_number || ''
+                        );
+                        if (val !== null) {
+                          updateSerial(product.id, val.trim());
+                        }
+                      }}
+                      className={`text-[9px] font-mono px-1.5 py-0.5 rounded border transition-colors cursor-pointer ${
+                        serial_number
+                          ? 'bg-indigo-950 text-indigo-300 border-indigo-700/60'
+                          : product.requires_serial
+                          ? 'bg-rose-950/80 text-rose-300 border-rose-700/60 animate-pulse font-bold'
+                          : 'bg-slate-900 text-slate-400 border-slate-700/60 hover:text-white'
+                      }`}
+                      title="Click to enter/scan IMEI or Serial Number"
+                    >
+                      {serial_number
+                        ? `S/N: ${serial_number}`
+                        : product.requires_serial
+                        ? '+ Add IMEI / Serial *'
+                        : '+ S/N'}
+                    </button>
+                  </div>
+
+                  <div className="text-[11px] text-slate-400 font-mono mt-1">
                     ${Number(unitPrice).toFixed(2)} / {product.unit}
                   </div>
                 </div>
@@ -254,7 +336,7 @@ export const Cart: React.FC = () => {
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2 pt-1">
           <button
-            onClick={() => holdCurrentBill()}
+            onClick={handleHoldBill}
             disabled={items.length === 0}
             className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >

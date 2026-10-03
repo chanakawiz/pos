@@ -135,7 +135,7 @@ class ReportController extends Controller
 
         $lowStockItems = Inventory::with(['product:id,uuid,name,sku,barcode,min_stock_level', 'product.category:id,name'])
             ->where('store_id', $storeId)
-            ->whereColumn('quantity_on_hand', '<=', DB::raw('(SELECT min_stock_level FROM products WHERE products.id = inventories.product_id)'))
+            ->whereColumn('quantity_on_hand', '<=', DB::raw('(SELECT min_stock_level FROM products WHERE products.id = inventory.product_id)'))
             ->orderBy('quantity_on_hand')
             ->get()
             ->map(fn ($inv) => [

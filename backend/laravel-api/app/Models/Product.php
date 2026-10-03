@@ -18,10 +18,13 @@ class Product extends Model
         'category_id',
         'brand_id',
         'name',
+        'sinhala_name',
         'sku',
         'barcode',
         'description',
         'unit',
+        'warranty_period',
+        'requires_serial',
         'cost_price',
         'selling_price',
         'tax_rate',
@@ -33,6 +36,7 @@ class Product extends Model
     ];
 
     protected $casts = [
+        'requires_serial' => 'boolean',
         'cost_price' => 'decimal:2',
         'selling_price' => 'decimal:2',
         'tax_rate' => 'decimal:2',

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import type { Product } from '../types/pos';
-import { Search, Barcode, Plus, PackageCheck, AlertTriangle } from 'lucide-react';
+import { usePosStore } from '../stores/usePosStore';
+import { Search, Barcode, Plus, PackageCheck, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 interface Props {
   products: Product[];
@@ -20,6 +21,7 @@ export const ProductGrid: React.FC<Props> = ({
   onProductClick,
 }) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { language } = usePosStore();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -118,9 +120,42 @@ export const ProductGrid: React.FC<Props> = ({
                     </div>
 
                     {/* Title */}
-                    <h4 className="font-semibold text-slate-100 text-sm line-clamp-2 leading-snug group-hover:text-indigo-200 transition-colors">
-                      {product.name}
-                    </h4>
+                    {language === 'si' ? (
+                      <>
+                        <h4 className="font-semibold text-slate-100 text-sm line-clamp-2 leading-snug group-hover:text-indigo-200 transition-colors">
+                          {product.sinhala_name || product.name}
+                        </h4>
+                        {product.sinhala_name && (
+                          <div className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                            {product.name}
+                          </div>
+                        )}
+                      </>
+                    ) : language === 'en' ? (
+                      <h4 className="font-semibold text-slate-100 text-sm line-clamp-2 leading-snug group-hover:text-indigo-200 transition-colors">
+                        {product.name}
+                      </h4>
+                    ) : (
+                      <>
+                        <h4 className="font-semibold text-slate-100 text-sm line-clamp-2 leading-snug group-hover:text-indigo-200 transition-colors">
+                          {product.name}
+                        </h4>
+                        {product.sinhala_name && (
+                          <div className="text-[12px] text-amber-300/80 font-medium truncate mt-0.5">
+                            {product.sinhala_name}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Warranty badge for electronics & smart devices */}
+                    {product.warranty_period && (
+                      <div className="flex items-center gap-1 text-[10px] text-cyan-400 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-800/40 mt-1.5 w-fit">
+                        <ShieldCheck className="w-3 h-3 text-cyan-400" />
+                        <span className="truncate max-w-[140px]">{product.warranty_period}</span>
+                      </div>
+                    )}
+
                     <div className="text-[11px] text-slate-500 font-mono mt-1">
                       SKU: {product.sku}
                     </div>

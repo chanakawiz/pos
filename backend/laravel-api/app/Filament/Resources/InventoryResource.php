@@ -3,44 +3,50 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InventoryResource\Pages;
-use App\Filament\Resources\InventoryResource\RelationManagers;
 use App\Models\Inventory;
+use App\Models\StockMovement;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class InventoryResource extends Resource
 {
     protected static ?string $model = Inventory::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-archive-box';
+
+    protected static ?string $navigationGroup = 'Inventory & Catalog';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('uuid')
-                    ->label('UUID')
-                    ->required()
-                    ->maxLength(36),
                 Forms\Components\Select::make('store_id')
+                    ->label('Store Branch')
                     ->relationship('store', 'name')
-                    ->required(),
+                    ->required()
+                    ->searchable()
+                    ->preload(),
+
                 Forms\Components\Select::make('product_id')
+                    ->label('Product')
                     ->relationship('product', 'name')
-                    ->required(),
-                Forms\Components\Select::make('variant_id')
-                    ->relationship('variant', 'name'),
+                    ->required()
+                    ->searchable()
+                    ->preload(),
+
                 Forms\Components\TextInput::make('quantity_on_hand')
+                    ->label('Quantity On Hand')
                     ->required()
                     ->numeric()
                     ->default(0.00),
+
                 Forms\Components\TextInput::make('quantity_reserved')
-                    ->required()
+                    ->label('Quantity Reserved (Cart Holds)')
                     ->numeric()
                     ->default(0.00),
             ]);
@@ -50,35 +56,52 @@ class InventoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('uuid')
-                    ->label('UUID')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('store.name')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Store')
+                    ->sortable()
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('product.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('variant.name')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Product (English / Sinhala)')
+                    ->description(fn (Inventory $record) => $record->product?->sinhala_name)
+                    ->sortable()
+                    ->searchable()
+                    ->weight('bold'),
+
+                Tables\Columns\TextColumn::make('product.sku')
+                    ->label('SKU')
+                    ->fontFamily('mono')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('product.barcode')
+                    ->label('Barcode')
+                    ->fontFamily('mono')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('quantity_on_hand')
-                    ->numeric()
+                    ->label('Available Stock')
+                    ->numeric(2)
+                    ->color(fn ($state, $record) => $state <= ($record->product?->min_stock_level ?? 5) ? 'danger' : 'success')
+                    ->weight('bold')
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('quantity_reserved')
-                    ->numeric()
+                    ->label('Reserved')
+                    ->numeric(2)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('product.selling_price')
+                    ->label('Selling Price')
+                    ->money('USD'),
+
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Last Updated')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('store')
+                    ->relationship('store', 'name'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -90,19 +113,12 @@ class InventoryResource extends Resource
             ]);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListInventories::route('/'),
+            'index'  => Pages\ListInventories::route('/'),
             'create' => Pages\CreateInventory::route('/create'),
-            'edit' => Pages\EditInventory::route('/{record}/edit'),
+            'edit'   => Pages\EditInventory::route('/{record}/edit'),
         ];
     }
 }

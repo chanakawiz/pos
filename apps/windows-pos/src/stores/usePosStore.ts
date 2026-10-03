@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type PosModalType = 'payment' | 'hold' | 'cashSession' | 'receipt' | 'customer' | 'refund' | 'syncStatus';
+export type PosModalType = 'payment' | 'hold' | 'cashSession' | 'receipt' | 'customer' | 'refund' | 'syncStatus' | 'help';
 
 interface PosState {
   isOnline: boolean;
@@ -9,8 +9,10 @@ interface PosState {
   activeModal: PosModalType | null;
   lastCompletedSale: any | null;
   cashSession: any | null;
+  language: 'bilingual' | 'si' | 'en';
 
   setOnline: (online: boolean) => void;
+  setLanguage: (lang: 'bilingual' | 'si' | 'en') => void;
   setSyncStatus: (status: 'synced' | 'pending' | 'syncing' | 'error') => void;
   setPendingCount: (count: number) => void;
   openModal: (modal: PosModalType) => void;
@@ -27,8 +29,10 @@ export const usePosStore = create<PosState>((set) => ({
   activeModal: null,
   lastCompletedSale: null,
   cashSession: null,
+  language: ((import.meta.env.VITE_DEFAULT_LANGUAGE as any) || 'bilingual') as 'bilingual' | 'si' | 'en',
 
   setOnline: (online) => set({ isOnline: online }),
+  setLanguage: (lang) => set({ language: lang }),
   setSyncStatus: (status) => set({ syncStatus: status }),
   setPendingCount: (count) => set({ pendingCount: count }),
   openModal: (modal) => set({ activeModal: modal }),

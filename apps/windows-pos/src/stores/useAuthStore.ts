@@ -5,7 +5,7 @@ import { api } from '../services/api';
 interface AuthState {
   user: User | null;
   token: string | null;
-  deviceUuid: string;
+  deviceUuid: string;                
   isLoading: boolean;
   error: string | null;
 

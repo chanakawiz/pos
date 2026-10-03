@@ -81,7 +81,7 @@ class PurchaseController extends Controller
                     'variant_id'  => null,
                     'quantity'    => $itemData['quantity'],
                     'unit_cost'   => $itemData['unit_cost'],
-                    'total_cost'  => $itemData['quantity'] * $itemData['unit_cost'],
+                    'subtotal'    => $itemData['quantity'] * $itemData['unit_cost'],
                 ]);
             }
 

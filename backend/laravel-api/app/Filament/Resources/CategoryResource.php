@@ -18,35 +18,40 @@ class CategoryResource extends Resource
     protected static ?string $model = Category::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Catalog & Inventory';
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('uuid')
-                    ->label('UUID')
-                    ->required()
-                    ->maxLength(36),
-                Forms\Components\Select::make('parent_id')
-                    ->relationship('parent', 'name'),
                 Forms\Components\TextInput::make('name')
+                    ->label('Category Name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn ($state, callable $set) => $set('slug', \Illuminate\Support\Str::slug($state))),
                 Forms\Components\TextInput::make('slug')
                     ->required()
+                    ->unique(ignoreRecord: true)
                     ->maxLength(255),
+                Forms\Components\Select::make('parent_id')
+                    ->label('Parent Category (Optional)')
+                    ->relationship('parent', 'name')
+                    ->searchable()
+                    ->preload(),
                 Forms\Components\FileUpload::make('image_path')
-                    ->image(),
+                    ->label('Category Image')
+                    ->image()
+                    ->directory('categories'),
                 Forms\Components\TextInput::make('display_order')
-                    ->required()
+                    ->label('Sort Order')
                     ->numeric()
                     ->default(0),
                 Forms\Components\Toggle::make('is_active')
+                    ->label('Is Active')
+                    ->default(true)
                     ->required(),
-                Forms\Components\TextInput::make('version')
-                    ->required()
-                    ->numeric()
-                    ->default(1),
             ]);
     }
 

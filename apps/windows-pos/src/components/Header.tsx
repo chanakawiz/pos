@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Wifi, WifiOff, RefreshCw, LogOut, Store, User, Clock, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, LogOut, Store, User, Clock, CheckCircle2, RotateCcw, Keyboard } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { usePosStore } from '../stores/usePosStore';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuthStore();
-  const { isOnline, syncStatus, pendingCount, triggerManualSync, openModal } = usePosStore();
+  const { isOnline, syncStatus, pendingCount, triggerManualSync, openModal, language, setLanguage } = usePosStore();
   const [time, setTime] = useState(new Date().toLocaleTimeString());
 
   useEffect(() => {
@@ -52,6 +52,46 @@ export const Header: React.FC = () => {
           <RotateCcw className="w-4 h-4" />
           <span>Returns (F3)</span>
         </button>
+
+        <button
+          onClick={() => openModal('help')}
+          title="Keyboard Shortcuts Cheat Sheet (F1)"
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg transition-colors cursor-pointer"
+        >
+          <Keyboard className="w-4 h-4" />
+          <span>Help (F1)</span>
+        </button>
+
+        {/* Language Switcher configured from .env */}
+        <div className="hidden lg:flex items-center bg-slate-950/70 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+          <button
+            onClick={() => setLanguage('en')}
+            className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
+              language === 'en' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+            title="Language: English"
+          >
+            EN
+          </button>
+          <button
+            onClick={() => setLanguage('si')}
+            className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
+              language === 'si' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+            title="Language: Sinhala (සිංහල)"
+          >
+            සිං
+          </button>
+          <button
+            onClick={() => setLanguage('bilingual')}
+            className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
+              language === 'bilingual' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+            title="Language: Dual (EN+සිං)"
+          >
+            Dual
+          </button>
+        </div>
       </div>
 
       {/* Right: Sync Status, Network & Cashier Profile */}

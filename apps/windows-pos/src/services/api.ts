@@ -111,6 +111,20 @@ export const api = {
     return res.data;
   },
 
+  // Held Bills
+  getHeldBills: async () => {
+    const res = await apiClient.get('/held-bills');
+    return res.data;
+  },
+  createHeldBill: async (payload: { hold_reference?: string; cart_items_json: any[]; subtotal: number; customer_uuid?: string }) => {
+    const res = await apiClient.post('/held-bills', payload);
+    return res.data;
+  },
+  deleteHeldBill: async (uuid: string) => {
+    const res = await apiClient.delete(`/held-bills/${uuid}`);
+    return res.data;
+  },
+
   // Sync
   syncPush: async (payload: { device_uuid: string; transactions: any[] }) => {
     const res = await apiClient.post('/sync/push', payload);

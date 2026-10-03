@@ -11,12 +11,15 @@ interface CartState {
   addItem: (product: Product, quantity?: number) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
+  updateSerial: (productId: number, serial: string) => void;
   updateDiscount: (productId: number, discountAmount: number) => void;
   setBillDiscount: (amount: number) => void;
   setCustomer: (customer: { id?: number; uuid?: string; name: string; phone?: string | null; email?: string | null; loyalty_points?: number } | null) => void;
   clearCart: () => void;
   holdCurrentBill: (note?: string) => void;
   restoreHeldBill: (heldId: string) => void;
+  restoreCartItems: (items: CartItem[], billDiscount?: number, customer?: any) => void;
+  removeHeldBill: (heldId: string) => void;
 
   // Selectors
   getSubtotal: () => number;
@@ -68,6 +71,8 @@ export const useCartStore = create<CartState>((set, get) => ({
         taxAmount,
         subtotal,
         total,
+        serial_number: null,
+        warranty_notes: product.warranty_period ? `Warranty: ${product.warranty_period}` : null,
       };
 
       return { items: [...state.items, newItem] };
@@ -77,6 +82,14 @@ export const useCartStore = create<CartState>((set, get) => ({
   removeItem: (productId: number) => {
     set((state) => ({
       items: state.items.filter((item) => item.product.id !== productId),
+    }));
+  },
+
+  updateSerial: (productId: number, serial: string) => {
+    set((state) => ({
+      items: state.items.map((item) =>
+        item.product.id === productId ? { ...item, serial_number: serial } : item
+      ),
     }));
   },
 
@@ -160,6 +173,20 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     set((state) => ({
       items: [...bill.items],
+      heldBills: state.heldBills.filter((b) => b.id !== heldId),
+    }));
+  },
+
+  restoreCartItems: (items: CartItem[], billDiscount = 0, customer = null) => {
+    set({
+      items: [...items],
+      billDiscount,
+      customer,
+    });
+  },
+
+  removeHeldBill: (heldId: string) => {
+    set((state) => ({
       heldBills: state.heldBills.filter((b) => b.id !== heldId),
     }));
   },

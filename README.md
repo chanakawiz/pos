@@ -69,7 +69,11 @@ npm run dev
 
 ---
 
-## 📚 Documentation Links
+## 📚 Documentation & Engineering Blueprints
+- [Master Development Plan (Phase 1 & Phase 2)](documentation/development-plan.md)
+- [Master Engineering Backlog (Task IDs & Statuses)](documentation/backlog.md)
+- [Current Project Status & Module Audit](documentation/project-status.md)
+- [UI Design & Wireframe Specifications](documentation/ui-design-and-wireframes.md)
 - [System Architecture Specification](documentation/architecture.md)
 - [Database Schema & Data Dictionary](documentation/database-schema.md)
 - [REST API Specification](documentation/api-documentation.md)
