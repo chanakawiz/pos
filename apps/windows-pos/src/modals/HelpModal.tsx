@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePosStore } from '../stores/usePosStore';
 import { X, Keyboard, Zap, ShoppingBag, CreditCard, RotateCcw, PauseCircle, Search, UserCheck } from 'lucide-react';
+import { CustomerDisplayControl } from '../components/CustomerDisplayControl';
 
 export const HelpModal: React.FC = () => {
   const { closeModal } = usePosStore();
@@ -65,6 +66,7 @@ export const HelpModal: React.FC = () => {
         </div>
 
         {/* Footer */}
+        <CustomerDisplayControl />
         <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
           <span className="flex items-center gap-1.5">
             <ShoppingBag className="w-4 h-4 text-emerald-400" />

@@ -108,3 +108,8 @@ This guide details setting up the entire SmartShop POS environment on macOS, Lin
 ## 4. Receipt printer and cash drawer setup
 
 Configure the terminal’s user-data `printer.json` using the [receipt printing guide](receipt-printing.md) and [sample profile](../apps/windows-pos/printer.example.json). No output is sent until a valid target is configured. TCP delivery and Windows RAW queues are supported; actual Windows/printer/cutter/drawer behavior must be checked on deployment hardware.
+
+
+## 5. Customer-facing monitor setup
+
+Connect the second screen in OS **Extend** mode and keep the cashier window on one monitor. The customer window starts automatically; use **F1 → Customer display** for status and persistent pause/resume. See [customer-display.md](customer-display.md) for behavior, isolation, verification, and required physical Windows acceptance checks.

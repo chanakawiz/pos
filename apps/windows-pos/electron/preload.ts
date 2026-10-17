@@ -1,13 +1,17 @@
 import type { PrinterBridge } from './printer-types';
 import { contextBridge, ipcRenderer } from 'electron';
 import type { StorageBridge } from './storage-types';
+import type { CustomerDisplayBridge } from './customer-display-types';
 
-export interface PosBridgeApi extends StorageBridge, PrinterBridge {
+export interface PosBridgeApi extends StorageBridge, PrinterBridge, CustomerDisplayBridge {
   getDeviceInfo: () => Promise<{ deviceUuid: string; platform: string; appVersion: string }>;
   onBarcodeScan: (callback: (barcode: string) => void) => () => void;
 }
 
 const posApi: PosBridgeApi = {
+  publishCustomerDisplay: (state) => ipcRenderer.invoke('customer-display:publish', state),
+  getCustomerDisplayStatus: () => ipcRenderer.invoke('customer-display:status'),
+  setCustomerDisplayEnabled: (enabled) => ipcRenderer.invoke('customer-display:enable', enabled),
   printReceipt: (request) => ipcRenderer.invoke('printer:print-receipt', request),
   openCashDrawer: () => ipcRenderer.invoke('hardware:open-drawer'),
   getDeviceInfo: () => ipcRenderer.invoke('device:get-info'),

@@ -1,8 +1,8 @@
 # SmartShop POS — Current Project Status
 
 > **Audit Date**: 2026-10-17
-> **Overall Health**: Healthy / Stable (24 backend tests and 27 native Electron tests passing; desktop build and unsigned macOS arm64 packaging pass)
-> **Phase 1 Progress**: SQLite persistence complete; physical peripheral transport and secondary display remain
+> **Overall Health**: Healthy / Stable (24 backend tests and 30 native Electron tests passing; desktop build and unsigned macOS arm64 packaging pass)
+> **Phase 1 Progress**: SQLite persistence complete; printer/drawer transport and customer-display software complete; scales and physical validation remain
 > **Phase 2 Progress**: Planning & Scaffolding Phase
 
 ---
@@ -71,6 +71,7 @@
 | **Background Sync Daemon**| `✅ DONE` | Network ping, queue flush, delta pull. |
 | **ESC/POS Cash Drawer** | `✅ SOFTWARE DONE` | Configured-pin pulse, TCP/Windows RAW transport, F8/checkout handling, serialized delivery, and visible errors. Physical operation awaits equipment. |
 | **ESC/POS Thermal Engine**| `✅ SOFTWARE DONE` | Dedicated 58/80mm raster documents with a bundled Sinhala font, sale/refund/X/Z layouts, and real transport. Physical/Windows checks remain. |
+| **Customer Secondary Display** | `✅ SOFTWARE DONE` | Sandboxed English/Sinhala/bilingual cart, separate session, hotplug placement, persisted F1 pause/resume, and logout/reload clearing. Physical Windows monitor checks remain. |
 | **Help & Shortcuts (F1)** | `✅ DONE` | Instant cheat sheet modal for cashier hotkeys. |
 | **Embedded SQLite** | `✅ DONE` | WAL/FULL durability; atomic sales/items/payments; scoped catalog checkpoints; safe legacy queue import; native recovery/sync tests. |
 
@@ -102,8 +103,10 @@ WIN-013 is complete. Desktop checkout now saves a sale before confirming payment
 
 API-015 replaces independent record counters with a transactional global revision sequence, includes stock changes and deletion tombstones in catalog pulls, and preserves captured tax rates for offline receipts. The new backend migration was applied to the local MySQL database and verified on a fresh isolated SQLite database. Apply it to other environments before using the updated desktop sync client.
 
-Remaining Phase 1 work includes the secondary customer display, scales, physical peripheral validation, and Windows device testing. Real printer/drawer transport is now implemented; local TCP receiver tests verify byte delivery, while physical output and Windows spooler execution still require target validation.
+Remaining Phase 1 work includes scales, physical peripheral/secondary-monitor validation, and Windows device testing. Real printer/drawer transport is now implemented; local TCP receiver tests verify byte delivery, while physical output and Windows spooler execution still require target validation.
 
 Final lint check exits successfully with seven existing React hook/unused-variable warnings. PHP formatting and `git diff --check` pass. The GUI smoke test also verifies failed-write feedback, cart retention, retry, reload recovery, and reconnect synchronization.
 
 Printing continuation: WIN-011/WIN-012 software is verified by 27 native tests and the GUI smoke test (including long 58mm Sinhala output). The unsigned macOS arm64 package includes the font/license and decoder. Configuration and deployment checks are in [receipt-printing.md](receipt-printing.md).
+
+Customer-display continuation: HRD-004 software passes native validation/monitor/IPC tests and an expanded GUI smoke suite using a real sandboxed renderer and simulated monitor events. Live quantities/discounts/held bills, all language modes, reconnect, persistent pause/resume, sale/logout clearing, and cashier shutdown are covered. Screenshot inspection passes. See [customer-display.md](customer-display.md) for operation and outstanding physical acceptance.

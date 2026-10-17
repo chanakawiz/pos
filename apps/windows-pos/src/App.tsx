@@ -22,8 +22,10 @@ import { useBarcodeScanner } from './hooks/useBarcodeScanner';
 import { posSounds } from './utils/audio';
 import { getCachedCatalog, getCachedProductByBarcode } from './services/offlineStorage';
 import { openCashDrawer } from './services/hardware';
+import { startCustomerDisplay } from './services/customerDisplay';
 
 export const App: React.FC = () => {
+  useEffect(startCustomerDisplay, []);
   const { token, user, checkAuth } = useAuthStore();
   const { setOnline, activeModal, closeModal, hardwareMessage, setHardwareMessage } = usePosStore();
   const { addItem } = useCartStore();

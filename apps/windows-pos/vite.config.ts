@@ -9,6 +9,11 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      input: { cashier: 'index.html', customer: 'customer-display.html' },
+    },
+  },
   server: {
     port: 5173,
     host: true,

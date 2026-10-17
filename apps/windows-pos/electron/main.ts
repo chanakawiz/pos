@@ -5,10 +5,16 @@ import { OfflineStore } from './offline-store';
 import { PrinterService } from './printer-service';
 import { readPrinterProfile } from './printer-config';
 import { renderReceipt } from './receipt-renderer';
+import { CustomerDisplay, readDisplayEnabled, saveDisplayEnabled } from './customer-display';
+import { isTrustedFrame } from './trusted-ipc';
 
 let mainWindow: BrowserWindow | null = null;
 
 let offlineStore: OfflineStore | null = null;
+let customerDisplay: CustomerDisplay | null = null;
+const cashierUrl = () => app.isPackaged
+  ? pathToFileURL(path.join(__dirname, '../dist/index.html')).href
+  : new URL(process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173').href;
 
 // A single process owns the local queue, including its one-time legacy import.
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -41,6 +47,7 @@ function createWindow() {
     mainWindow.loadURL(devUrl);
   }
 
+  customerDisplay?.attach(mainWindow);
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -57,27 +64,27 @@ app.whenReady().then(() => {
   // Restrict storage and hardware access to the trusted cashier main frame.
   const trustedHandler = <Args extends unknown[]>(channel: string, handler: (...args: Args) => unknown) => {
     ipcMain.handle(channel, (event, ...args) => {
-      if (!mainWindow || event.sender !== mainWindow.webContents ||
-          event.senderFrame !== mainWindow.webContents.mainFrame) {
-        throw new Error('Untrusted POS request');
-      }
-      const expectedUrl = app.isPackaged
-        ? pathToFileURL(path.join(__dirname, '../dist/index.html')).href
-        : (process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173');
-      if (new URL(event.senderFrame.url).origin !== new URL(expectedUrl).origin ||
-          (app.isPackaged && event.senderFrame.url.split('#')[0] !== expectedUrl)) {
-        throw new Error('Untrusted POS origin');
-      }
+      if (!isTrustedFrame(event, mainWindow, cashierUrl())) throw new Error('Untrusted POS request');
       return handler(...args as Args);
     });
   };
   const printerFilename = path.join(userDataPath, 'printer.json');
   console.info('Receipt printer configuration:', printerFilename);
   const printer = new PrinterService(() => readPrinterProfile(printerFilename), renderReceipt);
+  const displayFilename = path.join(userDataPath, 'customer-display.json');
+  const displayUrl = app.isPackaged
+    ? pathToFileURL(path.join(__dirname, '../dist/customer-display.html')).href
+    : new URL('customer-display.html', cashierUrl()).href;
+  customerDisplay = new CustomerDisplay({ url: displayUrl, enabled: readDisplayEnabled(displayFilename),
+    saveEnabled: (enabled) => saveDisplayEnabled(displayFilename, enabled) });
+  const display = customerDisplay;
+  trustedHandler('customer-display:publish', (state: unknown) => display.publish(state));
+  trustedHandler('customer-display:status', () => display.status());
+  trustedHandler('customer-display:enable', (enabled: unknown) => display.setEnabled(enabled));
   trustedHandler('printer:print-receipt', (request: unknown) => printer.printReceipt(request));
   trustedHandler('hardware:open-drawer', () => printer.openCashDrawer());
 
-  ipcMain.handle('device:get-info', async () => {
+  trustedHandler('device:get-info', async () => {
     return {
       deviceUuid: '550e8400-e29b-41d4-a716-446655440000',
       platform: process.platform,
@@ -105,6 +112,7 @@ app.whenReady().then(() => {
 });
 
 app.on('will-quit', () => {
+  customerDisplay?.dispose();
   offlineStore?.close();
   offlineStore = null;
 });

@@ -95,7 +95,7 @@
 | **HRD-001** | Standard USB HID Wedge Scanner | P0 | `✅ DONE` | Keyboard buffer listener with rapid input detection `< 50ms`. |
 | **HRD-002** | RJ11 Cash Drawer Kick Trigger | P1 | `🔄 IN PROGRESS` | TCP and Windows RAW transport implemented; configured-pin bytes verified against a mock receiver. Actual drawer pin/timing/operation still requires target hardware. |
 | **HRD-003** | USB/Network ESC/POS Printer | P1 | `🔄 IN PROGRESS` | Real TCP delivery and Windows RAW spooler path implemented. 58/80mm raster rendering is tested; Windows spooler execution and physical output/cutter validation remain. |
-| **HRD-004** | Dual-Screen Customer Facing Display | P2 | `⏳ PENDING` | Secondary HDMI/VGA display window showing live line items and total due. |
+| **HRD-004** | Dual-Screen Customer Facing Display | P2 | `✅ SOFTWARE DONE` | Isolated secondary window, live bilingual cart/totals, safe monitor selection/hotplug, and persisted pause/resume. Physical Windows dual-monitor acceptance remains; see [setup](customer-display.md). |
 | **HRD-005** | Electronic Weight Scale (RS-232) | P2 | `⏳ PENDING` | Serial port reader for weighed produce items (grams / kilograms). |
 
 
@@ -105,7 +105,7 @@ Completed WIN-013 and the API-015 prerequisite. Desktop payment now commits loca
 
 Verification: `npm run build:all`, `npm test` (13 native Electron tests), backend suite (24 tests; 257 assertions on local MySQL and 215 on isolated seeded SQLite), the UI failure/retry/reload/reconnect smoke test, and unsigned macOS arm64 packaging. See the desktop README for the UI smoke test command. Windows installer execution and physical power-cut/hardware testing still require the target equipment.
 
-The follow-up below implements printer/drawer transport. Remaining Phase 1 items include customer-facing secondary display (HRD-004), physical peripheral validation (HRD-002/HRD-003), and electronic scales (HRD-005). Mobile remains Phase 2.
+The follow-up below implements printer/drawer transport. Remaining Phase 1 items include physical peripheral/secondary-monitor validation (HRD-002/HRD-003/HRD-004) and electronic scales (HRD-005). Mobile remains Phase 2.
 
 
 ## 2026-10-17 printing continuation
@@ -113,3 +113,10 @@ The follow-up below implements printer/drawer transport. Remaining Phase 1 items
 Completed WIN-011/WIN-012 software implementation: real TCP and Windows RAW spooler transports, main-process printer configuration, serialized jobs, configured drawer pin, 58/80mm receipt rasterization, bundled Sinhala shaping, and dedicated sale/refund/X/Z documents. Print failures stay separate from completed sales and shift closure. Uncertain writes are never automatically retried and cancel already queued follow-up jobs.
 
 Verified 27 Electron tests, the cashier UI smoke test with a real renderer/local TCP receiver, and an unsigned macOS arm64 package containing the font, OFL license, and PNG decoder. Long 58mm output spans capture tiles and was visually inspected. Physical hardware and Windows spooler execution remain unverified, so HRD-002/HRD-003 remain in progress. See [receipt printing setup](receipt-printing.md).
+
+
+## 2026-10-17 customer-display continuation
+
+Completed HRD-004 software: a separate sandboxed customer renderer receives a validated public cart projection over IPC, supports English/Sinhala/bilingual output with the bundled font, and clears on cart completion/logout/cashier reload or shutdown. Monitor selection excludes cashier overlap and mirrored layouts; hotplug and bounds changes reconcile placement. F1 provides status and persistent pause/resume.
+
+Verification: 30 native Electron tests, the expanded cashier/customer GUI smoke suite, desktop build, lint (seven existing warnings), and screenshot inspection. Physical Windows monitor/DPI/focus/hotplug acceptance remains open; see [customer-display.md](customer-display.md).

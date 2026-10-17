@@ -42,7 +42,7 @@ npm test
 npm run test:smoke
 ```
 
-`npm test` runs 27 persistence, synchronization, receipt, and transport tests under Electron's Node runtime, matching the native module ABI. `test:smoke` runs the built cashier UI with a real preload bridge and SQLite against an isolated mock API; it checks offline checkout, reload recovery, reconnect synchronization, receipt/drawer TCP delivery, print failure handling, and long 58mm raster output. It needs a graphical session (use `xvfb-run -a npm run test:smoke` on Linux CI).
+`npm test` runs 30 persistence, synchronization, receipt, transport, display-validation, and IPC tests under Electron's Node runtime, matching the native module ABI. `test:smoke` runs the built cashier UI with a real preload bridge and SQLite against an isolated mock API; it checks offline checkout, reload recovery, reconnect synchronization, receipt/drawer TCP delivery, print failure handling, long 58mm raster output, and an isolated customer display with simulated monitor changes, live cart/language updates, pause/resume, and privacy/reset checks. It needs a graphical session (use `xvfb-run -a npm run test:smoke` on Linux CI).
 
 Use `npm run dist:win` on a Windows build machine for the installer, or `npm run dist:mac` for macOS. Output goes to `release/<version>/`. Native SQLite is unpacked from ASAR and rebuilt for the target architecture. macOS arm64 packaging is verified; Windows execution and physical printer/drawer/scale testing remain target-device checks.
 
@@ -52,3 +52,7 @@ Use `npm run dist:win` on a Windows build machine for the installer, or `npm run
 The main process reads `printer.json` from the terminal's Electron user-data directory. Configure TCP port 9100 or a Windows RAW printer queue, paper width/dots, raster mode, cutter, and drawer pin. Use [printer.example.json](printer.example.json) and the [printing setup guide](../../documentation/receipt-printing.md).
 
 Receipts are rendered separately from the cashier UI, with a bundled Sinhala font. Sending and rendering errors are visible and do not undo a successful payment/refund/shift closure. Reprinting never opens the drawer. TCP/spool submission does not confirm physical paper output. Actual Windows spooler execution and printer/drawer behavior still need target-device checks.
+
+## Customer-facing monitor
+
+Connect a separate monitor in OS **Extend** mode. Electron automatically opens the customer view on a monitor without cashier-window overlap. It displays the live English/Sinhala/bilingual cart and clears on checkout or sign-out. **F1 → Customer display** shows status and saves pause/resume preferences. No separate monitor means the cashier continues normally. See [customer display setup and acceptance checks](../../documentation/customer-display.md). Physical Windows dual-monitor validation remains.

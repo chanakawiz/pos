@@ -70,9 +70,11 @@ To ensure maximum operational stability and immediate commercial viability, the 
 - [ ] **Physical printer/drawer verification**: Windows RAW queue execution, model-specific graphics/cutter/width, pin wiring, and interrupted transfer recovery; see [receipt-printing.md](receipt-printing.md).
 - [x] **Cashier Speed & Shortcuts**:
   - F1 Help cheat sheet overlay, F2 Add Customer, F4 Cloud hold, F8 Cash drawer kick, F9 Checkout.
-- [ ] **Dual-Screen Customer Display (VFD / Secondary Monitor)**: (`⏳ PENDING`)
-  - Electron multi-window support for pole display / customer-facing monitor.
-  - Real-time cart reflection on secondary monitor via IPC broadcast.
+- [x] **Dual-Screen Customer Display software (graphical secondary monitor)**: (`✅ SOFTWARE DONE` — 2026-10-17)
+  - Sandboxed read-only customer renderer, separate session, validated public cart projection, and bundled Sinhala font.
+  - Live quantities/tax/discounts/held bills, English/Sinhala/bilingual output, welcome/reset behavior, safe monitor selection/hotplug, and persisted F1 pause/resume.
+  - Verified by native tests and hidden real-renderer GUI tests. Serial VFD protocols are outside this implementation.
+- [ ] **Physical customer-monitor acceptance**: Windows extended-display placement, DPI/rotation, focus, and disconnect/reconnect; see [customer-display.md](customer-display.md).
 
 ### Milestone 1.3: Filament Admin Analytics & ERP Widgets (`✅ COMPLETED`)
 - [x] **Dashboard KPI Cards (`StatsOverviewWidget`)**: Gross sales, +% vs yesterday, transaction count, active shifts, low stock alert counter.
