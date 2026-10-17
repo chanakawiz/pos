@@ -44,7 +44,7 @@ To ensure maximum operational stability and immediate commercial viability, the 
 - [x] **Automated Test Coverage**: 100% test pass rate covering Auth, Billing, Cash Sessions, Customers, Held Bills, Products, Purchases, Refunds, Reports, and Offline Sync (18 tests, 225 assertions).
 - [x] **Multi-Lane Cloud Held Bills**: Cross-register bill hold and resume engine with automatic inventory reservation.
 
-### Milestone 1.2: Hardware Integration & ESC/POS Engine (`✅ COMPLETED`)
+### Milestone 1.2: Hardware Integration & ESC/POS Engine (`🔄 IN PROGRESS` — transport audit 2026-10-17)
 - [x] **Environment-Driven Multi-Language Configuration (`.env`)**:
   - Configurable via `VITE_DEFAULT_LANGUAGE=bilingual` (or `si`, `en`) in `apps/windows-pos/.env` and `DEFAULT_RECEIPT_LANGUAGE=bilingual` in `backend/laravel-api/.env`.
   - Terminal starts in the specified language mode automatically.
@@ -61,7 +61,7 @@ To ensure maximum operational stability and immediate commercial viability, the 
   - Mobile & electronics warranty lines: prints IMEI/Serial number (`SN/IMEI: 3589...`) and warranty period (`🛡️ 1 Year Apple Care Warranty`).
   - Sri Lankan retail metadata labels: බිල්පත් අංකය (Invoice), දිනය (Date), අයකැමි (Cashier), උප එකතුව (Subtotal), වැට් බදු (Tax), මුළු එකතුව (Total), ගෙවූ මුදල (Paid), ඉතිරි මුදල (Change).
   - Cultural blessings and footer: "ස්තූතියි! නැවත එන්න." / "Thank you! Please visit again."
-- [x] **Direct ESC/POS Thermal Printing**:
+- [ ] **Direct ESC/POS Thermal Printing** (buffers/IPC exist; actual device transport remains pending):
   - Raw binary command generation for 80mm and 58mm thermal rolls.
   - Native cash drawer kickout pulse (`ESC p 0 25 250` on RJ11 pin 2/pin 5).
   - Automated full paper cut command (`GS V 66 0`).
@@ -76,11 +76,15 @@ To ensure maximum operational stability and immediate commercial viability, the 
 - [x] **Daily/Weekly Sales Trend Chart (`SalesChartWidget`)**: Interactive 14-day sales trend and order volume chart.
 - [x] **Low Stock Warning Widget (`LowStockWidget`)**: Immediate alert table displaying products at or below safety stock.
 
-### Milestone 1.4: Embedded SQLite Persistence Upgrade (`⏳ PENDING`)
-- [ ] **Migration from JSON mock to native SQLite**:
+### Milestone 1.4: Embedded SQLite Persistence Upgrade (`✅ COMPLETED` — 2026-10-17)
+- [x] **Migration from JSON mock to native SQLite**:
   - Integrate `better-sqlite3` compiled with electron-rebuild in the Electron main process.
   - Local database tables mirroring central catalog and queued transactions.
-  - Atomic transaction commits with write-ahead logging (WAL) for corruption resistance during power cuts.
+  - Atomic transaction commits with write-ahead logging (WAL) and `synchronous=FULL`.
+  - Scoped catalog/customer cache with atomic checkpoints; transactional server revision sequence and deletion tombstones.
+  - Desktop checkout persists before confirming payment; batches retain UUIDs across network retries.
+  - Legacy JSON queue import preserves the original file and fails visibly on invalid data.
+  - Verified with 13 Electron storage/sync tests and 24 backend tests (215 assertions).
 
 ---
 

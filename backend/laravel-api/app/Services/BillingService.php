@@ -53,9 +53,9 @@ class BillingService
                     : Product::where('uuid', $item['product_uuid'])->firstOrFail();
 
                 $variant = null;
-                if (!empty($item['variant_id'])) {
+                if (! empty($item['variant_id'])) {
                     $variant = ProductVariant::find($item['variant_id']);
-                } elseif (!empty($item['variant_uuid'])) {
+                } elseif (! empty($item['variant_uuid'])) {
                     $variant = ProductVariant::where('uuid', $item['variant_uuid'])->first();
                 }
 
@@ -64,8 +64,10 @@ class BillingService
                 $unitCost = (float) ($variant ? $variant->cost_price : $product->cost_price);
                 $itemDiscount = (float) ($item['discount_amount'] ?? 0.00);
 
-                $lineSubtotal = ($quantity * $unitPrice) - $itemDiscount;
-                $taxRate = (float) $product->tax_rate;
+                $lineSubtotal = round(($quantity * $unitPrice) - $itemDiscount, 2);
+                // Offline receipts retain the tax rate captured when the payment was accepted.
+                $taxRate = ($data['source'] ?? 'online') === 'offline' && isset($item['tax_rate'])
+                    ? (float) $item['tax_rate'] : (float) $product->tax_rate;
                 $lineTax = $taxRate > 0 ? round(($lineSubtotal * $taxRate) / 100, 2) : 0.00;
                 $lineTotal = $lineSubtotal + $lineTax;
 
@@ -87,7 +89,7 @@ class BillingService
                 ];
             }
 
-            $finalTotal = max(0, $subtotal + $totalTax - $totalDiscount);
+            $finalTotal = round(max(0, $subtotal + $totalTax - $totalDiscount), 2);
 
             // Payments calculation
             $totalPaid = 0.00;
@@ -101,9 +103,9 @@ class BillingService
 
             // Find customer
             $customerId = null;
-            if (!empty($data['customer_id'])) {
+            if (! empty($data['customer_id'])) {
                 $customerId = $data['customer_id'];
-            } elseif (!empty($data['customer_uuid'])) {
+            } elseif (! empty($data['customer_uuid'])) {
                 $customer = Customer::where('uuid', $data['customer_uuid'])->first();
                 $customerId = $customer?->id;
             }
@@ -194,6 +196,7 @@ class BillingService
             ->count();
 
         $sequence = str_pad((string) ($countToday + 1), 5, '0', STR_PAD_LEFT);
+
         return "INV-{$store->code}-{$datePrefix}-{$sequence}";
     }
 
@@ -214,14 +217,14 @@ class BillingService
 
             foreach ($items as $item) {
                 $saleItem = null;
-                if (!empty($item['sale_item_id'])) {
+                if (! empty($item['sale_item_id'])) {
                     $saleItem = SaleItem::where('id', $item['sale_item_id'])->where('sale_id', $sale->id)->first();
-                } elseif (!empty($item['sale_item_uuid'])) {
+                } elseif (! empty($item['sale_item_uuid'])) {
                     $saleItem = SaleItem::where('uuid', $item['sale_item_uuid'])->where('sale_id', $sale->id)->first();
                 }
 
-                if (!$saleItem) {
-                    throw new Exception("Sale item not found for refund.");
+                if (! $saleItem) {
+                    throw new Exception('Sale item not found for refund.');
                 }
 
                 $requestedQty = (float) $item['quantity'];
@@ -249,7 +252,7 @@ class BillingService
             }
 
             if (empty($refundItemsData)) {
-                throw new Exception("No valid items to refund.");
+                throw new Exception('No valid items to refund.');
             }
 
             // Create Refund Record
@@ -307,6 +310,7 @@ class BillingService
             ->count();
 
         $sequence = str_pad((string) ($countToday + 1), 5, '0', STR_PAD_LEFT);
+
         return "REF-{$store->code}-{$datePrefix}-{$sequence}";
     }
 }

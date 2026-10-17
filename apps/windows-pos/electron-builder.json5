@@ -6,8 +6,10 @@
   },
   "files": [
     "dist/**/*",
-    "dist-electron/**/*"
+    "dist-electron/**/*",
+    "!dist-electron/tests/**"
   ],
+  "asarUnpack": ["node_modules/better-sqlite3/**"],
   "win": {
     "target": [
       {

@@ -66,6 +66,7 @@ cd apps/windows-pos
 npm install
 npm run dev
 ```
+For the native terminal, configure `VITE_DEVICE_UUID` from a registered store device, then run `npm run build:electron` and `npm run electron:start` in a second terminal. SQLite/offline checkout requires Electron; see the [desktop README](apps/windows-pos/README.md).
 
 ---
 

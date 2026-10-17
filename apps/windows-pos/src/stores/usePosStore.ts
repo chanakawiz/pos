@@ -6,6 +6,7 @@ interface PosState {
   isOnline: boolean;
   syncStatus: 'synced' | 'pending' | 'syncing' | 'error';
   pendingCount: number;
+  isCompletingSale: boolean;
   activeModal: PosModalType | null;
   lastCompletedSale: any | null;
   cashSession: any | null;
@@ -26,6 +27,7 @@ export const usePosStore = create<PosState>((set) => ({
   isOnline: navigator.onLine,
   syncStatus: 'synced',
   pendingCount: 0,
+  isCompletingSale: false,
   activeModal: null,
   lastCompletedSale: null,
   cashSession: null,
@@ -35,8 +37,8 @@ export const usePosStore = create<PosState>((set) => ({
   setLanguage: (lang) => set({ language: lang }),
   setSyncStatus: (status) => set({ syncStatus: status }),
   setPendingCount: (count) => set({ pendingCount: count }),
-  openModal: (modal) => set({ activeModal: modal }),
-  closeModal: () => set({ activeModal: null }),
+  openModal: (modal) => set((state) => state.isCompletingSale ? {} : { activeModal: modal }),
+  closeModal: () => set((state) => state.isCompletingSale ? {} : { activeModal: null }),
   setLastCompletedSale: (sale) => set({ lastCompletedSale: sale }),
   setCashSession: (session) => set({ cashSession: session }),
 

@@ -1,29 +1,25 @@
+import axios from 'axios';
 import { api } from './api';
+import { getStorageScope } from './offlineStorage';
+import { synchronizeOfflineData } from '../../electron/sync-engine';
 import { usePosStore } from '../stores/usePosStore';
 
 class SyncWorker {
   private timer: ReturnType<typeof setInterval> | null = null;
+  private startupTimer: ReturnType<typeof setTimeout> | null = null;
   private isSyncing = false;
-  private intervalMs = 20000; // 20 seconds background heartbeat
 
   public start() {
     if (this.timer) return;
-    console.log('[SyncWorker] Background sync daemon started');
-
-    // Run first sync immediately after startup
-    setTimeout(() => this.runSyncCycle(), 1500);
-
-    this.timer = setInterval(() => {
-      this.runSyncCycle();
-    }, this.intervalMs);
+    this.startupTimer = setTimeout(() => { void this.runSyncCycle(); }, 1500);
+    this.timer = setInterval(() => { void this.runSyncCycle(); }, 20000);
   }
 
   public stop() {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = null;
-      console.log('[SyncWorker] Background sync daemon stopped');
-    }
+    if (this.timer) clearInterval(this.timer);
+    if (this.startupTimer) clearTimeout(this.startupTimer);
+    this.timer = null;
+    this.startupTimer = null;
   }
 
   public async triggerImmediateSync(): Promise<{ success: boolean; syncedCount: number; message: string }> {
@@ -31,88 +27,50 @@ class SyncWorker {
   }
 
   private async runSyncCycle(): Promise<{ success: boolean; syncedCount: number; message: string }> {
-    if (this.isSyncing) {
-      return { success: false, syncedCount: 0, message: 'Sync already in progress' };
-    }
-
+    if (this.isSyncing) return { success: false, syncedCount: 0, message: 'Sync already in progress' };
     this.isSyncing = true;
     const { setOnline, setSyncStatus, setPendingCount } = usePosStore.getState();
-
+    let scope: ReturnType<typeof getStorageScope> | undefined;
     try {
-      // 1. Health check
+      // Show recovered queue totals even when the server is offline.
+      if (window.posApi) {
+        scope = getStorageScope();
+        setPendingCount((await window.posApi.getPendingOfflineSales(scope)).length);
+      }
       await api.syncStatus();
       setOnline(true);
+      setSyncStatus('syncing');
 
-      // 2. Fetch pending offline sales
-      let pendingSales: any[] = [];
-      if (window.posApi?.getPendingOfflineSales) {
-        pendingSales = await window.posApi.getPendingOfflineSales();
-      } else {
-        const stored = localStorage.getItem('smartshop_offline_queue');
-        if (stored) {
-          try {
-            pendingSales = JSON.parse(stored).filter((s: any) => s.sync_status === 'pending');
-          } catch {
-            pendingSales = [];
-          }
-        }
+      if (!window.posApi || !scope) {
+        setSyncStatus('synced');
+        return { success: true, syncedCount: 0, message: 'Connected. Offline storage requires the desktop app.' };
       }
-
-      setPendingCount(pendingSales.length);
-
-      let syncedCount = 0;
-
-      // 3. Push pending sales if any
-      if (pendingSales.length > 0) {
-        setSyncStatus('syncing');
-
-        const deviceUuid = localStorage.getItem('pos_device_uuid') || '550e8400-e29b-41d4-a716-446655440000';
-        const batch = pendingSales.slice(0, 50);
-
-        const pushRes = await api.syncPush({
-          device_uuid: deviceUuid,
-          transactions: batch,
-        });
-
-        if (pushRes.synced_uuids && pushRes.synced_uuids.length > 0) {
-          syncedCount = pushRes.synced_uuids.length;
-
-          if (window.posApi?.markSalesSynced) {
-            await window.posApi.markSalesSynced(pushRes.synced_uuids);
-          } else {
-            const stored = localStorage.getItem('smartshop_offline_queue');
-            if (stored) {
-              const all = JSON.parse(stored).map((s: any) =>
-                pushRes.synced_uuids.includes(s.transaction_uuid) ? { ...s, sync_status: 'synced' } : s
-              );
-              localStorage.setItem('smartshop_offline_queue', JSON.stringify(all));
-            }
-          }
-
-          const remainingCount = Math.max(0, pendingSales.length - syncedCount);
-          setPendingCount(remainingCount);
-        }
-      }
-
-      // 4. Pull catalog deltas
-      const lastVersion = parseInt(localStorage.getItem('pos_last_synced_version') || '0', 10);
-      const pullRes = await api.syncPull({ since_version: lastVersion });
-
-      if (pullRes && pullRes.current_version) {
-        localStorage.setItem('pos_last_synced_version', pullRes.current_version.toString());
-      }
-
-      setSyncStatus('synced');
+      const result = await synchronizeOfflineData(window.posApi, scope, {
+        push: api.syncPush,
+        pull: api.syncPull,
+      });
+      setPendingCount(result.pendingCount);
+      setSyncStatus(result.hasFailures ? 'error' : result.pendingCount > 0 ? 'pending' : 'synced');
+      window.dispatchEvent(new Event('pos:catalog-updated'));
       return {
-        success: true,
-        syncedCount,
-        message: syncedCount > 0 ? `Synced ${syncedCount} offline transactions` : 'All records up to date',
+        success: !result.hasFailures,
+        syncedCount: result.syncedCount,
+        message: result.pendingCount > 0
+          ? `${result.syncedCount} synced; ${result.pendingCount} transactions still pending`
+          : result.syncedCount > 0 ? `Synced ${result.syncedCount} offline transactions` : 'All records up to date',
       };
-    } catch (err: any) {
-      console.warn('[SyncWorker] Sync failed or offline:', err.message);
-      setOnline(false);
-      setSyncStatus('pending');
-      return { success: false, syncedCount: 0, message: 'Server unreachable or offline' };
+    } catch (error: unknown) {
+      const networkError = axios.isAxiosError(error) && !error.response;
+      if (networkError) setOnline(false);
+      setSyncStatus(networkError ? 'pending' : 'error');
+      // A completed push remains acknowledged even when a later pull fails.
+      if (scope && window.posApi) {
+        try { setPendingCount((await window.posApi.getPendingOfflineSales(scope)).length); } catch { /* Retain last known count. */ }
+      }
+      return {
+        success: false, syncedCount: 0,
+        message: networkError ? 'Server unreachable. Local sales remain queued.' : 'Sync failed. Check connectivity and local storage before retrying.',
+      };
     } finally {
       this.isSyncing = false;
     }

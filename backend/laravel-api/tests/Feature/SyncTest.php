@@ -13,6 +13,7 @@ use Tests\TestCase;
 class SyncTest extends TestCase
 {
     use DatabaseTransactions;
+
     public function test_can_push_offline_transactions_and_prevent_duplicate_on_retry(): void
     {
         $cashier = User::where('email', 'cashier1@smartshop.com')->first();
@@ -26,7 +27,7 @@ class SyncTest extends TestCase
             'transactions' => [
                 [
                     'transaction_uuid' => $txUuid,
-                    'invoice_number' => 'OFFLINE-INV-' . Str::random(8),
+                    'invoice_number' => 'OFFLINE-INV-'.Str::random(8),
                     'cashier_uuid' => $cashier->uuid,
                     'subtotal' => 20.00,
                     'discount_amount' => 0.00,
@@ -89,5 +90,38 @@ class SyncTest extends TestCase
                 'categories',
                 'customers',
             ]);
+    }
+
+    public function test_offline_sync_preserves_receipt_tax_snapshot_and_reports_invalid_sales_individually(): void
+    {
+        $cashier = User::where('email', 'cashier1@smartshop.com')->firstOrFail();
+        $device = Device::where('store_id', $cashier->store_id)->firstOrFail();
+        $product = Product::firstOrFail();
+        $product->update(['tax_rate' => 20]);
+        $uuid = (string) Str::uuid();
+        $invalidUuid = (string) Str::uuid();
+        $transaction = [
+            'transaction_uuid' => $uuid,
+            'cashier_uuid' => $cashier->uuid,
+            'items' => [['product_uuid' => $product->uuid, 'quantity' => 2, 'unit_price' => 10.05, 'tax_rate' => 5]],
+            'payments' => [['payment_method' => 'cash', 'amount' => 25]],
+        ];
+
+        $this->actingAs($cashier)->postJson('/api/v1/sync/push', [
+            'device_uuid' => $device->uuid,
+            'transactions' => [$transaction, array_merge($transaction, ['transaction_uuid' => $invalidUuid, 'items' => []])],
+        ])->assertOk()->assertJsonPath('synced_count', 1)
+            ->assertJsonPath('synced_uuids.0', $uuid)
+            ->assertJsonPath('failed_uuids.0.uuid', $invalidUuid);
+
+        $sale = Sale::where('transaction_uuid', $uuid)->firstOrFail();
+        $this->assertSame(21.11, (float) $sale->total_amount);
+        $this->assertSame(3.89, (float) $sale->change_amount);
+        $this->assertFalse(Sale::where('transaction_uuid', $invalidUuid)->exists());
+
+        // Online billing continues to use the authoritative catalog rate.
+        $transaction['transaction_uuid'] = (string) Str::uuid();
+        $this->actingAs($cashier)->postJson('/api/v1/sales', $transaction)
+            ->assertCreated()->assertJsonPath('sale.total_amount', 24.12);
     }
 }

@@ -76,10 +76,16 @@ sequenceDiagram
 
 ### 3.3 Versioned Delta Pull
 To prevent transmitting thousands of product rows every sync cycle:
-1. Every `Product`, `Category`, and `Customer` record has an integer `version` field that increments on every update.
+1. `Product`, `Category`, and `Customer` model writes obtain their integer `version` from one global `sync_revisions` sequence. The sequence row is locked and updated in the same transaction as the record, so checkpoints follow commit order across entity types. Inventory model writes invalidate the associated product in that same transaction.
 2. The client records its `last_synced_version`.
 3. The request `GET /api/v1/sync/pull?since_version=1042` fetches only the modified records.
-4. Client executes an atomic SQLite transaction replacing or upserting only those keys.
+4. The server captures a committed high-water mark before querying, returning only revisions `since_version < version <= current_version`. Updates after that boundary remain eligible for the next pull.
+5. Soft-deleted records include `deleted_at`; permanent deletions are retained in `sync_tombstones`. Inactive records and deletion tombstones remove local entries. Restores produce a new revision.
+6. The client commits all records and the checkpoint in one SQLite transaction. It starts from version zero for a new store/device scope; legacy localStorage checkpoints are ignored.
+
+Catalog/inventory writes must use the model instance APIs (`save`, `update`, `delete`, `restore`, `increment`, `decrement`). Bulk query-builder updates bypass this tracking; maintenance imports must explicitly allocate a revision and update all affected records atomically. Tombstones must be retained until every supported terminal has passed their revision, or terminals must perform a full reset/bootstrap.
+
+The 2026-10-17 migration re-baselines existing records above the old per-record maximum, ensuring existing clients can receive every record after upgrading.
 
 ---
 
@@ -139,3 +145,14 @@ To prevent transmitting thousands of product rows every sync cycle:
   "server_timestamp": "2026-09-14T16:45:02Z"
 }
 ```
+
+
+## 5. Desktop implementation and operational limits (2026-10-17)
+
+- The Electron main process owns `smartshop_pos.sqlite`, with WAL, `synchronous=FULL`, foreign keys, and transactional sale/item/payment writes. Storage errors reject the IPC request; checkout retains the cart instead of confirming payment.
+- Desktop checkout commits first and prints a local `POS-<transaction_uuid>` receipt. Sync uses that same UUID and invoice number, with a maximum batch size of 50. Captured line tax rates are honored during offline ingestion; online billing uses the current catalog rate.
+- Only acknowledged UUIDs from the submitted batch become synced. Rejections remain pending, partial success is visible, and a failed pull never rolls back an earlier acknowledgement.
+- Cached products include their numeric ID, category object, Sinhala name, serial requirement, and warranty fields. Barcode/SKU lookup and product filtering use SQLite during outages. The cache is scoped to the store and registered terminal identity.
+- The old JSON file is imported once, atomically, on the first scoped access. It is retained unchanged. Malformed data fails visibly and can be corrected before retrying; unscoped legacy data adopts the originally configured lane/store.
+- Existing authenticated sessions can recover offline after restart. New login, customer creation/loyalty redemption, cloud held bills, refunds, and shift API operations still require the backend. Browser preview is online-only.
+- Automated verification covers storage rollback, restart recovery, legacy migration, duplicate/lost-response retries, batch limits, partial acknowledgements, and checkpoint rollback. Physical power-loss tests and Windows hardware validation are separate deployment checks.

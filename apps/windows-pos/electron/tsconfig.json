@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["main.ts", "preload.ts"]
+  "include": ["**/*.ts"]
 }

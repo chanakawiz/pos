@@ -17,7 +17,7 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  const deviceUuid = localStorage.getItem('pos_device_uuid');
+  const deviceUuid = localStorage.getItem('pos_device_uuid') || import.meta.env.VITE_DEVICE_UUID;
   if (deviceUuid) {
     config.headers['X-Device-UUID'] = deviceUuid;
   }

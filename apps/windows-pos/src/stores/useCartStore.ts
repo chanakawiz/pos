@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Product, CartItem } from '../types/pos';
+import { roundMoney } from '../../electron/money';
 
 interface CartState {
   items: CartItem[];
@@ -44,8 +45,8 @@ export const useCartStore = create<CartState>((set, get) => ({
         const updated = [...state.items];
         const item = updated[existingIndex];
         const newQty = item.quantity + quantity;
-        const subtotal = newQty * unitPrice - item.discountAmount;
-        const taxAmount = taxRate > 0 ? (subtotal * taxRate) / 100 : 0;
+        const subtotal = roundMoney(newQty * item.unitPrice - item.discountAmount);
+        const taxAmount = item.taxRate > 0 ? roundMoney((subtotal * item.taxRate) / 100) : 0;
         const total = subtotal + taxAmount;
 
         updated[existingIndex] = {
@@ -58,8 +59,8 @@ export const useCartStore = create<CartState>((set, get) => ({
         return { items: updated };
       }
 
-      const subtotal = quantity * unitPrice;
-      const taxAmount = taxRate > 0 ? (subtotal * taxRate) / 100 : 0;
+      const subtotal = roundMoney(quantity * unitPrice);
+      const taxAmount = taxRate > 0 ? roundMoney((subtotal * taxRate) / 100) : 0;
       const total = subtotal + taxAmount;
 
       const newItem: CartItem = {
@@ -103,8 +104,8 @@ export const useCartStore = create<CartState>((set, get) => ({
       items: state.items.map((item) => {
         if (item.product.id !== productId) return item;
 
-        const subtotal = quantity * item.unitPrice - item.discountAmount;
-        const taxAmount = item.taxRate > 0 ? (subtotal * item.taxRate) / 100 : 0;
+        const subtotal = roundMoney(quantity * item.unitPrice - item.discountAmount);
+        const taxAmount = item.taxRate > 0 ? roundMoney((subtotal * item.taxRate) / 100) : 0;
         const total = subtotal + taxAmount;
 
         return {
@@ -124,8 +125,8 @@ export const useCartStore = create<CartState>((set, get) => ({
         if (item.product.id !== productId) return item;
 
         const discount = Math.max(0, Math.min(item.quantity * item.unitPrice, discountAmount));
-        const subtotal = item.quantity * item.unitPrice - discount;
-        const taxAmount = item.taxRate > 0 ? (subtotal * item.taxRate) / 100 : 0;
+        const subtotal = roundMoney(item.quantity * item.unitPrice - discount);
+        const taxAmount = item.taxRate > 0 ? roundMoney((subtotal * item.taxRate) / 100) : 0;
         const total = subtotal + taxAmount;
 
         return {
@@ -208,6 +209,6 @@ export const useCartStore = create<CartState>((set, get) => ({
     const subtotal = get().getSubtotal();
     const tax = get().getTaxTotal();
     const billDisc = get().billDiscount;
-    return Math.max(0, subtotal + tax - billDisc);
+    return roundMoney(Math.max(0, subtotal + tax - billDisc));
   },
 }));

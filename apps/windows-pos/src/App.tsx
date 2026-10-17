@@ -20,9 +20,10 @@ import { HelpModal } from './modals/HelpModal';
 import { syncWorker } from './services/syncWorker';
 import { useBarcodeScanner } from './hooks/useBarcodeScanner';
 import { posSounds } from './utils/audio';
+import { getCachedCatalog, getCachedProductByBarcode } from './services/offlineStorage';
 
 export const App: React.FC = () => {
-  const { token, checkAuth } = useAuthStore();
+  const { token, user, checkAuth } = useAuthStore();
   const { setOnline, activeModal, closeModal } = usePosStore();
   const { addItem } = useCartStore();
 
@@ -54,6 +55,11 @@ export const App: React.FC = () => {
   // Load Categories
   const fetchCategories = useCallback(async () => {
     try {
+      const cached = await getCachedCatalog({ limit: 1 });
+      if (cached && cached.current_version > 0) {
+        setCategories(cached.categories);
+        return;
+      }
       const res = await api.getCategories();
       setCategories(res.data);
     } catch {
@@ -65,6 +71,15 @@ export const App: React.FC = () => {
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     try {
+      const cached = await getCachedCatalog({
+        category_uuid: selectedCategoryUuid || undefined,
+        search: searchTerm || undefined,
+        limit: 50,
+      });
+      if (cached && cached.current_version > 0) {
+        setProducts(cached.products);
+        return;
+      }
       const res = await api.getProducts({
         category_uuid: selectedCategoryUuid || undefined,
         search: searchTerm || undefined,
@@ -79,15 +94,28 @@ export const App: React.FC = () => {
   }, [selectedCategoryUuid, searchTerm]);
 
   useEffect(() => {
-    if (token) {
+    if (token && user) {
       fetchCategories();
       fetchProducts();
     }
-  }, [token, fetchCategories, fetchProducts]);
+  }, [token, user, fetchCategories, fetchProducts]);
+
+  useEffect(() => {
+    const refresh = () => { void fetchCategories(); void fetchProducts(); };
+    window.addEventListener('pos:catalog-updated', refresh);
+    return () => window.removeEventListener('pos:catalog-updated', refresh);
+  }, [fetchCategories, fetchProducts]);
 
   // Fast Barcode submission
   const handleBarcodeSubmit = useCallback(async (barcode: string) => {
     try {
+      const cached = await getCachedProductByBarcode(barcode);
+      if (cached) {
+        addItem(cached, 1);
+        posSounds.playScannerBeep();
+        setSearchTerm('');
+        return;
+      }
       const res = await api.getProductByBarcode(barcode);
       if (res.product) {
         addItem(res.product, 1);

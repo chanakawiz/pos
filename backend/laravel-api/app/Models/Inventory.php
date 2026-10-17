@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\SyncRevision;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,46 @@ class Inventory extends Model
         'quantity_on_hand' => 'decimal:2',
         'quantity_reserved' => 'decimal:2',
     ];
+
+    public function save(array $options = [])
+    {
+        return $this->getConnection()->transaction(function () use ($options) {
+            $version = SyncRevision::next($this->getConnection());
+            $productIds = array_filter([$this->getOriginal('product_id'), $this->product_id]);
+            $saved = parent::save($options);
+            if ($saved) {
+                $this->getConnection()->table('products')->whereIn('id', $productIds)->update(['version' => $version]);
+            }
+
+            return $saved;
+        });
+    }
+
+    public function delete()
+    {
+        return $this->getConnection()->transaction(function () {
+            $version = SyncRevision::next($this->getConnection());
+            $deleted = parent::delete();
+            if ($deleted) {
+                $this->getConnection()->table('products')->where('id', $this->product_id)->update(['version' => $version]);
+            }
+
+            return $deleted;
+        });
+    }
+
+    protected function incrementOrDecrement($column, $amount, $extra, $method)
+    {
+        return $this->getConnection()->transaction(function () use ($column, $amount, $extra, $method) {
+            $version = SyncRevision::next($this->getConnection());
+            $result = parent::incrementOrDecrement($column, $amount, $extra, $method);
+            if ($result) {
+                $this->getConnection()->table('products')->where('id', $this->product_id)->update(['version' => $version]);
+            }
+
+            return $result;
+        });
+    }
 
     public function store(): BelongsTo
     {

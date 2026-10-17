@@ -1,32 +1,18 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import path from 'path';
-import fs from 'fs';
+import { pathToFileURL } from 'node:url';
+import { OfflineStore } from './offline-store';
 
 let mainWindow: BrowserWindow | null = null;
 
-// Local offline storage path in user app data
-const userDataPath = app.getPath('userData');
-const offlineDbPath = path.join(userDataPath, 'smartshop_offline_sales.json');
+let offlineStore: OfflineStore | null = null;
 
-function getOfflineSales(): any[] {
-  try {
-    if (fs.existsSync(offlineDbPath)) {
-      const data = fs.readFileSync(offlineDbPath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (err) {
-    console.error('Failed to read offline sales:', err);
-  }
-  return [];
-}
-
-function saveOfflineSales(sales: any[]): void {
-  try {
-    fs.writeFileSync(offlineDbPath, JSON.stringify(sales, null, 2), 'utf8');
-  } catch (err) {
-    console.error('Failed to write offline sales:', err);
-  }
-}
+// A single process owns the local queue, including its one-time legacy import.
+if (!app.requestSingleInstanceLock()) app.quit();
+app.on('second-instance', () => {
+  if (mainWindow?.isMinimized()) mainWindow.restore();
+  mainWindow?.focus();
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -118,6 +104,30 @@ function buildEscPosReceipt(receiptData: any): Buffer {
 }
 
 app.whenReady().then(() => {
+  const userDataPath = app.getPath('userData');
+  const storage = new OfflineStore(
+    path.join(userDataPath, 'smartshop_pos.sqlite'),
+    path.join(userDataPath, 'smartshop_offline_sales.json'),
+  );
+  offlineStore = storage;
+
+  // Reject storage requests from child windows, subframes, or navigated pages.
+  const storageHandler = <Args extends unknown[]>(channel: string, handler: (...args: Args) => unknown) => {
+    ipcMain.handle(channel, (event, ...args) => {
+      if (!mainWindow || event.sender !== mainWindow.webContents ||
+          event.senderFrame !== mainWindow.webContents.mainFrame) {
+        throw new Error('Untrusted storage request');
+      }
+      const expectedUrl = app.isPackaged
+        ? pathToFileURL(path.join(__dirname, '../dist/index.html')).href
+        : (process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173');
+      if (new URL(event.senderFrame.url).origin !== new URL(expectedUrl).origin ||
+          (app.isPackaged && event.senderFrame.url.split('#')[0] !== expectedUrl)) {
+        throw new Error('Untrusted storage origin');
+      }
+      return handler(...args as Args);
+    });
+  };
   // IPC Handlers
   ipcMain.handle('printer:print-receipt', async (_event, receiptData) => {
     console.log('[Printer IPC] Received print request for invoice:', receiptData?.invoice_number);
@@ -154,38 +164,28 @@ app.whenReady().then(() => {
     };
   });
 
-  ipcMain.handle('storage:save-offline-sale', async (_event, sale) => {
-    const current = getOfflineSales();
-    current.push({
-      ...sale,
-      local_id: `OFFLINE-${Date.now()}`,
-      sync_status: 'pending',
-      created_at: new Date().toISOString(),
-    });
-    saveOfflineSales(current);
-    return { success: true, id: sale.transaction_uuid };
-  });
-
-  ipcMain.handle('storage:get-offline-sales', async () => {
-    return getOfflineSales().filter((s) => s.sync_status === 'pending');
-  });
-
-  ipcMain.handle('storage:get-all-offline-sales', async () => {
-    return getOfflineSales();
-  });
-
-  ipcMain.handle('storage:mark-synced', async (_event, uuids: string[]) => {
-    const current = getOfflineSales();
-    const updated = current.map((s) => (uuids.includes(s.transaction_uuid) ? { ...s, sync_status: 'synced' } : s));
-    saveOfflineSales(updated);
-    return true;
-  });
+  storageHandler('storage:save-offline-sale', storage.saveSale.bind(storage));
+  storageHandler('storage:get-offline-sales', (scope: Parameters<OfflineStore['getSales']>[0]) => storage.getSales(scope, true));
+  storageHandler('storage:get-all-offline-sales', storage.getSales.bind(storage));
+  storageHandler('storage:mark-synced', storage.markSynced.bind(storage));
+  storageHandler('storage:get-catalog', storage.getCatalog.bind(storage));
+  storageHandler('storage:get-product-by-barcode', storage.getProductByBarcode.bind(storage));
+  storageHandler('storage:apply-catalog-delta', storage.applyDelta.bind(storage));
 
   createWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+}).catch((error: unknown) => {
+  console.error('Unable to initialize POS storage:', error);
+  dialog.showErrorBox('POS storage unavailable', 'The local database could not be opened. Restart the terminal or contact support.');
+  app.quit();
+});
+
+app.on('will-quit', () => {
+  offlineStore?.close();
+  offlineStore = null;
 });
 
 app.on('window-all-closed', () => {

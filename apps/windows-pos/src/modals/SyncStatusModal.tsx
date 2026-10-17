@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { usePosStore } from '../stores/usePosStore';
 import { syncWorker } from '../services/syncWorker';
+import { getStorageScope } from '../services/offlineStorage';
+import type { OfflineSale } from '../../electron/storage-types';
+import { useAuthStore } from '../stores/useAuthStore';
 import {
   X,
   RefreshCw,
@@ -16,46 +19,39 @@ import {
 export const SyncStatusModal: React.FC = () => {
   const { isOnline, pendingCount, closeModal } = usePosStore();
 
-  const [offlineSales, setOfflineSales] = useState<any[]>([]);
+  const [offlineSales, setOfflineSales] = useState<OfflineSale[]>([]);
   const [deviceInfo, setDeviceInfo] = useState<any>({
-    deviceUuid: '550e8400-e29b-41d4-a716-446655440000',
+    deviceUuid: useAuthStore.getState().deviceUuid || 'Unconfigured',
     platform: 'win32',
     appVersion: '1.0.0',
   });
-  const [catalogVersion, setCatalogVersion] = useState<string>('1');
+  const [catalogVersion, setCatalogVersion] = useState<string>('0');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   const loadOfflineData = async () => {
     if (window.posApi?.getAllOfflineSales) {
       try {
-        const sales = await window.posApi.getAllOfflineSales();
+        const scope = getStorageScope();
+        const sales = await window.posApi.getAllOfflineSales(scope);
         setOfflineSales(sales || []);
+        const catalog = await window.posApi.getCatalog(scope, { limit: 1 });
+        setCatalogVersion(String(catalog.current_version));
+        usePosStore.getState().setPendingCount(sales.filter((sale) => sale.sync_status === 'pending').length);
       } catch {
-        setOfflineSales([]);
-      }
-    } else {
-      const stored = localStorage.getItem('smartshop_offline_queue');
-      if (stored) {
-        try {
-          setOfflineSales(JSON.parse(stored));
-        } catch {
-          setOfflineSales([]);
-        }
+        setSyncFeedback('Unable to read local storage. Pending sales may require recovery.');
       }
     }
 
     if (window.posApi?.getDeviceInfo) {
       try {
         const info = await window.posApi.getDeviceInfo();
-        setDeviceInfo(info);
+        setDeviceInfo({ ...info, deviceUuid: useAuthStore.getState().deviceUuid || 'Unconfigured' });
       } catch {
         // Fallback
       }
     }
 
-    const version = localStorage.getItem('pos_last_synced_version') || '1';
-    setCatalogVersion(version);
   };
 
   useEffect(() => {
@@ -125,7 +121,7 @@ export const SyncStatusModal: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">
                   {isOnline
                     ? 'Automatic background sync daemon active (every 20s)'
-                    : 'Sales safely stored in local SQLite database'}
+                    : window.posApi ? 'Sales stored locally; pending sales retry when connected' : 'Offline checkout requires the desktop app'}
                 </p>
               </div>
             </div>
@@ -172,7 +168,7 @@ export const SyncStatusModal: React.FC = () => {
                 <HardDrive className="w-3.5 h-3.5" />
                 <span>Local Engine</span>
               </div>
-              <div className="text-sm font-bold text-white mt-1">SQLite / JSON</div>
+              <div className="text-sm font-bold text-white mt-1">{window.posApi ? 'SQLite (WAL)' : 'Online browser'}</div>
               <span className="text-[10px] text-slate-500">idempotent store</span>
             </div>
           </div>

@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useCartStore } from '../stores/useCartStore';
 import { usePosStore } from '../stores/usePosStore';
 import { api } from '../services/api';
 import type { PaymentType } from '../types/pos';
 import { X, Banknote, CreditCard, Landmark, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { posSounds } from '../utils/audio';
+import { useAuthStore } from '../stores/useAuthStore';
+import { getStorageScope } from '../services/offlineStorage';
+import { persistSale } from '../services/salePersistence';
+import { syncWorker } from '../services/syncWorker';
+import type { OfflineSale } from '../../electron/storage-types';
+import { roundMoney } from '../../electron/money';
 
 export const PaymentModal: React.FC = () => {
   const { items, customer, billDiscount, getGrandTotal, clearCart } = useCartStore();
@@ -17,6 +23,10 @@ export const PaymentModal: React.FC = () => {
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const submissionLock = useRef(false);
+  // Keep this key across persistence retries; only a new checkout gets a new UUID.
+  const transactionUuid = useRef(crypto.randomUUID());
+  const checkoutTime = useRef(new Date().toISOString());
 
   const tenderedAmount = parseFloat(cashTendered) || 0;
   const changeDue = Math.max(0, tenderedAmount - grandTotal);
@@ -27,36 +37,86 @@ export const PaymentModal: React.FC = () => {
   };
 
   const handlePay = async () => {
-    if (!isSufficient) return;
+    if (!isSufficient || submissionLock.current || items.length === 0) return;
+    submissionLock.current = true;
+    usePosStore.setState({ isCompletingSale: true });
 
     setIsSubmitting(true);
     setErrorMessage(null);
 
     try {
-      const payload = {
-        transaction_uuid: crypto.randomUUID(),
-        customer_id: customer?.id,
-        customer_uuid: customer?.uuid,
-        discount_amount: billDiscount,
-        items: items.map((i) => ({
+      const { user } = useAuthStore.getState();
+      if (!user) throw new Error('Please sign in before completing a sale.');
+      const soldAt = checkoutTime.current;
+      const saleItems = items.map((i) => {
+        const subtotal = roundMoney(i.quantity * i.unitPrice - i.discountAmount);
+        const tax = roundMoney(subtotal * i.taxRate / 100);
+        return {
           product_id: i.product.id,
           product_uuid: i.product.uuid,
+          product_name: i.product.name,
+          sinhala_name: i.product.sinhala_name,
           quantity: i.quantity,
-          unit_price: i.unitPrice,
+          unit_price: Number(i.unitPrice),
           discount_amount: i.discountAmount,
+          subtotal,
+          tax_amount: tax,
+          tax_rate: i.taxRate,
+          total: roundMoney(subtotal + tax),
           serial_number: i.serial_number || null,
           warranty_notes: i.warranty_notes || (i.product.warranty_period ? `Warranty: ${i.product.warranty_period}` : null),
-        })),
+        };
+      });
+      const subtotal = roundMoney(saleItems.reduce((sum, item) => sum + item.subtotal, 0));
+      const taxAmount = roundMoney(saleItems.reduce((sum, item) => sum + item.tax_amount, 0));
+      const totalAmount = roundMoney(Math.max(0, subtotal + taxAmount - billDiscount));
+      const paidAmount = paymentMethod === 'cash' ? tenderedAmount : totalAmount;
+      if (!Number.isFinite(paidAmount) || paidAmount < totalAmount) throw new Error('Insufficient payment.');
+      const payload: OfflineSale = {
+        transaction_uuid: transactionUuid.current,
+        invoice_number: `POS-${transactionUuid.current}`,
+        cashier_uuid: user.uuid,
+        customer_uuid: customer?.uuid,
+        discount_amount: billDiscount,
+        sold_at: soldAt,
+        subtotal,
+        tax_amount: taxAmount,
+        total_amount: totalAmount,
+        paid_amount: paidAmount,
+        change_amount: roundMoney(Math.max(0, paidAmount - totalAmount)),
+        items: saleItems,
         payments: [
           {
             payment_method: paymentMethod,
-            amount: paymentMethod === 'cash' ? tenderedAmount : grandTotal,
+            amount: paidAmount,
             reference_number: referenceNumber || null,
           },
         ],
       };
 
-      const result = await api.createSale(payload);
+      let completedSale;
+      if (window.posApi) {
+        const scope = getStorageScope();
+        await persistSale(window.posApi, scope, payload);
+        const pos = usePosStore.getState();
+        pos.setPendingCount(pos.pendingCount + 1);
+        pos.setSyncStatus('pending');
+        completedSale = {
+          ...payload,
+          sync_status: 'pending',
+          receipt: {
+            store_name: user.store?.name,
+            currency_symbol: user.store?.currency_symbol,
+            cashier_name: user.name,
+            invoice_number: payload.invoice_number,
+            sold_at: soldAt,
+          },
+        };
+        void syncWorker.triggerImmediateSync();
+      } else {
+        const result = await api.createSale(payload);
+        completedSale = { ...result.sale, receipt: result.receipt };
+      }
       posSounds.playSuccessChime();
 
       // Trigger hardware cash drawer if electron bridge is present
@@ -65,21 +125,23 @@ export const PaymentModal: React.FC = () => {
       }
 
       setLastCompletedSale({
-        ...result.sale,
-        receipt: result.receipt,
+        ...completedSale,
         cashTendered: tenderedAmount,
         changeDue: changeDue,
         paymentMethod,
       });
 
       clearCart();
+      usePosStore.setState({ isCompletingSale: false });
       closeModal();
       openModal('receipt');
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to complete sale transaction.';
+      const msg = err.response?.data?.message || err.message || 'Failed to complete sale transaction.';
       setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
+      submissionLock.current = false;
+      usePosStore.setState({ isCompletingSale: false });
     }
   };
 
@@ -94,6 +156,7 @@ export const PaymentModal: React.FC = () => {
           </div>
           <button
             onClick={closeModal}
+            disabled={isSubmitting}
             className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -101,7 +164,7 @@ export const PaymentModal: React.FC = () => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+        <fieldset disabled={isSubmitting} className="p-6 space-y-6 flex-1 min-w-0 overflow-y-auto">
           {/* Total Amount Due Banner */}
           <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
             <span className="text-sm font-medium text-slate-400">Total Amount Due</span>
@@ -258,13 +321,14 @@ export const PaymentModal: React.FC = () => {
               <span>{errorMessage}</span>
             </div>
           )}
-        </div>
+        </fieldset>
 
         {/* Footer actions */}
         <div className="p-6 border-t border-slate-800 flex items-center gap-3">
           <button
             type="button"
             onClick={closeModal}
+            disabled={isSubmitting}
             className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-colors cursor-pointer"
           >
             Cancel

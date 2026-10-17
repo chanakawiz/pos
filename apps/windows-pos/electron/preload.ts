@@ -1,14 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { StorageBridge } from './storage-types';
 
-export interface PosBridgeApi {
+export interface PosBridgeApi extends StorageBridge {
   printReceipt: (receiptData: any) => Promise<{ success: boolean; message?: string }>;
   openCashDrawer: () => Promise<{ success: boolean }>;
   getDeviceInfo: () => Promise<{ deviceUuid: string; platform: string; appVersion: string }>;
   onBarcodeScan: (callback: (barcode: string) => void) => () => void;
-  saveOfflineSale: (sale: any) => Promise<{ success: boolean; id: string }>;
-  getPendingOfflineSales: () => Promise<any[]>;
-  getAllOfflineSales: () => Promise<any[]>;
-  markSalesSynced: (uuids: string[]) => Promise<boolean>;
 }
 
 const posApi: PosBridgeApi = {
@@ -20,10 +17,13 @@ const posApi: PosBridgeApi = {
     ipcRenderer.on('scanner:barcode', handler);
     return () => ipcRenderer.removeListener('scanner:barcode', handler);
   },
-  saveOfflineSale: (sale: any) => ipcRenderer.invoke('storage:save-offline-sale', sale),
-  getPendingOfflineSales: () => ipcRenderer.invoke('storage:get-offline-sales'),
-  getAllOfflineSales: () => ipcRenderer.invoke('storage:get-all-offline-sales'),
-  markSalesSynced: (uuids: string[]) => ipcRenderer.invoke('storage:mark-synced', uuids),
+  saveOfflineSale: (scope, sale) => ipcRenderer.invoke('storage:save-offline-sale', scope, sale),
+  getPendingOfflineSales: (scope) => ipcRenderer.invoke('storage:get-offline-sales', scope),
+  getAllOfflineSales: (scope) => ipcRenderer.invoke('storage:get-all-offline-sales', scope),
+  markSalesSynced: (scope, uuids) => ipcRenderer.invoke('storage:mark-synced', scope, uuids),
+  getCatalog: (scope, query) => ipcRenderer.invoke('storage:get-catalog', scope, query),
+  getCachedProductByBarcode: (scope, barcode) => ipcRenderer.invoke('storage:get-product-by-barcode', scope, barcode),
+  applyCatalogDelta: (scope, delta) => ipcRenderer.invoke('storage:apply-catalog-delta', scope, delta),
 };
 
 contextBridge.exposeInMainWorld('posApi', posApi);

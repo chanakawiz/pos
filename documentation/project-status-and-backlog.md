@@ -1,10 +1,12 @@
 # SmartShop POS — Project Status, Backlog & Roadmap
 
-> **Document Version**: 1.0.0  
-> **Last Updated**: 2026-09-27  
+> **Document Version**: 1.0.0
+> **Last Updated**: 2026-10-17
 > **Target Platforms**: Windows POS (Electron/React), Backend (Laravel 11 / Filament v3), Mobile POS (Flutter)
 
 ---
+
+> The detailed tables below are a historical September audit. Current task status is maintained in [`backlog.md`](backlog.md) and [`project-status.md`](project-status.md). On 2026-10-17, WIN-013 and API-015 were completed and verified.
 
 ## 1. Executive Summary & Architecture Status
 
@@ -69,7 +71,7 @@ SmartShop POS is designed as an **offline-first, multi-platform retail managemen
 | **Cloud Held Bills Sync** | `PENDING` | Wire `HoldBillsModal.tsx` to backend `/api/v1/held-bills` API instead of local in-memory only. |
 | **Shift X-Report / Z-Report UI**| `PENDING` | Connect `CashSessionModal` to `/api/v1/cash-sessions/x-report` to view and print cashier shift reports. |
 | **Direct ESC/POS Hardware** | `PENDING` | Direct ESC/POS printing (cutter commands, RJ11 drawer kick pulse `ESC p 0 25 250`, 80mm/58mm thermal templates). |
-| **Local SQLite Migration** | `PENDING` | Migrate Electron main process from mock JSON storage to native embedded SQLite (`better-sqlite3`). |
+| **Local SQLite Migration** | `COMPLETED (2026-10-17)` | Native SQLite, atomic offline checkout, scoped catalog cache, legacy import, and recovery tests. |
 
 ---
 

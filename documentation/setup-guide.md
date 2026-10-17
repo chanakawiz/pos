@@ -7,7 +7,7 @@ This guide details setting up the entire SmartShop POS environment on macOS, Lin
 ## 1. Prerequisites
 - **PHP**: 8.3 or 8.4 with extensions: `pdo_mysql`, `pdo_sqlite`, `bcmath`, `curl`, `mbstring`, `xml`, `zip`, `intl`.
 - **Composer**: 2.6+
-- **Node.js**: 20 LTS or higher, with `npm`
+- **Node.js**: 24 LTS recommended (minimum 22.12), with `npm`
 - **MySQL**: 8.0+
 - **Electron**: Windows 10/11 or macOS / Linux cross-compilation environment
 
@@ -73,16 +73,33 @@ This guide details setting up the entire SmartShop POS environment on macOS, Lin
 3. Configure Local Environment:
    ```env
    VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+   VITE_DEVICE_UUID=<active-device-uuid-from-filament>
    ```
+
+   Register an active device under the cashier’s store in Filament and use its UUID above. A previously stored `pos_device_uuid` takes precedence. `npm ci` rebuilds native SQLite for Electron; run `npm run rebuild:native` after changing Electron or CPU architecture.
 
 4. Launch in development mode:
    ```bash
    npm run dev
    ```
+   In a second terminal, start the native app:
+   ```bash
+   npm run build:electron
+   npm run electron:start
+   ```
+   The browser preview uses online checkout; SQLite/offline checkout requires Electron.
 
 5. Build Windows Distribution Installer:
    ```bash
-   npm run build
-   npm run electron:build
+   npm run dist:win
    ```
-   The `.exe` installer will be generated in `apps/windows-pos/dist/`.
+   Build on a Windows machine. The `.exe` installer is generated under `apps/windows-pos/release/<version>/`. Use `npm run dist:mac` for macOS.
+
+6. Verify changes:
+   ```bash
+   npm run build:all
+   npm test
+   npm run test:smoke
+   npm run lint
+   ```
+   See [the desktop README](../apps/windows-pos/README.md) for database backup, legacy JSON migration, offline session behavior, and native test details. Apply the new sync-revision backend migration before updating desktop terminals.

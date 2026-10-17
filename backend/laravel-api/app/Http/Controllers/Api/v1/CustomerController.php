@@ -20,8 +20,8 @@ class CustomerController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -101,7 +101,6 @@ class CustomerController extends Controller
         $discountValue = round($pointsToRedeem * 0.10, 2);
 
         $customer->decrement('loyalty_points', $pointsToRedeem);
-        $customer->increment('version');
 
         return response()->json([
             'status' => 'success',

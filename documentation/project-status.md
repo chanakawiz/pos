@@ -1,8 +1,8 @@
 # SmartShop POS — Current Project Status
 
-> **Audit Date**: 2026-09-27  
-> **Overall Health**: Healthy / Stable (All 18 automated tests passing, 0 build errors)  
-> **Phase 1 Progress**: ~85% Complete  
+> **Audit Date**: 2026-10-17
+> **Overall Health**: Healthy / Stable (24 backend tests and 13 native Electron tests passing; desktop build and unsigned macOS arm64 packaging pass)
+> **Phase 1 Progress**: SQLite persistence complete; physical peripheral transport and secondary display remain
 > **Phase 2 Progress**: Planning & Scaffolding Phase
 
 ---
@@ -13,8 +13,8 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │     BACKEND API         │    FILAMENT ADMIN ERP   │    WINDOWS POS CLIENT   │
 │     ● ONLINE (100%)     │     ● ONLINE (100%)     │     ● OPERATIONAL (95%) │
-│  18 Feature Tests Pass  │  13 Resources Active    │  Vite Build Passing     │
-│  24 Database Tables     │  Full Catalog & Ledger  │  Cloud Sync Active      │
+│  24 Backend Tests Pass  │  13 Resources Active    │  Vite Build Passing     │
+│  Sync Revisions Active  │  Full Catalog & Ledger  │  SQLite + Sync Tested   │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -69,10 +69,10 @@
 | **Shift Audit (X/Z-Report)**| `✅ DONE` | Mid-shift balance audit & shift end reconciliation. |
 | **Refund Processing** | `✅ DONE` | Invoice lookup and item return flow with automatic stock restoration. |
 | **Background Sync Daemon**| `✅ DONE` | Network ping, queue flush, delta pull. |
-| **ESC/POS Cash Drawer** | `✅ DONE` | Raw pulse trigger (pins 2 & 5) on cash completion and F8 hotkey. |
-| **ESC/POS Thermal Engine**| `✅ DONE` | 80mm/58mm formatted buffers with header, bilingual items, IMEI/Serial, total, and paper cut. |
+| **ESC/POS Cash Drawer** | `⏳ PENDING` | Pulse buffers/IPC exist; actual transport and physical delivery confirmation are unfinished. |
+| **ESC/POS Thermal Engine**| `⏳ PENDING` | Basic formatting exists; device transport, paper widths, and Sinhala output still need implementation/validation. |
 | **Help & Shortcuts (F1)** | `✅ DONE` | Instant cheat sheet modal for cashier hotkeys. |
-| **Embedded SQLite** | `⏳ PENDING` | Migration from JSON mock to `better-sqlite3`. |
+| **Embedded SQLite** | `✅ DONE` | WAL/FULL durability; atomic sales/items/payments; scoped catalog checkpoints; safe legacy queue import; native recovery/sync tests. |
 
 ### 2.4 Mobile POS (`apps/mobile-pos`) — Phase 2
 | Feature | Status | Notes |
@@ -87,10 +87,21 @@
 ## 3. Test Suite Verification
 ```bash
 $ php artisan test
-  Tests:    18 passed (183 assertions)
+  Tests:    24 passed (257 assertions on local MySQL; 215 on isolated SQLite)
   Duration: 0.89s
 ```
 ```bash
 $ npm run build (apps/windows-pos)
   ✓ built in 215ms
 ```
+
+
+## 4. Offline persistence verification — 2026-10-17
+
+WIN-013 is complete. Desktop checkout now saves a sale before confirming payment, and the cached catalog works during an outage and after restart for an existing authenticated session. Initial login and device setup require connectivity. Browser preview remains online-only.
+
+API-015 replaces independent record counters with a transactional global revision sequence, includes stock changes and deletion tombstones in catalog pulls, and preserves captured tax rates for offline receipts. The new backend migration was applied to the local MySQL database and verified on a fresh isolated SQLite database. Apply it to other environments before using the updated desktop sync client.
+
+Remaining Phase 1 work includes the secondary customer display, scales, physical peripheral transport/validation, and Windows device testing. Earlier hardware completion labels describe buffer generation and IPC wiring; they do not establish actual USB/network ESC/POS delivery.
+
+Final lint check exits successfully with seven existing React hook/unused-variable warnings. PHP formatting and `git diff --check` pass. The GUI smoke test also verifies failed-write feedback, cart retention, retry, reload recovery, and reconnect synchronization.

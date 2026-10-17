@@ -1,8 +1,8 @@
 # SmartShop POS — Master Engineering Backlog
 
-> **Document Version**: 1.0.0  
-> **Last Synchronized**: 2026-09-27  
-> **Execution Status**: Active  
+> **Document Version**: 1.0.0
+> **Last Synchronized**: 2026-10-17
+> **Execution Status**: Active
 > **Legend**: `✅ DONE` = Work Completed & Verified | `⏳ PENDING` = Work Pending Implementation | `🔄 IN PROGRESS` = Currently Active
 
 ---
@@ -22,9 +22,11 @@
 | **API-009** | Multi-Lane Cloud Held Bills | P1 | `✅ DONE` | Endpoints `/api/v1/held-bills` (GET, POST, DELETE) for persistent multi-register hold. |
 | **API-010** | Purchasing & Goods Receiving | P1 | `✅ DONE` | Supplier PO drafting and `/api/v1/purchases/{uuid}/receive` stock receiving. |
 | **API-011** | Sales & Inventory Analytics API | P1 | `✅ DONE` | Sales summary by period, top selling products, and low stock warnings. |
-| **API-012** | Comprehensive Feature Test Suite | P0 | `✅ DONE` | 18 automated PHPUnit feature tests with 183 assertions passing cleanly. |
+| **API-012** | Comprehensive Feature Test Suite | P0 | `✅ DONE` | 24 automated tests (257 assertions on local MySQL / 215 on isolated SQLite), including global revisions, stock invalidation, deletion propagation, store authorization, and offline tax snapshots. |
 | **API-013** | Bilingual Sinhala & English Catalog Schema | P0 | `✅ DONE` | Database migration `sinhala_name` on products table, API index & barcode lookup support. |
 | **API-014** | Smart Items & Mobile Devices Schema | P0 | `✅ DONE` | Warranty periods, serial/IMEI tracking flags on products, and `serial_number` & `warranty_notes` on sale items. |
+
+| **API-015** | Durable Catalog Sync Revisions | P0 | `✅ DONE` | Transactional global revision sequence, inventory invalidation, soft/permanent deletion tombstones, and complete bilingual/warranty catalog payloads. |
 
 ---
 
@@ -63,9 +65,9 @@
 | **WIN-008** | Multi-Lane Cloud Held Bills | P1 | `✅ DONE` | F4 key hold to cloud, shared cross-lane bill list, one-click resume and discard. |
 | **WIN-009** | Refund Processing Modal | P1 | `✅ DONE` | Invoice lookup, item selection, return quantities, restock toggle, and refund trigger. |
 | **WIN-010** | Background Sync Daemon | P0 | `✅ DONE` | Network health ping, queued sales push, delta pull, and visual sync indicator. |
-| **WIN-011** | Raw ESC/POS Cash Drawer Pulse | P1 | `✅ DONE` | Send `ESC p 0 25 250` kick code on cash payment finalization and drawer key (F8). |
-| **WIN-012** | 80mm & 58mm Thermal Print Engine | P1 | `✅ DONE` | Raw ESC/POS formatter with alignment, bold headers, double-width text, and paper cut. |
-| **WIN-013** | Native SQLite Main Process DB | P1 | `⏳ PENDING` | Replace JSON mock storage in Electron main process with `better-sqlite3`. |
+| **WIN-011** | Raw ESC/POS Cash Drawer Pulse | P1 | `⏳ PENDING` | Pulse buffers and F8/checkout IPC exist; actual printer/drawer transport and delivery confirmation remain unfinished. |
+| **WIN-012** | 80mm & 58mm Thermal Print Engine | P1 | `⏳ PENDING` | Basic ESC/POS buffer generation exists; width-aware output, actual device transport, and Sinhala-capable printing require completion/validation. |
+| **WIN-013** | Native SQLite Main Process DB | P1 | `✅ DONE` | `better-sqlite3` with WAL/FULL durability, atomic sales/items/payments, scoped catalog checkpoints, legacy import, offline checkout, and recovery tests. |
 | **WIN-014** | Keyboard Shortcut Overlay & Help | P2 | `✅ DONE` | Quick overlay (F1) displaying hotkeys for Cashier operation. |
 | **WIN-015** | Hardware Barcode Reader & Audio Synthesizer | P0 | `✅ DONE` | Global USB/Bluetooth HID wedge hook (<60ms inter-key), auto cart add, and 1760Hz audio beep. |
 | **WIN-016** | `.env` Configured Multi-Language Architecture | P0 | `✅ DONE` | `VITE_DEFAULT_LANGUAGE=bilingual/si/en`, instant top bar language toggle, adaptive titles. |
@@ -92,7 +94,16 @@
 | Task ID | Task Title | Priority | Status | Description |
 | :--- | :--- | :---: | :---: | :--- |
 | **HRD-001** | Standard USB HID Wedge Scanner | P0 | `✅ DONE` | Keyboard buffer listener with rapid input detection `< 50ms`. |
-| **HRD-002** | RJ11 Cash Drawer Kick Trigger | P1 | `✅ DONE` | Electron IPC cash drawer handler with ESC/POS pulse generation (pins 2 & 5). |
-| **HRD-003** | USB/Network ESC/POS Printer | P1 | `✅ DONE` | Raw printer bridge with header, items, tax, total, and full paper cut commands. |
+| **HRD-002** | RJ11 Cash Drawer Kick Trigger | P1 | `⏳ PENDING` | Pulse generation exists; connect a real transport and verify drawer operation on hardware. |
+| **HRD-003** | USB/Network ESC/POS Printer | P1 | `⏳ PENDING` | Current handler generates bytes and prints the UI; direct USB/network receipt transport is not implemented. |
 | **HRD-004** | Dual-Screen Customer Facing Display | P2 | `⏳ PENDING` | Secondary HDMI/VGA display window showing live line items and total due. |
 | **HRD-005** | Electronic Weight Scale (RS-232) | P2 | `⏳ PENDING` | Serial port reader for weighed produce items (grams / kilograms). |
+
+
+## 2026-10-17 continuation
+
+Completed WIN-013 and the API-015 prerequisite. Desktop payment now commits locally before showing a receipt, and the background worker retries the same transaction UUID. Catalog records and their checkpoint commit together. Failed writes, partial acknowledgements, and invalid legacy data remain visible rather than being reported as successful.
+
+Verification: `npm run build:all`, `npm test` (13 native Electron tests), backend suite (24 tests; 257 assertions on local MySQL and 215 on isolated seeded SQLite), the UI failure/retry/reload/reconnect smoke test, and unsigned macOS arm64 packaging. See the desktop README for the UI smoke test command. Windows installer execution and physical power-cut/hardware testing still require the target equipment.
+
+Next Phase 1 items: customer-facing secondary display (HRD-004), actual printer/drawer transport validation, and electronic scales (HRD-005). Mobile remains Phase 2. Existing printer/drawer handlers generate or log ESC/POS bytes; a real USB/network transport is still required before treating those peripherals as production verified.

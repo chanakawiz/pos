@@ -1,43 +1,6 @@
-export interface Product {
-  id: number;
-  uuid: string;
-  name: string;
-  sinhala_name?: string | null;
-  sku: string;
-  barcode: string | null;
-  unit: string;
-  cost_price: number;
-  selling_price: number;
-  tax_rate: number;
-  min_stock_level: number;
-  stock_quantity: number;
-  category?: {
-    uuid: string;
-    name: string;
-  } | null;
-  warranty_period?: string | null;
-  requires_serial?: boolean;
-  has_variants: boolean;
-}
-
-export interface Category {
-  id: number;
-  uuid: string;
-  name: string;
-  slug: string;
-}
-
-export interface Customer {
-  id: number;
-  uuid: string;
-  name: string;
-  phone?: string | null;
-  email?: string | null;
-  address?: string | null;
-  loyalty_points: number;
-  credit_limit: number;
-  balance: number;
-}
+import type { Product } from '../../electron/storage-types';
+import type { StorageBridge } from '../../electron/storage-types';
+export type { Product, Category, Customer } from '../../electron/storage-types';
 
 export interface CartItem {
   product: Product;
@@ -100,15 +63,12 @@ export interface RefundReceipt {
   refunded_at: string;
 }
 
-export interface PosBridgeApi {
+export interface PosBridgeApi extends StorageBridge {
   printReceipt: (receiptData: any) => Promise<{ success: boolean; message?: string }>;
   openCashDrawer: () => Promise<{ success: boolean }>;
   getDeviceInfo: () => Promise<{ deviceUuid: string; platform: string; appVersion: string }>;
   onBarcodeScan: (callback: (barcode: string) => void) => () => void;
-  saveOfflineSale: (sale: any) => Promise<{ success: boolean; id: string }>;
-  getPendingOfflineSales: () => Promise<any[]>;
-  getAllOfflineSales: () => Promise<any[]>;
-  markSalesSynced: (uuids: string[]) => Promise<boolean>;
+
 }
 
 declare global {
