@@ -24,6 +24,8 @@ const profile = path.join(directory, 'profile');
 fs.mkdirSync(profile);
 app.setPath('userData', profile);
 app.disableHardwareAcceleration();
+// The harness owns shutdown, including tests that close every cashier/customer window.
+app.on('window-all-closed', () => {});
 const scope = { storeUuid: randomUUID(), deviceUuid: randomUUID() };
 const user = { uuid: randomUUID(), name: 'Smoke Cashier', email: 'smoke@example.test', role: 'cashier',
   store: { uuid: scope.storeUuid, name: 'Smoke Store', code: 'SMOKE', currency_symbol: '$', currency_code: 'USD' } };
@@ -186,6 +188,8 @@ app.whenReady().then(async () => {
   const rejected = ipcMain.listeners('customer-display:ready');
   assert.ok(rejected.length > 0);
   assert.equal(isTrustedFrame({ sender: customerWindow.webContents, senderFrame: customerWindow.webContents.mainFrame }, window, `${baseUrl}/`), false);
+  assert.throws(() => display.publish({ total: NaN }));
+  await until(() => customerEvaluate("!document.querySelector('[data-testid=total]')"), 'invalid snapshot clears stale totals');
   await evaluate("document.querySelector('button[title=\"Language: Sinhala (සිංහල)\"]').click()");
   await until(() => customerEvaluate("document.documentElement.querySelector('main').lang === 'si' && document.body.innerText.includes('කිරි')"), 'Sinhala customer display');
   await evaluate("document.querySelector('button[title=\"Language: English\"]').click()");
@@ -348,6 +352,24 @@ app.whenReady().then(async () => {
   window.destroy();
   assert.equal(finalDisplay.isDestroyed(), true);
   console.log('PASS: closing the cashier closes the customer display');
+  const packagedDisplay = new BrowserWindow({ show: false, width: 640, height: 720,
+    webPreferences: { preload: path.resolve(__dirname, '../dist-electron/customer-display-preload.js'),
+      sandbox: true, contextIsolation: true, nodeIntegration: false, offscreen: true, partition: 'customer-display-file-test' } });
+  try {
+    await packagedDisplay.loadFile(path.resolve(__dirname, '../dist/customer-display.html'));
+    const fileEvaluate = (script) => packagedDisplay.webContents.executeJavaScript(script, true);
+    await until(() => fileEvaluate("document.body.innerText.includes('Welcome')"), 'packaged file display');
+    packagedDisplay.webContents.send('customer-display:state', { storeName: 'Smoke Store', currencySymbol: 'Rs.', language: 'bilingual',
+      subtotal: 100, tax: 5, billDiscount: 1, total: 104, items: Array.from({ length: 80 }, (_, index) => ({
+        name: `Long product description ${index + 1}`, sinhalaName: 'සිංහල පරීක්ෂණ භාණ්ඩය', quantity: 1, unitPrice: 1.25, total: 1.3125,
+      })) });
+    await until(() => fileEvaluate("document.querySelector('[data-testid=total]')?.textContent === 'Rs. 104.00' && document.querySelectorAll('tbody tr').length === 80"), 'long narrow packaged display');
+    await fileEvaluate('document.fonts.ready');
+    assert.equal(await fileEvaluate("document.querySelector('meta[http-equiv=\"Content-Security-Policy\"]').content.includes(\"script-src 'self';\")"), true);
+    assert.equal(await fileEvaluate("(() => { const total = document.querySelector('[data-testid=total]').getBoundingClientRect(); const items = document.querySelector('.items'); return total.bottom <= innerHeight && total.right <= innerWidth && items.scrollHeight > items.clientHeight && items.scrollTop > 0; })()"), true);
+    if (process.env.SMARTSHOP_DISPLAY_ARTIFACTS) fs.writeFileSync(path.join(process.env.SMARTSHOP_DISPLAY_ARTIFACTS, 'customer-display-narrow.png'), (await packagedDisplay.webContents.capturePage()).toPNG());
+    console.log('PASS: packaged file URL, strict script CSP, bundled Sinhala font, and a long cart on a narrow display');
+  } finally { packagedDisplay.destroy(); }
   await finish(0);
 }).catch(async (error) => {
   console.error(error);

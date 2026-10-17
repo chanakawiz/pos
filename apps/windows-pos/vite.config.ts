@@ -8,6 +8,14 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    {
+      name: 'customer-display-dev-csp',
+      apply: 'serve',
+      // React's development preamble and Vite HMR need these allowances only in development.
+      transformIndexHtml: (html) => html
+        .replace("script-src 'self';", "script-src 'self' 'unsafe-inline';")
+        .replace("connect-src 'none';", "connect-src 'self' ws:;"),
+    },
   ],
   build: {
     rollupOptions: {

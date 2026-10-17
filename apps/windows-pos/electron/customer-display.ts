@@ -99,7 +99,11 @@ export class CustomerDisplay {
     if (this.window && !this.window.isDestroyed()) this.window.webContents.send('customer-display:state', this.snapshot);
   }
 
-  publish(value: unknown): void { this.snapshot = validateCustomerDisplay(value); this.send(); }
+  publish(value: unknown): void {
+    try { this.snapshot = validateCustomerDisplay(value); }
+    catch (error) { this.clear(); throw error; }
+    this.send();
+  }
 
   setEnabled(value: unknown): CustomerDisplayStatus {
     if (typeof value !== 'boolean') throw new Error('Invalid display preference');
