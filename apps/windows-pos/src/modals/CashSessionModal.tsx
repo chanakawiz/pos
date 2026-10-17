@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { usePosStore } from '../stores/usePosStore';
 import { api } from '../services/api';
+import { openCashDrawer } from '../services/hardware';
+import type { ShiftPrintReport } from '../../electron/printer-types';
 import {
   X,
   DollarSign,
@@ -25,6 +27,8 @@ export const CashSessionModal: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isPrintingX, setIsPrintingX] = useState<boolean>(false);
   const [notes, setNotes] = useState<string>('');
+  const [printFeedback, setPrintFeedback] = useState<string | null>(null);
+  const [closedReport, setClosedReport] = useState<ShiftPrintReport | null>(null);
 
   const loadSession = async () => {
     setIsLoading(true);
@@ -64,17 +68,25 @@ export const CashSessionModal: React.FC = () => {
     }
   };
 
+  const printShiftReport = async (reportType: 'X' | 'Z', report: ShiftPrintReport) => {
+    setPrintFeedback(null);
+    try {
+      if (!window.posApi) {
+        setPrintFeedback('Shift report printing requires the desktop app.');
+        return;
+      }
+      const result = await window.posApi.printReceipt({ kind: 'shift', reportType, report });
+      setPrintFeedback(result.message);
+    } catch {
+      setPrintFeedback('Report printing was not confirmed. Check the printer before retrying.');
+    }
+  };
+
   const handlePrintXReport = async () => {
     setIsPrintingX(true);
     try {
       const res = await api.getXReport();
-      if (window.posApi?.printReceipt) {
-        window.posApi.printReceipt(res.report);
-      } else {
-        alert(
-          `=== X-REPORT (MID-SHIFT AUDIT) ===\nStore: ${res.report.store_name}\nCashier: ${res.report.cashier_name}\nOpening Float: $${res.report.opening_float}\nCash Sales: $${res.report.cash_sales}\nCard Sales: $${res.report.card_sales}\nRefunds: -$${res.report.refund_total}\nExpected Cash: $${res.report.expected_cash_in_drawer}`
-        );
-      }
+      await printShiftReport('X', res.report);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to generate X-Report');
     } finally {
@@ -90,17 +102,12 @@ export const CashSessionModal: React.FC = () => {
         notes,
       });
 
-      // Kick drawer for cash counting & print Z-Report
-      if (window.posApi?.openCashDrawer) {
-        window.posApi.openCashDrawer();
-      }
-      if (window.posApi?.printReceipt) {
-        window.posApi.printReceipt(res.report);
-      }
-
       setCashSession(null);
-      alert(`Shift Closed Successfully!\nZ-Report generated with discrepancy: $${res.report.discrepancy}`);
-      closeModal();
+      setActiveSession(null);
+      setClosedReport(res.report);
+      // The shift is already closed. Hardware failures must never ask the cashier to close it again.
+      if (window.posApi) await openCashDrawer();
+      await printShiftReport('Z', res.report);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to close register.');
     } finally {
@@ -141,6 +148,15 @@ export const CashSessionModal: React.FC = () => {
             <div className="py-16 flex flex-col items-center justify-center text-slate-400 gap-2">
               <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
               <span className="text-xs">Loading shift records...</span>
+            </div>
+          ) : closedReport ? (
+            <div className="space-y-4">
+              <p className="text-emerald-300 font-semibold">Shift closed successfully.</p>
+              <p className="text-sm text-slate-300">Register variance: {Number(closedReport.discrepancy || 0).toFixed(2)}</p>
+              <button type="button" disabled={isSubmitting || isPrintingX} onClick={async () => {
+                setIsPrintingX(true);
+                try { await printShiftReport('Z', closedReport); } finally { setIsPrintingX(false); }
+              }} className="px-4 py-3 bg-indigo-600 rounded-xl text-white disabled:opacity-50 cursor-pointer">Reprint Z-Report</button>
             </div>
           ) : activeSession ? (
             /* Active Shift View with X/Z Reports */
@@ -337,6 +353,7 @@ export const CashSessionModal: React.FC = () => {
               </button>
             </div>
           )}
+          {printFeedback && <p role="status" className="text-sm text-amber-200 mt-4">{printFeedback}</p>}
         </div>
       </div>
     </div>

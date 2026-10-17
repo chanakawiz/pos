@@ -11,6 +11,7 @@ import { persistSale } from '../services/salePersistence';
 import { syncWorker } from '../services/syncWorker';
 import type { OfflineSale } from '../../electron/storage-types';
 import { roundMoney } from '../../electron/money';
+import { openCashDrawer } from '../services/hardware';
 
 export const PaymentModal: React.FC = () => {
   const { items, customer, billDiscount, getGrandTotal, clearCart } = useCartStore();
@@ -121,7 +122,7 @@ export const PaymentModal: React.FC = () => {
 
       // Trigger hardware cash drawer if electron bridge is present
       if (window.posApi && paymentMethod === 'cash') {
-        window.posApi.openCashDrawer().catch(() => {});
+        void openCashDrawer(true);
       }
 
       setLastCompletedSale({

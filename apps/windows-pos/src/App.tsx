@@ -21,10 +21,11 @@ import { syncWorker } from './services/syncWorker';
 import { useBarcodeScanner } from './hooks/useBarcodeScanner';
 import { posSounds } from './utils/audio';
 import { getCachedCatalog, getCachedProductByBarcode } from './services/offlineStorage';
+import { openCashDrawer } from './services/hardware';
 
 export const App: React.FC = () => {
   const { token, user, checkAuth } = useAuthStore();
-  const { setOnline, activeModal, closeModal } = usePosStore();
+  const { setOnline, activeModal, closeModal, hardwareMessage, setHardwareMessage } = usePosStore();
   const { addItem } = useCartStore();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -168,6 +169,7 @@ export const App: React.FC = () => {
 
   // Keyboard shortcuts: Esc to close modals, F1 Help, F3 Returns, F8 Cash Drawer, F7 Sync Status
   useEffect(() => {
+    if (!token) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && activeModal) {
         closeModal();
@@ -179,11 +181,7 @@ export const App: React.FC = () => {
         usePosStore.getState().openModal('refund');
       } else if (e.key === 'F8') {
         e.preventDefault();
-        if (window.posApi?.openCashDrawer) {
-          window.posApi.openCashDrawer();
-        } else {
-          console.log('[POS UI] Drawer kick pulse triggered (F8)');
-        }
+        if (!e.repeat) void openCashDrawer();
       } else if (e.key === 'F7' && !activeModal) {
         e.preventDefault();
         usePosStore.getState().openModal('syncStatus');
@@ -191,7 +189,7 @@ export const App: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeModal, closeModal]);
+  }, [activeModal, closeModal, token]);
 
   // If not logged in, render the login screen
   if (!token) {
@@ -202,6 +200,12 @@ export const App: React.FC = () => {
     <div className="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Top Application Bar */}
       <Header />
+      {hardwareMessage && (
+        <div role="alert" className="fixed bottom-4 right-4 z-[70] flex max-w-lg items-center justify-between gap-4 rounded-xl bg-amber-950 border border-amber-700 px-4 py-3 text-sm text-amber-100 shadow-xl">
+          <span>{hardwareMessage}</span>
+          <button type="button" onClick={() => setHardwareMessage(null)} className="underline cursor-pointer">Dismiss</button>
+        </div>
+      )}
 
       {/* Main POS Billing Workspace */}
       <div className="flex-1 flex min-h-0 overflow-hidden">

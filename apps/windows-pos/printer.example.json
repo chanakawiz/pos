@@ -1,0 +1,12 @@
+{
+  "type": "tcp",
+  "host": "192.0.2.10",
+  "port": 9100,
+  "paperWidth": 80,
+  "printableDots": 576,
+  "rasterMode": "graphics",
+  "cut": "partial",
+  "drawerPin": 2,
+  "drawerEnabled": true,
+  "timeoutMs": 15000
+}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePosStore } from '../stores/usePosStore';
 import { api } from '../services/api';
 import type { RefundReceipt } from '../types/pos';
+import { openCashDrawer } from '../services/hardware';
 import { X, RotateCcw, Search, AlertCircle, CheckCircle2, Printer, Loader2, PackageCheck } from 'lucide-react';
 
 interface SelectedRefundItem {
@@ -27,6 +28,7 @@ export const RefundModal: React.FC = () => {
   const [reason, setReason] = useState<string>('Customer changed mind');
   const [restock, setRestock] = useState<boolean>(true);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [completedRefund, setCompletedRefund] = useState<{ refund: any; receipt: RefundReceipt } | null>(null);
 
   const handleSearchSale = async (e?: React.FormEvent) => {
@@ -40,8 +42,11 @@ export const RefundModal: React.FC = () => {
 
     try {
       const res = await api.getSale(invoiceQuery.trim());
-      if (res.sale) {
-        setSaleData(res.sale);
+      const sale = res.sale || res.data;
+      if (sale) {
+        setSaleData({ ...sale, items: sale.items.map((item: any) => ({
+          ...item, product_name: item.product_name || item.product?.name || 'Item',
+        })) });
       } else {
         setErrorMsg('Sale invoice not found');
       }
@@ -116,9 +121,7 @@ export const RefundModal: React.FC = () => {
       setCompletedRefund(res);
 
       // Hardware kickout cash drawer
-      if (window.posApi?.openCashDrawer) {
-        window.posApi.openCashDrawer();
-      }
+      if (window.posApi) void openCashDrawer();
     } catch (err: any) {
       setErrorMsg(err.response?.data?.message || 'Failed to process refund');
     } finally {
@@ -126,12 +129,16 @@ export const RefundModal: React.FC = () => {
     }
   };
 
-  const handlePrintReceipt = () => {
-    if (window.posApi?.printReceipt) {
-      window.posApi.printReceipt(completedRefund?.receipt);
-    } else {
-      window.print();
-    }
+  const handlePrintReceipt = async () => {
+    if (!completedRefund || isPrinting) return;
+    setIsPrinting(true);
+    try {
+      if (!window.posApi) { setErrorMsg('Refund receipt printing requires the desktop app.'); return; }
+      const result = await window.posApi.printReceipt({ kind: 'refund', receipt: completedRefund.receipt });
+      if (!result.success) setErrorMsg(result.message);
+      else setErrorMsg(null);
+    } catch { setErrorMsg('Receipt printing was not confirmed. Check the printer before retrying.'); }
+    finally { setIsPrinting(false); }
   };
 
   return (
@@ -198,6 +205,7 @@ export const RefundModal: React.FC = () => {
               <div className="flex justify-center gap-3 pt-2">
                 <button
                   onClick={handlePrintReceipt}
+                  disabled={isPrinting}
                   className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />

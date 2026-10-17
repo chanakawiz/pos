@@ -61,10 +61,13 @@ To ensure maximum operational stability and immediate commercial viability, the 
   - Mobile & electronics warranty lines: prints IMEI/Serial number (`SN/IMEI: 3589...`) and warranty period (`🛡️ 1 Year Apple Care Warranty`).
   - Sri Lankan retail metadata labels: බිල්පත් අංකය (Invoice), දිනය (Date), අයකැමි (Cashier), උප එකතුව (Subtotal), වැට් බදු (Tax), මුළු එකතුව (Total), ගෙවූ මුදල (Paid), ඉතිරි මුදල (Change).
   - Cultural blessings and footer: "ස්තූතියි! නැවත එන්න." / "Thank you! Please visit again."
-- [ ] **Direct ESC/POS Thermal Printing** (buffers/IPC exist; actual device transport remains pending):
+- [x] **Direct ESC/POS Thermal Printing software** (2026-10-17; physical deployment checks remain):
   - Raw binary command generation for 80mm and 58mm thermal rolls.
   - Native cash drawer kickout pulse (`ESC p 0 25 250` on RJ11 pin 2/pin 5).
-  - Automated full paper cut command (`GS V 66 0`).
+  - Configurable full/partial/no cut, paper width, printable dot width, graphics/legacy raster mode, and one drawer pin.
+  - Serialized real TCP / Windows RAW spooler transport; no automatic retry after uncertain delivery.
+  - Dedicated sale, refund, and X/Z receipt documents with bundled Sinhala font shaping.
+- [ ] **Physical printer/drawer verification**: Windows RAW queue execution, model-specific graphics/cutter/width, pin wiring, and interrupted transfer recovery; see [receipt-printing.md](receipt-printing.md).
 - [x] **Cashier Speed & Shortcuts**:
   - F1 Help cheat sheet overlay, F2 Add Customer, F4 Cloud hold, F8 Cash drawer kick, F9 Checkout.
 - [ ] **Dual-Screen Customer Display (VFD / Secondary Monitor)**: (`⏳ PENDING`)

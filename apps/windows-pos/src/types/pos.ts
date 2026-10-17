@@ -1,3 +1,4 @@
+import type { PrinterBridge } from '../../electron/printer-types';
 import type { Product } from '../../electron/storage-types';
 import type { StorageBridge } from '../../electron/storage-types';
 export type { Product, Category, Customer } from '../../electron/storage-types';
@@ -63,9 +64,7 @@ export interface RefundReceipt {
   refunded_at: string;
 }
 
-export interface PosBridgeApi extends StorageBridge {
-  printReceipt: (receiptData: any) => Promise<{ success: boolean; message?: string }>;
-  openCashDrawer: () => Promise<{ success: boolean }>;
+export interface PosBridgeApi extends StorageBridge, PrinterBridge {
   getDeviceInfo: () => Promise<{ deviceUuid: string; platform: string; appVersion: string }>;
   onBarcodeScan: (callback: (barcode: string) => void) => () => void;
 

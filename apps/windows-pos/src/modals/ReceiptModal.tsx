@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { usePosStore } from '../stores/usePosStore';
 import { Printer, Check, X, ArrowRight, Barcode as BarcodeIcon, Globe } from 'lucide-react';
 
@@ -7,6 +7,9 @@ type ReceiptLanguage = 'bilingual' | 'si' | 'en';
 export const ReceiptModal: React.FC = () => {
   const { closeModal, lastCompletedSale, language, setLanguage } = usePosStore();
   const [lang, setLang] = useState<ReceiptLanguage>(language);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [printFeedback, setPrintFeedback] = useState<string | null>(null);
+  const printLock = useRef(false);
 
   if (!lastCompletedSale) return null;
 
@@ -25,10 +28,23 @@ export const ReceiptModal: React.FC = () => {
   } = lastCompletedSale;
 
   const handlePrint = async () => {
-    if (window.posApi) {
-      await window.posApi.printReceipt(lastCompletedSale);
-    } else {
-      window.print();
+    if (printLock.current) return;
+    printLock.current = true;
+    setIsPrinting(true);
+    setPrintFeedback(null);
+    try {
+      if (!window.posApi) {
+        setPrintFeedback('Receipt printing requires the desktop app.');
+        return;
+      }
+      const result = await window.posApi.printReceipt({ kind: 'sale', sale: lastCompletedSale, language: lang,
+        storeNameSi: import.meta.env.VITE_STORE_NAME_SI || 'ස්මාර්ට්ෂොප් වෙළඳසැල' });
+      setPrintFeedback(result.message);
+    } catch {
+      setPrintFeedback('Printing was not confirmed. Check the printer before trying again.');
+    } finally {
+      printLock.current = false;
+      setIsPrinting(false);
     }
   };
 
@@ -236,14 +252,16 @@ export const ReceiptModal: React.FC = () => {
         </div>
 
         {/* Modal Actions */}
+        {printFeedback && <p role="status" className="px-4 py-3 text-sm text-amber-200">{printFeedback}</p>}
         <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex items-center gap-3">
           <button
             type="button"
             onClick={handlePrint}
+            disabled={isPrinting}
             className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>Print Receipt</span>
+            <span>{isPrinting ? 'Sending receipt…' : 'Print Receipt'}</span>
           </button>
 
           <button

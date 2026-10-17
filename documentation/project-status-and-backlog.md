@@ -114,7 +114,7 @@ SmartShop POS is designed as an **offline-first, multi-platform retail managemen
   - Live shift summary from `/api/v1/cash-sessions/x-report`.
   - Display breakdown: Opening float, Cash sales, Card sales, Refunds, Expected cash in drawer.
   - Action button to print formal thermal X-Report or Z-Report.
-- [ ] **TASK-W03**: ESC/POS Hardware Printing Enhancements:
+- [x] **TASK-W03 software (2026-10-17)**: ESC/POS printing and drawer transports implemented and verified with Electron/local TCP tests. Physical validation remains in HRD-002/HRD-003:
   - Add drawer kick code support on cash sale completion.
   - Optimize receipt layout for 80mm and 58mm thermal printers.
 - [ ] **TASK-W04**: UI Polish & Notifications:

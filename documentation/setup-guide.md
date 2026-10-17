@@ -103,3 +103,8 @@ This guide details setting up the entire SmartShop POS environment on macOS, Lin
    npm run lint
    ```
    See [the desktop README](../apps/windows-pos/README.md) for database backup, legacy JSON migration, offline session behavior, and native test details. Apply the new sync-revision backend migration before updating desktop terminals.
+
+
+## 4. Receipt printer and cash drawer setup
+
+Configure the terminal’s user-data `printer.json` using the [receipt printing guide](receipt-printing.md) and [sample profile](../apps/windows-pos/printer.example.json). No output is sent until a valid target is configured. TCP delivery and Windows RAW queues are supported; actual Windows/printer/cutter/drawer behavior must be checked on deployment hardware.

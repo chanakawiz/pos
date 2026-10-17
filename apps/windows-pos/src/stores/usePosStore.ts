@@ -7,6 +7,8 @@ interface PosState {
   syncStatus: 'synced' | 'pending' | 'syncing' | 'error';
   pendingCount: number;
   isCompletingSale: boolean;
+  hardwareMessage: string | null;
+  setHardwareMessage: (message: string | null) => void;
   activeModal: PosModalType | null;
   lastCompletedSale: any | null;
   cashSession: any | null;
@@ -28,6 +30,8 @@ export const usePosStore = create<PosState>((set) => ({
   syncStatus: 'synced',
   pendingCount: 0,
   isCompletingSale: false,
+  hardwareMessage: null,
+  setHardwareMessage: (hardwareMessage) => set({ hardwareMessage }),
   activeModal: null,
   lastCompletedSale: null,
   cashSession: null,

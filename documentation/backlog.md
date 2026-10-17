@@ -25,7 +25,6 @@
 | **API-012** | Comprehensive Feature Test Suite | P0 | `✅ DONE` | 24 automated tests (257 assertions on local MySQL / 215 on isolated SQLite), including global revisions, stock invalidation, deletion propagation, store authorization, and offline tax snapshots. |
 | **API-013** | Bilingual Sinhala & English Catalog Schema | P0 | `✅ DONE` | Database migration `sinhala_name` on products table, API index & barcode lookup support. |
 | **API-014** | Smart Items & Mobile Devices Schema | P0 | `✅ DONE` | Warranty periods, serial/IMEI tracking flags on products, and `serial_number` & `warranty_notes` on sale items. |
-
 | **API-015** | Durable Catalog Sync Revisions | P0 | `✅ DONE` | Transactional global revision sequence, inventory invalidation, soft/permanent deletion tombstones, and complete bilingual/warranty catalog payloads. |
 
 ---
@@ -65,8 +64,8 @@
 | **WIN-008** | Multi-Lane Cloud Held Bills | P1 | `✅ DONE` | F4 key hold to cloud, shared cross-lane bill list, one-click resume and discard. |
 | **WIN-009** | Refund Processing Modal | P1 | `✅ DONE` | Invoice lookup, item selection, return quantities, restock toggle, and refund trigger. |
 | **WIN-010** | Background Sync Daemon | P0 | `✅ DONE` | Network health ping, queued sales push, delta pull, and visual sync indicator. |
-| **WIN-011** | Raw ESC/POS Cash Drawer Pulse | P1 | `⏳ PENDING` | Pulse buffers and F8/checkout IPC exist; actual printer/drawer transport and delivery confirmation remain unfinished. |
-| **WIN-012** | 80mm & 58mm Thermal Print Engine | P1 | `⏳ PENDING` | Basic ESC/POS buffer generation exists; width-aware output, actual device transport, and Sinhala-capable printing require completion/validation. |
+| **WIN-011** | Raw ESC/POS Cash Drawer Pulse | P1 | `✅ DONE` | Configured-pin pulse delivery through serialized TCP/Windows RAW transports, F8/cash-checkout integration, and visible errors. Software verified with a local TCP receiver; physical checks tracked in HRD-002. |
+| **WIN-012** | 80mm & 58mm Thermal Print Engine | P1 | `✅ DONE` | Dedicated width-aware raster receipts, bundled Sinhala font, sale/refund/X/Z layouts, cutter controls, and failure feedback. Electron/TCP software tests pass; target checks remain in HRD-003. |
 | **WIN-013** | Native SQLite Main Process DB | P1 | `✅ DONE` | `better-sqlite3` with WAL/FULL durability, atomic sales/items/payments, scoped catalog checkpoints, legacy import, offline checkout, and recovery tests. |
 | **WIN-014** | Keyboard Shortcut Overlay & Help | P2 | `✅ DONE` | Quick overlay (F1) displaying hotkeys for Cashier operation. |
 | **WIN-015** | Hardware Barcode Reader & Audio Synthesizer | P0 | `✅ DONE` | Global USB/Bluetooth HID wedge hook (<60ms inter-key), auto cart add, and 1760Hz audio beep. |
@@ -94,8 +93,8 @@
 | Task ID | Task Title | Priority | Status | Description |
 | :--- | :--- | :---: | :---: | :--- |
 | **HRD-001** | Standard USB HID Wedge Scanner | P0 | `✅ DONE` | Keyboard buffer listener with rapid input detection `< 50ms`. |
-| **HRD-002** | RJ11 Cash Drawer Kick Trigger | P1 | `⏳ PENDING` | Pulse generation exists; connect a real transport and verify drawer operation on hardware. |
-| **HRD-003** | USB/Network ESC/POS Printer | P1 | `⏳ PENDING` | Current handler generates bytes and prints the UI; direct USB/network receipt transport is not implemented. |
+| **HRD-002** | RJ11 Cash Drawer Kick Trigger | P1 | `🔄 IN PROGRESS` | TCP and Windows RAW transport implemented; configured-pin bytes verified against a mock receiver. Actual drawer pin/timing/operation still requires target hardware. |
+| **HRD-003** | USB/Network ESC/POS Printer | P1 | `🔄 IN PROGRESS` | Real TCP delivery and Windows RAW spooler path implemented. 58/80mm raster rendering is tested; Windows spooler execution and physical output/cutter validation remain. |
 | **HRD-004** | Dual-Screen Customer Facing Display | P2 | `⏳ PENDING` | Secondary HDMI/VGA display window showing live line items and total due. |
 | **HRD-005** | Electronic Weight Scale (RS-232) | P2 | `⏳ PENDING` | Serial port reader for weighed produce items (grams / kilograms). |
 
@@ -106,4 +105,11 @@ Completed WIN-013 and the API-015 prerequisite. Desktop payment now commits loca
 
 Verification: `npm run build:all`, `npm test` (13 native Electron tests), backend suite (24 tests; 257 assertions on local MySQL and 215 on isolated seeded SQLite), the UI failure/retry/reload/reconnect smoke test, and unsigned macOS arm64 packaging. See the desktop README for the UI smoke test command. Windows installer execution and physical power-cut/hardware testing still require the target equipment.
 
-Next Phase 1 items: customer-facing secondary display (HRD-004), actual printer/drawer transport validation, and electronic scales (HRD-005). Mobile remains Phase 2. Existing printer/drawer handlers generate or log ESC/POS bytes; a real USB/network transport is still required before treating those peripherals as production verified.
+The follow-up below implements printer/drawer transport. Remaining Phase 1 items include customer-facing secondary display (HRD-004), physical peripheral validation (HRD-002/HRD-003), and electronic scales (HRD-005). Mobile remains Phase 2.
+
+
+## 2026-10-17 printing continuation
+
+Completed WIN-011/WIN-012 software implementation: real TCP and Windows RAW spooler transports, main-process printer configuration, serialized jobs, configured drawer pin, 58/80mm receipt rasterization, bundled Sinhala shaping, and dedicated sale/refund/X/Z documents. Print failures stay separate from completed sales and shift closure. Uncertain writes are never automatically retried and cancel already queued follow-up jobs.
+
+Verified 27 Electron tests, the cashier UI smoke test with a real renderer/local TCP receiver, and an unsigned macOS arm64 package containing the font, OFL license, and PNG decoder. Long 58mm output spans capture tiles and was visually inspected. Physical hardware and Windows spooler execution remain unverified, so HRD-002/HRD-003 remain in progress. See [receipt printing setup](receipt-printing.md).
