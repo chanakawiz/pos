@@ -27,9 +27,9 @@ class RefundController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('refund_number', 'like', "%{$search}%")
-                  ->orWhereHas('sale', function ($sq) use ($search) {
-                      $sq->where('invoice_number', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('sale', function ($sq) use ($search) {
+                        $sq->where('invoice_number', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -60,7 +60,7 @@ class RefundController extends Controller
             'items' => 'required|array|min:1',
             'items.*.sale_item_id' => 'nullable|integer',
             'items.*.sale_item_uuid' => 'nullable|string',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.quantity' => 'required|numeric|min:0.001|decimal:0,3',
             'reason' => 'nullable|string|max:500',
             'restock' => 'nullable|boolean',
         ]);

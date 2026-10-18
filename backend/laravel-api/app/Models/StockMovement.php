@@ -26,9 +26,9 @@ class StockMovement extends Model
     ];
 
     protected $casts = [
-        'quantity' => 'decimal:2',
-        'before_quantity' => 'decimal:2',
-        'after_quantity' => 'decimal:2',
+        'quantity' => 'decimal:3',
+        'before_quantity' => 'decimal:3',
+        'after_quantity' => 'decimal:3',
     ];
 
     public function store(): BelongsTo

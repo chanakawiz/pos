@@ -2,6 +2,7 @@ import type { PrinterBridge } from '../../electron/printer-types';
 import type { Product } from '../../electron/storage-types';
 import type { StorageBridge } from '../../electron/storage-types';
 import type { CustomerDisplayBridge } from '../../electron/customer-display-types';
+import type { ScaleBridge } from '../../electron/scale-types';
 export type { Product, Category, Customer } from '../../electron/storage-types';
 
 export interface CartItem {
@@ -65,7 +66,7 @@ export interface RefundReceipt {
   refunded_at: string;
 }
 
-export interface PosBridgeApi extends StorageBridge, PrinterBridge, CustomerDisplayBridge {
+export interface PosBridgeApi extends StorageBridge, PrinterBridge, CustomerDisplayBridge, ScaleBridge {
   getDeviceInfo: () => Promise<{ deviceUuid: string; platform: string; appVersion: string }>;
   onBarcodeScan: (callback: (barcode: string) => void) => () => void;
 

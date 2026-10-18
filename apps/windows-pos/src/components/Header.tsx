@@ -1,162 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { Wifi, WifiOff, RefreshCw, LogOut, Store, User, Clock, CheckCircle2, RotateCcw, Keyboard } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowUpRight, Diamond, LogOut, PauseCircle, RefreshCw, RotateCcw, ShoppingBag, Wallet, Wifi, WifiOff } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { usePosStore } from '../stores/usePosStore';
 
-export const Header: React.FC = () => {
+export function Header() {
   const { user, logout } = useAuthStore();
-  const { isOnline, syncStatus, pendingCount, triggerManualSync, openModal, language, setLanguage } = usePosStore();
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
+  const { activeModal, closeModal, openModal, isOnline, syncStatus, pendingCount, triggerManualSync } = usePosStore();
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => { const timer = setInterval(() => setTime(new Date()), 30000); return () => clearInterval(timer); }, []);
   return (
-    <header className="h-16 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-6 flex items-center justify-between text-white select-none z-10">
-      {/* Left: Brand & Store */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 bg-indigo-600/20 text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-500/30">
-          <Store className="w-5 h-5 text-indigo-400" />
-          <span className="font-bold tracking-wide text-white">SmartShop POS</span>
+    <header className="station-header">
+      <div className="station-brand"><Diamond aria-hidden="true" /><div><strong>SmartShop<span> Retail</span></strong><small>{user?.store?.name || 'Retail station'}</small></div></div>
+      <nav className="station-nav" aria-label="Register navigation">
+        <button type="button" className={!activeModal || ['payment', 'receipt', 'weighing', 'customer'].includes(activeModal) ? 'is-active' : ''} onClick={closeModal}><ShoppingBag />Sell</button>
+        <button type="button" className={activeModal === 'hold' ? 'is-active' : ''} onClick={() => openModal('hold')}><PauseCircle />Held bills</button>
+        <button type="button" className={activeModal === 'cashSession' ? 'is-active' : ''} onClick={() => openModal('cashSession')}><Wallet />Register</button>
+        <button type="button" title="Sales Returns & Refunds (F3)" className={activeModal === 'refund' ? 'is-active' : ''} onClick={() => openModal('refund')}><RotateCcw />Returns</button>
+      </nav>
+      <div className="station-tools">
+        <time className="station-clock">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
+        <div className="connection-tools">
+          <button type="button" className={`connection-state ${isOnline ? 'online' : 'offline'}`} onClick={() => openModal('syncStatus')} title="Offline & Sync Diagnostics">{isOnline ? <Wifi /> : <WifiOff />}<span>{isOnline ? 'Online' : 'Offline'}</span></button>
+          <button type="button" className="sync-trigger" title="Trigger Immediate Sync" aria-label={`Sync now${pendingCount ? `, ${pendingCount} pending` : ''}`} disabled={syncStatus === 'syncing'} onClick={() => void triggerManualSync()}><RefreshCw className={syncStatus === 'syncing' ? 'animate-spin' : ''} />{pendingCount > 0 && <span>{pendingCount}</span>}</button>
         </div>
-        <div className="hidden md:flex items-center gap-2 text-sm text-slate-400">
-          <span className="text-slate-600">|</span>
-          <span>{user?.store?.name || 'Main Downtown Store'}</span>
-          <span className="bg-slate-800 text-xs px-2 py-0.5 rounded text-slate-300">
-            {user?.store?.currency_symbol || '$'} USD
-          </span>
-        </div>
+        <div className="cashier-profile"><span className="cashier-avatar">{user?.name?.charAt(0) || 'S'}</span><div><strong>{user?.name || 'Cashier'}</strong><small>{user?.role?.replaceAll('_', ' ') || 'Cashier'}</small></div></div>
+        <button type="button" className="icon-button logout-button" onClick={() => void logout()} title="Logout Cashier" aria-label="Sign out"><LogOut /></button>
       </div>
-
-      {/* Center: System Clock & Shift Register */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1.5 text-slate-400 text-sm font-mono bg-slate-950/60 px-3 py-1 rounded-md border border-slate-800">
-          <Clock className="w-4 h-4 text-indigo-400" />
-          <span>{time}</span>
-        </div>
-        <button
-          onClick={() => openModal('cashSession')}
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg transition-colors cursor-pointer"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>Register</span>
-        </button>
-
-        <button
-          onClick={() => openModal('refund')}
-          title="Sales Returns & Refunds (F3)"
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-colors cursor-pointer"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Returns (F3)</span>
-        </button>
-
-        <button
-          onClick={() => openModal('help')}
-          title="Keyboard Shortcuts Cheat Sheet (F1)"
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg transition-colors cursor-pointer"
-        >
-          <Keyboard className="w-4 h-4" />
-          <span>Help (F1)</span>
-        </button>
-
-        {/* Language Switcher configured from .env */}
-        <div className="hidden lg:flex items-center bg-slate-950/70 p-0.5 rounded-lg border border-slate-800 text-[11px]">
-          <button
-            onClick={() => setLanguage('en')}
-            className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
-              language === 'en' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Language: English"
-          >
-            EN
-          </button>
-          <button
-            onClick={() => setLanguage('si')}
-            className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
-              language === 'si' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Language: Sinhala (සිංහල)"
-          >
-            සිං
-          </button>
-          <button
-            onClick={() => setLanguage('bilingual')}
-            className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
-              language === 'bilingual' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Language: Dual (EN+සිං)"
-          >
-            Dual
-          </button>
-        </div>
-      </div>
-
-      {/* Right: Sync Status, Network & Cashier Profile */}
-      <div className="flex items-center gap-4">
-        {/* Network & Sync indicator */}
-        <div
-          onClick={() => openModal('syncStatus')}
-          title="Click to view Offline & Sync Diagnostics"
-          className="flex items-center gap-2 bg-slate-950/80 hover:bg-slate-800/80 cursor-pointer px-3 py-1.5 rounded-lg border border-slate-800 transition-colors"
-        >
-          {isOnline ? (
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <Wifi className="w-4 h-4" />
-              <span className="hidden sm:inline">Online</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 text-xs text-rose-400">
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
-              <WifiOff className="w-4 h-4" />
-              <span className="hidden sm:inline">Offline</span>
-            </div>
-          )}
-
-          <div className="h-4 w-px bg-slate-800" />
-
-          {/* Sync status & Manual trigger */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              triggerManualSync();
-            }}
-            disabled={syncStatus === 'syncing'}
-            title="Trigger Immediate Sync"
-            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-indigo-400 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
-            {pendingCount > 0 ? (
-              <span className="bg-amber-500 text-slate-950 font-bold px-1.5 py-0.2 rounded-full text-[10px]">
-                {pendingCount}
-              </span>
-            ) : (
-              <span className="text-[11px] text-slate-400">Synced</span>
-            )}
-          </button>
-        </div>
-
-        {/* Cashier Info */}
-        <div className="flex items-center gap-3 pl-2 border-l border-slate-800">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-sm shadow-md">
-            <User className="w-4 h-4 text-white" />
-          </div>
-          <div className="hidden lg:block text-left">
-            <div className="text-xs font-semibold text-white leading-tight">{user?.name || 'Cashier'}</div>
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider">{user?.role || 'cashier'}</div>
-          </div>
-          <button
-            onClick={logout}
-            title="Logout Cashier"
-            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 rounded-lg transition-colors ml-1"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      <ArrowUpRight className="hidden" aria-hidden="true" />
     </header>
   );
-};
+}

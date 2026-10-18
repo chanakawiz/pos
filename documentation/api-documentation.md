@@ -179,3 +179,7 @@ Along with terminal identification:
 - `POST /api/v1/sync/push`: Batch push of offline sales and payments (idempotent).
 - `GET /api/v1/sync/pull`: Delta pull of catalog and customers based on version.
 - `GET /api/v1/sync/status`: Returns server health, active version, and device sync log.
+
+## Quantity precision (2026-10-18)
+
+Sale, refund, purchase, and offline-sync item quantities accept a positive numeric value of at least `0.001` with up to three decimal places. Excess precision is rejected rather than silently rounded. Deploy `2026_10_17_000002_preserve_three_decimal_stock_quantities.php` first; inventory/reservations and stock movements also retain three decimals. Money remains two decimals. See [weighing-scales.md](weighing-scales.md) for kg/g capture and rollout details.

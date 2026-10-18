@@ -170,8 +170,8 @@ CREATE TABLE `inventory` (
   `store_id` BIGINT UNSIGNED NOT NULL,
   `product_id` BIGINT UNSIGNED NOT NULL,
   `variant_id` BIGINT UNSIGNED NULL,
-  `quantity_on_hand` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
-  `quantity_reserved` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+  `quantity_on_hand` DECIMAL(15, 3) NOT NULL DEFAULT 0.00,
+  `quantity_reserved` DECIMAL(15, 3) NOT NULL DEFAULT 0.00,
   `created_at` TIMESTAMP NULL,
   `updated_at` TIMESTAMP NULL,
   UNIQUE KEY `store_product_variant_unique` (`store_id`, `product_id`, `variant_id`),
@@ -192,9 +192,9 @@ CREATE TABLE `stock_movements` (
   `variant_id` BIGINT UNSIGNED NULL,
   `user_id` BIGINT UNSIGNED NULL,
   `type` ENUM('sale', 'refund', 'purchase', 'adjustment', 'transfer_in', 'transfer_out', 'damaged') NOT NULL,
-  `quantity` DECIMAL(12, 2) NOT NULL,
-  `before_quantity` DECIMAL(12, 2) NOT NULL,
-  `after_quantity` DECIMAL(12, 2) NOT NULL,
+  `quantity` DECIMAL(15, 3) NOT NULL,
+  `before_quantity` DECIMAL(15, 3) NOT NULL,
+  `after_quantity` DECIMAL(15, 3) NOT NULL,
   `reference_uuid` VARCHAR(100) NULL,
   `notes` TEXT NULL,
   `created_at` TIMESTAMP NULL,
@@ -266,7 +266,7 @@ CREATE TABLE `sale_items` (
   `sale_id` BIGINT UNSIGNED NOT NULL,
   `product_id` BIGINT UNSIGNED NOT NULL,
   `variant_id` BIGINT UNSIGNED NULL,
-  `quantity` DECIMAL(12, 2) NOT NULL,
+  `quantity` DECIMAL(15, 3) NOT NULL,
   `unit_cost` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
   `unit_price` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
   `discount_amount` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
@@ -321,7 +321,7 @@ CREATE TABLE `refund_items` (
   `uuid` CHAR(36) UNIQUE NOT NULL,
   `refund_id` BIGINT UNSIGNED NOT NULL,
   `sale_item_id` BIGINT UNSIGNED NOT NULL,
-  `quantity` DECIMAL(12, 2) NOT NULL,
+  `quantity` DECIMAL(15, 3) NOT NULL,
   `amount` DECIMAL(12, 2) NOT NULL,
   `restock` TINYINT(1) DEFAULT 1,
   `created_at` TIMESTAMP NULL,
@@ -409,3 +409,5 @@ CREATE TABLE `settings` (
   FOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON DELETE CASCADE
 );
 ```
+
+Quantity precision was expanded by `2026_10_17_000002_preserve_three_decimal_stock_quantities.php` for sale/refund/purchase items, inventory balances/reservations, and stock movements. Monetary fields retain two decimal places. Apply this migration before deploying RS-232 weighing support.

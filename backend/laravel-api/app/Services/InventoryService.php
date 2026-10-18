@@ -38,7 +38,7 @@ class InventoryService
             );
 
             $before = (float) $inventory->quantity_on_hand;
-            $after = $before - $quantity;
+            $after = round($before - $quantity, 3);
 
             $inventory->update(['quantity_on_hand' => $after]);
 
@@ -84,7 +84,7 @@ class InventoryService
             );
 
             $before = (float) $inventory->quantity_on_hand;
-            $after = $before + $quantity;
+            $after = round($before + $quantity, 3);
 
             $inventory->update(['quantity_on_hand' => $after]);
 

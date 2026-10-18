@@ -18,6 +18,9 @@ const { PNG } = require('pngjs');
 const { EventEmitter } = require('node:events');
 const { CustomerDisplay, readDisplayEnabled, saveDisplayEnabled } = require('../dist-electron/customer-display.js');
 const { isTrustedFrame } = require('../dist-electron/trusted-ipc.js');
+const { SerialPortMock } = require('serialport');
+const { ScaleService } = require('../dist-electron/scale-service.js');
+const { parseScaleProfile } = require('../dist-electron/scale-config.js');
 
 const directory = process.env.SMARTSHOP_SMOKE_DIR || fs.mkdtempSync(path.join(os.tmpdir(), 'smartshop-ui-smoke-'));
 const profile = path.join(directory, 'profile');
@@ -31,6 +34,15 @@ const user = { uuid: randomUUID(), name: 'Smoke Cashier', email: 'smoke@example.
   store: { uuid: scope.storeUuid, name: 'Smoke Store', code: 'SMOKE', currency_symbol: '$', currency_code: 'USD' } };
 const product = { id: 1, uuid: randomUUID(), name: 'Smoke Milk', sinhala_name: 'කිරි', sku: 'MILK-1', barcode: '1234567890',
   unit: 'pcs', cost_price: 8, selling_price: 11, tax_rate: 5, min_stock_level: 1, stock_quantity: 20, has_variants: false };
+const weighedProduct = { ...product, id: 2, uuid: randomUUID(), name: 'Weighed Rice', sku: 'RICE-KG', barcode: '9876543210', unit: 'kg', selling_price: 100, tax_rate: 0 };
+let scale;
+let scalePort;
+let scaleStreamTimer;
+function streamScale(frame) {
+  clearInterval(scaleStreamTimer);
+  const serial = scalePort;
+  scaleStreamTimer = setInterval(() => { if (serial.isOpen) serial.port.emitData(frame); }, 100);
+}
 let online = false;
 let pushed = [];
 let shiftClosures = 0;
@@ -113,6 +125,8 @@ const clickText = (text) => evaluate(`(() => {
 })()`);
 
 async function finish(code) {
+  clearInterval(scaleStreamTimer);
+  scale?.dispose();
   display?.dispose();
   if (window && !window.isDestroyed()) window.destroy();
   storage?.close();
@@ -135,7 +149,14 @@ app.whenReady().then(async () => {
     catch (error) { console.error('Mock receipt renderer:', String(error.message).slice(0, 200)); throw error; }
   });
   storage = new OfflineStore(path.join(directory, 'pos.sqlite'));
-  storage.applyDelta(scope, { current_version: 1, products: [product], categories: [], customers: [] });
+  storage.applyDelta(scope, { current_version: 1, products: [product, weighedProduct], categories: [], customers: [] });
+  const serialPath = '/dev/smartshop-gui-test';
+  SerialPortMock.binding.createPort(serialPath, { record: true });
+  const scaleProfile = parseScaleProfile({ path: serialPath, baudRate: 2400, dataBits: 7, stopBits: 1, parity: 'even', protocol: 'and-indicator', weightType: 'net', staleAfterMs: 500 });
+  scale = new ScaleService(() => scaleProfile, () => {
+    scalePort = new SerialPortMock({ path: serialPath, baudRate: 2400, autoOpen: false });
+    return scalePort;
+  });
   for (const [channel, handler] of Object.entries({
     'storage:save-offline-sale': (s, sale) => storage.saveSale(s, sale),
     'storage:get-offline-sales': (s) => storage.getSales(s, true),
@@ -150,6 +171,10 @@ app.whenReady().then(async () => {
     'customer-display:publish': (state) => display.publish(state),
     'customer-display:status': () => display.status(),
     'customer-display:enable': (enabled) => display.setEnabled(enabled),
+    'scale:connect': () => scale.connect(),
+    'scale:status': () => scale.status(),
+    'scale:disconnect': () => scale.disconnect(),
+    'scale:capture': (revision, unit) => scale.capture(revision, unit),
   })) ipcMain.handle(channel, (event, ...args) => {
     if (!isTrustedFrame(event, window, `${baseUrl}/`)) throw new Error('Untrusted POS request');
     return handler(...args);
@@ -283,12 +308,55 @@ app.whenReady().then(async () => {
   await until(() => evaluate("document.body.innerText.includes('Smoke Milk')"), 'cached catalog after reload');
   assert.equal(storage.getSales(scope, true)[0].transaction_uuid, saved.transaction_uuid);
   console.log('PASS: catalog and queued sale survive renderer reload during an outage');
+  await evaluate("[...document.querySelectorAll('div.group')].find((node) => node.textContent.includes('Weighed Rice')).click()");
+  await until(() => scalePort?.isOpen && evaluate("document.body.innerText.includes('Weigh product')"), 'scale port open');
+  const captureDisabled = () => evaluate("[...document.querySelectorAll('button')].find((node) => node.textContent === 'Capture weight')?.disabled");
+  assert.equal(await captureDisabled(), true);
+  scalePort.port.emitData('US,NT,+00125.0 g\r\n');
+  await until(() => evaluate("document.body.innerText.includes('Weight is moving')"), 'unstable weighing feedback');
+  assert.equal(await captureDisabled(), true);
+  scalePort.port.emitData('ST,NT,+00125.0 g\r\n');
+  await until(() => evaluate("document.querySelector('[data-testid=scale-weight]')?.textContent === '0.125 kg'"), 'grams converted to kg');
+  await until(() => evaluate("document.body.innerText.includes('Scale reading expired')"), 'stale weight rejected');
+  assert.equal(await captureDisabled(), true);
+  scalePort.port.emitData('OL,NT,+      . kg\r\n');
+  await until(() => evaluate("document.body.innerText.includes('Scale overload')"), 'overload rejected');
+  scalePort.port.emitData('ST,NT,+00125.');
+  scalePort.port.emitData('0 g\r\n');
+  streamScale('ST,NT,+00125.0 g\r\n');
+  await until(() => evaluate("document.querySelector('[data-testid=scale-weight]')?.textContent === '0.125 kg'"), 'fragmented scale frame');
+  if (process.env.SMARTSHOP_SCALE_ARTIFACTS) {
+    fs.mkdirSync(process.env.SMARTSHOP_SCALE_ARTIFACTS, { recursive: true });
+    fs.writeFileSync(path.join(process.env.SMARTSHOP_SCALE_ARTIFACTS, 'weighing.png'), (await window.webContents.capturePage()).toPNG());
+  }
+  await evaluate("(() => { const button = [...document.querySelectorAll('button')].find((node) => node.textContent === 'Capture weight'); button.click(); button.click(); })()");
+  await until(() => evaluate("document.body.innerText.includes('0.125 kg') && !document.querySelector('[data-testid=scale-weight]')"), 'single captured cart quantity');
+  await until(() => !scalePort.isOpen, 'port released after capture');
+  clearInterval(scaleStreamTimer);
+  await clickText('Reweigh');
+  await until(() => scalePort.isOpen, 'reweigh port open');
+  scalePort.port.emitData('ST,NT,+000.250kg\r\n');
+  streamScale('ST,NT,+000.250kg\r\n');
+  await until(() => evaluate("document.querySelector('[data-testid=scale-weight]')?.textContent === '0.250 kg'"), 'replacement weight');
+  await clickText('Capture weight');
+  await until(() => evaluate("document.body.innerText.includes('0.250 kg') && !document.querySelector('[data-testid=scale-weight]')"), 'weight replaces previous quantity');
+  clearInterval(scaleStreamTimer);
+  await clickText('PROCEED TO PAY');
+  await clickText('Card');
+  await clickText('Complete Payment');
+  await until(() => storage.getSales(scope, true).length === 2, 'weighed offline checkout');
+  const weighedSale = storage.getSales(scope, true).find((sale) => sale.items[0].product_uuid === weighedProduct.uuid);
+  assert.equal(weighedSale.items[0].quantity, 0.25);
+  assert.equal(weighedSale.total_amount, 25);
+  await evaluate("window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))");
+  console.log('PASS: scale rejects unstable/stale/overload frames, converts grams, captures once, reweighs, releases its port and persists fractional checkout');
   online = true;
   await until(() => evaluate("!document.querySelector('button[title=\"Trigger Immediate Sync\"]').disabled"), 'sync available');
   await evaluate("document.querySelector('button[title=\"Trigger Immediate Sync\"]').click()");
   await until(() => storage.getSales(scope, true).length === 0, 'server acknowledgement');
   await until(() => storage.getCatalog(scope).current_version === 2, 'atomic catalog refresh');
-  assert.equal(pushed.length, 1);
+  assert.equal(pushed.length, 2);
+  assert.equal(pushed.find((sale) => sale.transaction_uuid === weighedSale.transaction_uuid).items[0].quantity, 0.25);
   assert.equal(pushed[0].transaction_uuid, saved.transaction_uuid);
   assert.equal(storage.getProductByBarcode(scope, product.barcode).selling_price, 12);
   console.log('PASS: reconnect pushes the original UUID once and persists the updated catalog');

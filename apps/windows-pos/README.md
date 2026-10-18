@@ -42,7 +42,7 @@ npm test
 npm run test:smoke
 ```
 
-`npm test` runs 30 persistence, synchronization, receipt, transport, display-validation, and IPC tests under Electron's Node runtime, matching the native module ABI. `test:smoke` runs the built cashier UI with a real preload bridge and SQLite against an isolated mock API; it checks offline checkout, reload recovery, reconnect synchronization, receipt/drawer TCP delivery, print failure handling, long 58mm raster output, and an isolated customer display with simulated monitor changes, live cart/language updates, pause/resume, and privacy/reset checks. It needs a graphical session (use `xvfb-run -a npm run test:smoke` on Linux CI).
+`npm test` runs 41 persistence, synchronization, receipt, transport, display, scale, and IPC tests under Electron's Node runtime, matching the native module ABI. `test:smoke` runs the built cashier UI with a real preload bridge and SQLite against an isolated mock API; it checks offline checkout, reload recovery, reconnect synchronization, receipt/drawer TCP delivery, print failure handling, long 58mm raster output, and an isolated customer display with simulated monitor changes, live cart/language updates, pause/resume, privacy/reset checks, and serial-scale capture/reweigh/fractional checkout. It needs a graphical session (use `xvfb-run -a npm run test:smoke` on Linux CI).
 
 Use `npm run dist:win` on a Windows build machine for the installer, or `npm run dist:mac` for macOS. Output goes to `release/<version>/`. Native SQLite is unpacked from ASAR and rebuilt for the target architecture. macOS arm64 packaging is verified; Windows execution and physical printer/drawer/scale testing remain target-device checks.
 
@@ -56,3 +56,7 @@ Receipts are rendered separately from the cashier UI, with a bundled Sinhala fon
 ## Customer-facing monitor
 
 Connect a separate monitor in OS **Extend** mode. Electron automatically opens the customer view on a monitor without cashier-window overlap. It displays the live English/Sinhala/bilingual cart and clears on checkout or sign-out. **F1 → Customer display** shows status and saves pause/resume preferences. No separate monitor means the cashier continues normally. See [customer display setup and acceptance checks](../../documentation/customer-display.md). Physical Windows dual-monitor validation remains.
+
+## RS-232 weighing scales
+
+Apply backend migration `2026_10_17_000002_preserve_three_decimal_stock_quantities.php` first. Configure user-data `scale.json` from [scale.example.json](scale.example.json) using the actual device protocol and serial settings. Products with unit `kg` or `g` open an explicit stable-weight capture dialog; **Reweigh** replaces an existing quantity. The reader supports documented A&D formats and retains three-decimal quantities through offline checkout, sync, inventory, and refunds. See [scale setup and acceptance checks](../../documentation/weighing-scales.md). Physical Windows serial/scale validation remains.

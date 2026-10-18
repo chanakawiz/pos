@@ -1,7 +1,7 @@
 # SmartShop POS — Master Engineering Backlog
 
 > **Document Version**: 1.0.0
-> **Last Synchronized**: 2026-10-17
+> **Last Synchronized**: 2026-10-18
 > **Execution Status**: Active
 > **Legend**: `✅ DONE` = Work Completed & Verified | `⏳ PENDING` = Work Pending Implementation | `🔄 IN PROGRESS` = Currently Active
 
@@ -22,7 +22,7 @@
 | **API-009** | Multi-Lane Cloud Held Bills | P1 | `✅ DONE` | Endpoints `/api/v1/held-bills` (GET, POST, DELETE) for persistent multi-register hold. |
 | **API-010** | Purchasing & Goods Receiving | P1 | `✅ DONE` | Supplier PO drafting and `/api/v1/purchases/{uuid}/receive` stock receiving. |
 | **API-011** | Sales & Inventory Analytics API | P1 | `✅ DONE` | Sales summary by period, top selling products, and low stock warnings. |
-| **API-012** | Comprehensive Feature Test Suite | P0 | `✅ DONE` | 24 automated tests (257 assertions on local MySQL / 215 on isolated SQLite), including global revisions, stock invalidation, deletion propagation, store authorization, and offline tax snapshots. |
+| **API-012** | Comprehensive Feature Test Suite | P0 | `✅ DONE` | 28 automated tests (281 assertions on local MySQL / 239 on isolated SQLite), including global revisions, stock invalidation, deletion propagation, store authorization, offline tax snapshots, and fractional sale/refund/stock precision. |
 | **API-013** | Bilingual Sinhala & English Catalog Schema | P0 | `✅ DONE` | Database migration `sinhala_name` on products table, API index & barcode lookup support. |
 | **API-014** | Smart Items & Mobile Devices Schema | P0 | `✅ DONE` | Warranty periods, serial/IMEI tracking flags on products, and `serial_number` & `warranty_notes` on sale items. |
 | **API-015** | Durable Catalog Sync Revisions | P0 | `✅ DONE` | Transactional global revision sequence, inventory invalidation, soft/permanent deletion tombstones, and complete bilingual/warranty catalog payloads. |
@@ -96,7 +96,7 @@
 | **HRD-002** | RJ11 Cash Drawer Kick Trigger | P1 | `🔄 IN PROGRESS` | TCP and Windows RAW transport implemented; configured-pin bytes verified against a mock receiver. Actual drawer pin/timing/operation still requires target hardware. |
 | **HRD-003** | USB/Network ESC/POS Printer | P1 | `🔄 IN PROGRESS` | Real TCP delivery and Windows RAW spooler path implemented. 58/80mm raster rendering is tested; Windows spooler execution and physical output/cutter validation remain. |
 | **HRD-004** | Dual-Screen Customer Facing Display | P2 | `✅ SOFTWARE DONE` | Isolated secondary window, live bilingual cart/totals, safe monitor selection/hotplug, and persisted pause/resume. Physical Windows dual-monitor acceptance remains; see [setup](customer-display.md). |
-| **HRD-005** | Electronic Weight Scale (RS-232) | P2 | `⏳ PENDING` | Serial port reader for weighed produce items (grams / kilograms). |
+| **HRD-005** | Electronic Weight Scale (RS-232) | P2 | `✅ SOFTWARE DONE` | Explicit A&D serial protocols, stable/fresh capture, kg/g conversion, reweighing, and three-decimal quantity persistence/sync/refunds. Actual model/Windows adapter acceptance remains; see [setup](weighing-scales.md). |
 
 
 ## 2026-10-17 continuation
@@ -120,3 +120,10 @@ Verified 27 Electron tests, the cashier UI smoke test with a real renderer/local
 Completed HRD-004 software: a separate sandboxed customer renderer receives a validated public cart projection over IPC, supports English/Sinhala/bilingual output with the bundled font, and clears on cart completion/logout/cashier reload or shutdown. Monitor selection excludes cashier overlap and mirrored layouts; hotplug and bounds changes reconcile placement. F1 provides status and persistent pause/resume.
 
 Verification: 30 native Electron tests, the expanded cashier/customer GUI smoke suite, desktop build, lint (seven existing warnings), and screenshot inspection. Physical Windows monitor/DPI/focus/hotplug acceptance remains open; see [customer-display.md](customer-display.md).
+
+
+## 2026-10-18 weighing-scale continuation
+
+Implemented HRD-005 software with an explicitly configured main-process SerialPort reader, bounded CRLF framing, strict A&D balance/indicator parsers, fresh stable-reading capture, wrong-unit/type rejection, visible failures, and port lifecycle handling. kg/g catalog products open a capture dialog from clicks or barcode lookup; reweighing replaces the quantity. No scale is assumed or opened without configuration.
+
+Added the required three-decimal quantity migration, model/API/admin updates, fractional refund entry, and offline quantity validation. Applied the additive migration to local MySQL. Verification covers native serial/mocked-stream tests, fractional SQLite persistence/sync, backend sale/refund/idempotency/rollback tests on SQLite and MySQL, and the expanded GUI smoke flow. Physical scale/Windows peripheral acceptance remains open; see [weighing-scales.md](weighing-scales.md).

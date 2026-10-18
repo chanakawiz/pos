@@ -81,6 +81,7 @@ For the native terminal, configure `VITE_DEVICE_UUID` from a registered store de
 - [Offline-First Sync Engine Specification](documentation/offline-sync.md)
 - [Receipt Printer & Cash Drawer Setup](documentation/receipt-printing.md)
 - [Customer-Facing Monitor Setup](documentation/customer-display.md)
+- [RS-232 Weighing Scale Setup](documentation/weighing-scales.md)
 - [Installation & Setup Guide](documentation/setup-guide.md)
 
 ---

@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InventoryResource\Pages;
 use App\Models\Inventory;
-use App\Models\StockMovement;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -43,11 +42,15 @@ class InventoryResource extends Resource
                     ->label('Quantity On Hand')
                     ->required()
                     ->numeric()
+                    ->step(0.001)
+                    ->rules(['decimal:0,3'])
                     ->default(0.00),
 
                 Forms\Components\TextInput::make('quantity_reserved')
                     ->label('Quantity Reserved (Cart Holds)')
                     ->numeric()
+                    ->step(0.001)
+                    ->rules(['decimal:0,3'])
                     ->default(0.00),
             ]);
     }
@@ -80,14 +83,14 @@ class InventoryResource extends Resource
 
                 Tables\Columns\TextColumn::make('quantity_on_hand')
                     ->label('Available Stock')
-                    ->numeric(2)
+                    ->numeric(3)
                     ->color(fn ($state, $record) => $state <= ($record->product?->min_stock_level ?? 5) ? 'danger' : 'success')
                     ->weight('bold')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('quantity_reserved')
                     ->label('Reserved')
-                    ->numeric(2)
+                    ->numeric(3)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('product.selling_price')
@@ -116,9 +119,9 @@ class InventoryResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListInventories::route('/'),
+            'index' => Pages\ListInventories::route('/'),
             'create' => Pages\CreateInventory::route('/create'),
-            'edit'   => Pages\EditInventory::route('/{record}/edit'),
+            'edit' => Pages\EditInventory::route('/{record}/edit'),
         ];
     }
 }

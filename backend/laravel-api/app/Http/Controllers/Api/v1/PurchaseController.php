@@ -24,7 +24,7 @@ class PurchaseController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $user    = $request->user();
+        $user = $request->user();
         $storeId = $user?->store_id ?? 1;
 
         $purchases = Purchase::with(['supplier:id,name', 'user:id,name'])
@@ -42,20 +42,20 @@ class PurchaseController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'supplier_uuid'       => 'required|uuid',
-            'items'               => 'required|array|min:1',
+            'supplier_uuid' => 'required|uuid',
+            'items' => 'required|array|min:1',
             'items.*.product_uuid' => 'required|uuid',
-            'items.*.quantity'    => 'required|numeric|min:0.01',
-            'items.*.unit_cost'   => 'required|numeric|min:0',
-            'purchased_at'        => 'nullable|date',
-            'notes'               => 'nullable|string',
+            'items.*.quantity' => 'required|numeric|min:0.001|decimal:0,3',
+            'items.*.unit_cost' => 'required|numeric|min:0',
+            'purchased_at' => 'nullable|date',
+            'notes' => 'nullable|string',
         ]);
 
-        $user     = $request->user();
-        $storeId  = $user?->store_id ?? 1;
+        $user = $request->user();
+        $storeId = $user?->store_id ?? 1;
 
         $supplier = Supplier::where('uuid', $request->supplier_uuid)->firstOrFail();
-        $store    = Store::findOrFail($storeId);
+        $store = Store::findOrFail($storeId);
 
         $purchase = DB::transaction(function () use ($request, $supplier, $store, $user) {
             $totalAmount = collect($request->items)->sum(
@@ -63,25 +63,25 @@ class PurchaseController extends Controller
             );
 
             $purchase = Purchase::create([
-                'purchase_number' => 'PO-' . $store->code . '-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5)),
-                'supplier_id'     => $supplier->id,
-                'store_id'        => $store->id,
-                'user_id'         => $user->id,
-                'status'          => 'ordered',
-                'total_amount'    => $totalAmount,
-                'purchased_at'    => $request->purchased_at ? Carbon::parse($request->purchased_at) : Carbon::now(),
-                'notes'           => $request->notes,
+                'purchase_number' => 'PO-'.$store->code.'-'.now()->format('Ymd').'-'.strtoupper(Str::random(5)),
+                'supplier_id' => $supplier->id,
+                'store_id' => $store->id,
+                'user_id' => $user->id,
+                'status' => 'ordered',
+                'total_amount' => $totalAmount,
+                'purchased_at' => $request->purchased_at ? Carbon::parse($request->purchased_at) : Carbon::now(),
+                'notes' => $request->notes,
             ]);
 
             foreach ($request->items as $itemData) {
                 $product = Product::where('uuid', $itemData['product_uuid'])->firstOrFail();
                 PurchaseItem::create([
                     'purchase_id' => $purchase->id,
-                    'product_id'  => $product->id,
-                    'variant_id'  => null,
-                    'quantity'    => $itemData['quantity'],
-                    'unit_cost'   => $itemData['unit_cost'],
-                    'subtotal'    => $itemData['quantity'] * $itemData['unit_cost'],
+                    'product_id' => $product->id,
+                    'variant_id' => null,
+                    'quantity' => $itemData['quantity'],
+                    'unit_cost' => $itemData['unit_cost'],
+                    'subtotal' => $itemData['quantity'] * $itemData['unit_cost'],
                 ]);
             }
 
@@ -89,9 +89,9 @@ class PurchaseController extends Controller
         });
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Purchase order created.',
-            'data'    => $purchase->load(['supplier', 'items.product']),
+            'data' => $purchase->load(['supplier', 'items.product']),
         ], 201);
     }
 
@@ -118,7 +118,7 @@ class PurchaseController extends Controller
 
         if ($purchase->status === 'received') {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'This purchase order has already been received.',
             ], 422);
         }
@@ -143,9 +143,9 @@ class PurchaseController extends Controller
         });
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Purchase received and inventory updated.',
-            'data'    => $purchase->fresh(['items.product', 'supplier']),
+            'data' => $purchase->fresh(['items.product', 'supplier']),
         ]);
     }
 
@@ -168,20 +168,20 @@ class PurchaseController extends Controller
     public function storeSupplier(Request $request): JsonResponse
     {
         $request->validate([
-            'name'           => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
-            'phone'          => 'nullable|string|max:50',
-            'email'          => 'nullable|email|max:255',
-            'address'        => 'nullable|string',
-            'tax_id'         => 'nullable|string|max:100',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string',
+            'tax_id' => 'nullable|string|max:100',
         ]);
 
         $supplier = Supplier::create($request->only(['name', 'contact_person', 'phone', 'email', 'address', 'tax_id']));
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Supplier created.',
-            'data'    => $supplier,
+            'data' => $supplier,
         ], 201);
     }
 }

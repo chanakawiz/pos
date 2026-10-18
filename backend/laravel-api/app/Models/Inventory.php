@@ -24,8 +24,8 @@ class Inventory extends Model
     ];
 
     protected $casts = [
-        'quantity_on_hand' => 'decimal:2',
-        'quantity_reserved' => 'decimal:2',
+        'quantity_on_hand' => 'decimal:3',
+        'quantity_reserved' => 'decimal:3',
     ];
 
     public function save(array $options = [])

@@ -113,3 +113,8 @@ Configure the terminal’s user-data `printer.json` using the [receipt printing 
 ## 5. Customer-facing monitor setup
 
 Connect the second screen in OS **Extend** mode and keep the cashier window on one monitor. The customer window starts automatically; use **F1 → Customer display** for status and persistent pause/resume. See [customer-display.md](customer-display.md) for behavior, isolation, verification, and required physical Windows acceptance checks.
+
+
+## 6. RS-232 weighing-scale setup
+
+Apply `2026_10_17_000002_preserve_three_decimal_stock_quantities.php` before deploying the updated terminal. Configure an explicit port/protocol in user-data `scale.json`, set weighed product units to `kg` or `g`, and verify the actual equipment using [weighing-scales.md](weighing-scales.md). The example serial settings must be replaced with those in the device manual.

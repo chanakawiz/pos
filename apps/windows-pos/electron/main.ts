@@ -7,11 +7,15 @@ import { readPrinterProfile } from './printer-config';
 import { renderReceipt } from './receipt-renderer';
 import { CustomerDisplay, readDisplayEnabled, saveDisplayEnabled } from './customer-display';
 import { isTrustedFrame } from './trusted-ipc';
+import { SerialPort } from 'serialport';
+import { ScaleService } from './scale-service';
+import { readScaleProfile } from './scale-config';
 
 let mainWindow: BrowserWindow | null = null;
 
 let offlineStore: OfflineStore | null = null;
 let customerDisplay: CustomerDisplay | null = null;
+let scale: ScaleService | null = null;
 const cashierUrl = () => app.isPackaged
   ? pathToFileURL(path.join(__dirname, '../dist/index.html')).href
   : new URL(process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173').href;
@@ -48,7 +52,10 @@ function createWindow() {
   }
 
   customerDisplay?.attach(mainWindow);
+  mainWindow.webContents.on('did-start-loading', () => { void scale?.disconnect(); });
+  mainWindow.webContents.on('render-process-gone', () => { void scale?.disconnect(); });
   mainWindow.on('closed', () => {
+    void scale?.disconnect();
     mainWindow = null;
   });
 }
@@ -71,6 +78,15 @@ app.whenReady().then(() => {
   const printerFilename = path.join(userDataPath, 'printer.json');
   console.info('Receipt printer configuration:', printerFilename);
   const printer = new PrinterService(() => readPrinterProfile(printerFilename), renderReceipt);
+  const weighingScale = new ScaleService(() => readScaleProfile(path.join(userDataPath, 'scale.json')),
+    (profile) => new SerialPort({ path: profile.path, baudRate: profile.baudRate,
+      dataBits: profile.dataBits, stopBits: profile.stopBits, parity: profile.parity,
+      autoOpen: false, lock: true, rtscts: false, xon: false, xoff: false }));
+  scale = weighingScale;
+  trustedHandler('scale:connect', () => weighingScale.connect());
+  trustedHandler('scale:status', () => weighingScale.status());
+  trustedHandler('scale:disconnect', () => weighingScale.disconnect());
+  trustedHandler('scale:capture', (revision: unknown, unit: unknown) => weighingScale.capture(revision, unit));
   const displayFilename = path.join(userDataPath, 'customer-display.json');
   const displayUrl = app.isPackaged
     ? pathToFileURL(path.join(__dirname, '../dist/customer-display.html')).href
@@ -112,6 +128,7 @@ app.whenReady().then(() => {
 });
 
 app.on('will-quit', () => {
+  scale?.dispose();
   customerDisplay?.dispose();
   offlineStore?.close();
   offlineStore = null;

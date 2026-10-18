@@ -1,0 +1,10 @@
+{
+  "path": "COM3",
+  "baudRate": 2400,
+  "dataBits": 7,
+  "stopBits": 1,
+  "parity": "even",
+  "protocol": "and-indicator",
+  "weightType": "net",
+  "staleAfterMs": 1500
+}

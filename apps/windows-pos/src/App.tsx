@@ -23,12 +23,29 @@ import { posSounds } from './utils/audio';
 import { getCachedCatalog, getCachedProductByBarcode } from './services/offlineStorage';
 import { openCashDrawer } from './services/hardware';
 import { startCustomerDisplay } from './services/customerDisplay';
+import { weightUnit } from '../electron/quantity';
+import { WeighingModal } from './modals/WeighingModal';
 
 export const App: React.FC = () => {
   useEffect(startCustomerDisplay, []);
+  useEffect(() => useAuthStore.subscribe((state, previous) => {
+    if (state.token !== previous.token || state.user?.uuid !== previous.user?.uuid) {
+      const pos = usePosStore.getState();
+      if (pos.activeModal === 'weighing') pos.closeModal();
+      void window.posApi?.disconnectScale().catch(() => {});
+    }
+  }), []);
   const { token, user, checkAuth } = useAuthStore();
   const { setOnline, activeModal, closeModal, hardwareMessage, setHardwareMessage } = usePosStore();
   const { addItem } = useCartStore();
+  const selectProduct = useCallback((product: Product) => {
+    const pos = usePosStore.getState();
+    const auth = useAuthStore.getState();
+    if (!auth.token || !auth.user || pos.activeModal || pos.isCompletingSale) return;
+    if (weightUnit(product.unit)) pos.openWeighing(product);
+    else addItem(product, 1);
+  }, [addItem]);
+  const weighingProduct = usePosStore((state) => state.weighingProduct);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -111,17 +128,18 @@ export const App: React.FC = () => {
 
   // Fast Barcode submission
   const handleBarcodeSubmit = useCallback(async (barcode: string) => {
+    if (usePosStore.getState().activeModal || usePosStore.getState().isCompletingSale) return;
     try {
       const cached = await getCachedProductByBarcode(barcode);
       if (cached) {
-        addItem(cached, 1);
+        selectProduct(cached);
         posSounds.playScannerBeep();
         setSearchTerm('');
         return;
       }
       const res = await api.getProductByBarcode(barcode);
       if (res.product) {
-        addItem(res.product, 1);
+        selectProduct(res.product);
         posSounds.playScannerBeep();
         setSearchTerm('');
         return;
@@ -132,14 +150,14 @@ export const App: React.FC = () => {
         (p) => p.barcode === barcode || p.sku.toLowerCase() === barcode.toLowerCase()
       );
       if (matched) {
-        addItem(matched, 1);
+        selectProduct(matched);
         posSounds.playScannerBeep();
         setSearchTerm('');
         return;
       }
       posSounds.playErrorChirp();
     }
-  }, [addItem, products]);
+  }, [selectProduct, products]);
 
   // Global USB/Bluetooth Barcode Scanner Hardware Hook
   useBarcodeScanner({
@@ -225,7 +243,7 @@ export const App: React.FC = () => {
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             onBarcodeSubmit={handleBarcodeSubmit}
-            onProductClick={(product) => addItem(product, 1)}
+            onProductClick={selectProduct}
           />
         </div>
 
@@ -242,6 +260,7 @@ export const App: React.FC = () => {
       {activeModal === 'refund' && <RefundModal />}
       {activeModal === 'syncStatus' && <SyncStatusModal />}
       {activeModal === 'help' && <HelpModal />}
+      {activeModal === 'weighing' && weighingProduct && <WeighingModal product={weighingProduct} />}
     </div>
   );
 };

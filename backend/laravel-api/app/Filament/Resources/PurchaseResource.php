@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PurchaseResource\Pages;
+use App\Models\Product;
 use App\Models\Purchase;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -23,7 +24,7 @@ class PurchaseResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('purchase_number')
-                    ->default(fn () => 'PO-' . strtoupper(uniqid()))
+                    ->default(fn () => 'PO-'.strtoupper(uniqid()))
                     ->required()
                     ->maxLength(100),
                 Forms\Components\Select::make('supplier_id')
@@ -43,9 +44,9 @@ class PurchaseResource extends Resource
                     ->preload(),
                 Forms\Components\Select::make('status')
                     ->options([
-                        'pending'   => 'Pending',
-                        'ordered'   => 'Ordered',
-                        'received'  => 'Received',
+                        'pending' => 'Pending',
+                        'ordered' => 'Ordered',
+                        'received' => 'Received',
                         'cancelled' => 'Cancelled',
                     ])
                     ->default('pending')
@@ -73,7 +74,7 @@ class PurchaseResource extends Resource
                                     ->preload()
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                        $product = \App\Models\Product::find($state);
+                                        $product = Product::find($state);
                                         if ($product) {
                                             $set('unit_cost', $product->cost_price);
                                         }
@@ -81,6 +82,9 @@ class PurchaseResource extends Resource
                                     ->columnSpan(4),
                                 Forms\Components\TextInput::make('quantity')
                                     ->numeric()
+                                    ->step(0.001)
+                                    ->minValue(0.001)
+                                    ->rules(['decimal:0,3'])
                                     ->default(1)
                                     ->required()
                                     ->reactive()
@@ -133,7 +137,7 @@ class PurchaseResource extends Resource
                         'warning' => 'pending',
                         'primary' => 'ordered',
                         'success' => 'received',
-                        'danger'  => 'cancelled',
+                        'danger' => 'cancelled',
                     ]),
                 Tables\Columns\TextColumn::make('total_amount')
                     ->money('USD')
@@ -145,9 +149,9 @@ class PurchaseResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'pending'   => 'Pending',
-                        'ordered'   => 'Ordered',
-                        'received'  => 'Received',
+                        'pending' => 'Pending',
+                        'ordered' => 'Ordered',
+                        'received' => 'Received',
                         'cancelled' => 'Cancelled',
                     ]),
                 Tables\Filters\SelectFilter::make('supplier')
@@ -166,9 +170,9 @@ class PurchaseResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListPurchases::route('/'),
+            'index' => Pages\ListPurchases::route('/'),
             'create' => Pages\CreatePurchase::route('/create'),
-            'edit'   => Pages\EditPurchase::route('/{record}/edit'),
+            'edit' => Pages\EditPurchase::route('/{record}/edit'),
         ];
     }
 }

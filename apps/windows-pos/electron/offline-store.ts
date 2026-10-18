@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { isValidQuantity } from './quantity';
 import fs from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
 import type {
@@ -27,7 +28,7 @@ function assertSale(sale: OfflineSale): void {
   for (const item of sale.items) {
     if (item.product_uuid) assertUuid(item.product_uuid);
     if ((!item.product_uuid && (!Number.isSafeInteger(item.product_id) || item.product_id! <= 0)) ||
-        !Number.isFinite(item.quantity) || item.quantity < 0.01 ||
+        !isValidQuantity(item.quantity) ||
         !Number.isFinite(item.unit_price) || item.unit_price < 0 ||
         (item.tax_rate !== undefined && (!Number.isFinite(item.tax_rate) || item.tax_rate < 0 || item.tax_rate > 100))) {
       throw new Error('Invalid sale item');

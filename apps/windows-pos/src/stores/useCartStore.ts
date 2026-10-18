@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Product, CartItem } from '../types/pos';
 import { roundMoney } from '../../electron/money';
+import { isValidQuantity, roundQuantity } from '../../electron/quantity';
 
 interface CartState {
   items: CartItem[];
@@ -36,6 +37,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   heldBills: [],
 
   addItem: (product: Product, quantity = 1) => {
+    if (!isValidQuantity(quantity)) throw new Error('Quantity must be positive with up to three decimal places.');
     set((state) => {
       const existingIndex = state.items.findIndex((item) => item.product.id === product.id);
       const unitPrice = product.selling_price;
@@ -44,7 +46,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       if (existingIndex > -1) {
         const updated = [...state.items];
         const item = updated[existingIndex];
-        const newQty = item.quantity + quantity;
+        const newQty = roundQuantity(item.quantity + quantity);
         const subtotal = roundMoney(newQty * item.unitPrice - item.discountAmount);
         const taxAmount = item.taxRate > 0 ? roundMoney((subtotal * item.taxRate) / 100) : 0;
         const total = subtotal + taxAmount;
@@ -100,17 +102,20 @@ export const useCartStore = create<CartState>((set, get) => ({
       return;
     }
 
+    if (!isValidQuantity(quantity)) throw new Error('Invalid quantity.');
     set((state) => ({
       items: state.items.map((item) => {
         if (item.product.id !== productId) return item;
 
-        const subtotal = roundMoney(quantity * item.unitPrice - item.discountAmount);
+        const discountAmount = Math.min(item.discountAmount, quantity * item.unitPrice);
+        const subtotal = roundMoney(quantity * item.unitPrice - discountAmount);
         const taxAmount = item.taxRate > 0 ? roundMoney((subtotal * item.taxRate) / 100) : 0;
         const total = subtotal + taxAmount;
 
         return {
           ...item,
           quantity,
+          discountAmount,
           subtotal,
           taxAmount,
           total,

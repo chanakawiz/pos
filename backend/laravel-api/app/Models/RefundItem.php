@@ -21,7 +21,7 @@ class RefundItem extends Model
     ];
 
     protected $casts = [
-        'quantity' => 'decimal:2',
+        'quantity' => 'decimal:3',
         'amount' => 'decimal:2',
         'restock' => 'boolean',
     ];

@@ -11,8 +11,6 @@ use App\Services\InventoryService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class SaleController extends Controller
 {
@@ -31,7 +29,7 @@ class SaleController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required_without:items.*.product_uuid|integer',
             'items.*.product_uuid' => 'required_without:items.*.product_id|uuid',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.quantity' => 'required|numeric|min:0.001|decimal:0,3',
             'items.*.unit_price' => 'nullable|numeric|min:0',
             'items.*.discount_amount' => 'nullable|numeric|min:0',
             'payments' => 'required|array|min:1',
@@ -110,7 +108,7 @@ class SaleController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to process sale: ' . $e->getMessage(),
+                'message' => 'Failed to process sale: '.$e->getMessage(),
             ], 422);
         }
     }

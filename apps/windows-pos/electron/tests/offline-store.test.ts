@@ -97,6 +97,23 @@ test('duplicate retries never create extra rows or reset acknowledged sales', (t
   assert.equal(store.getSales(scope)[0].total_amount, data.total_amount);
 });
 
+test('one-gram sale quantities survive reopening and sync without rounding', async (t) => {
+  const { open, scope } = fixture(t);
+  const store = open();
+  const data = sale();
+  data.items[0].quantity = 0.001;
+  store.saveSale(scope, data);
+  store.close();
+  const reopened = open();
+  assert.equal(reopened.getSales(scope, true)[0].items[0].quantity, 0.001);
+  await synchronizeOfflineData(bridge(reopened), scope, transport({ push: async ({ transactions }) => {
+    assert.equal(transactions[0].items[0].quantity, 0.001);
+    return { synced_uuids: [data.transaction_uuid] };
+  } }));
+  assert.equal(reopened.getSales(scope)[0].items[0].quantity, 0.001);
+  assert.throws(() => reopened.saveSale(scope, { ...sale(), items: [{ ...data.items[0], quantity: 0.0001 }] }));
+});
+
 test('a failure after inserting the sale rolls back the sale, items, and payments', (t) => {
   const { open, scope, filename } = fixture(t);
   const store = open();

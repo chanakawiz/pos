@@ -41,10 +41,10 @@ To ensure maximum operational stability and immediate commercial viability, the 
   - **Product Management**: Create and edit products with English name, Sinhala name, Category, Brand, barcode scanner input helper, Smart Items & Warranty tab, serial/IMEI flags, pricing, and automated initial stock initialization.
   - **Brand Management**: Create and edit brands (Apple, Samsung, Anker, Sony, Xiaomi, etc.) with auto-slug generation, logo uploads, and active state controls.
   - **Inventory System & Stock Ledger**: Multi-store stock balances, low-stock warnings, purchase order goods receiving with automatic stock additions, and immutable `stock_movements` ledger logging all additions, sales, refunds, and adjustments.
-- [x] **Automated Test Coverage**: 100% test pass rate covering Auth, Billing, Cash Sessions, Customers, Held Bills, Products, Purchases, Refunds, Reports, and Offline Sync (18 tests, 225 assertions).
+- [x] **Automated Test Coverage**: 100% test pass rate covering Auth, Billing, Cash Sessions, Customers, Held Bills, Products, Purchases, Refunds, Reports, and Offline Sync (28 tests; 281 MySQL / 239 SQLite assertions).
 - [x] **Multi-Lane Cloud Held Bills**: Cross-register bill hold and resume engine with automatic inventory reservation.
 
-### Milestone 1.2: Hardware Integration & ESC/POS Engine (`🔄 IN PROGRESS` — transport audit 2026-10-17)
+### Milestone 1.2: Hardware Integration & ESC/POS Engine (`🔄 IN PROGRESS` — software complete; physical acceptance pending)
 - [x] **Environment-Driven Multi-Language Configuration (`.env`)**:
   - Configurable via `VITE_DEFAULT_LANGUAGE=bilingual` (or `si`, `en`) in `apps/windows-pos/.env` and `DEFAULT_RECEIPT_LANGUAGE=bilingual` in `backend/laravel-api/.env`.
   - Terminal starts in the specified language mode automatically.
@@ -75,6 +75,10 @@ To ensure maximum operational stability and immediate commercial viability, the 
   - Live quantities/tax/discounts/held bills, English/Sinhala/bilingual output, welcome/reset behavior, safe monitor selection/hotplug, and persisted F1 pause/resume.
   - Verified by native tests and hidden real-renderer GUI tests. Serial VFD protocols are outside this implementation.
 - [ ] **Physical customer-monitor acceptance**: Windows extended-display placement, DPI/rotation, focus, and disconnect/reconnect; see [customer-display.md](customer-display.md).
+
+- [x] **RS-232 weighing-scale software** (2026-10-18): explicit A&D protocols, stable/fresh capture, kg/g unit conversion, reweighing, and trusted main-process serial ownership.
+- [x] **Three-decimal quantity prerequisite**: sale/refund/purchase/inventory/stock movement migration, API/model/admin precision, one-gram offline persistence/sync, and fractional refund entry. Money retains two decimals.
+- [ ] **Physical weighing-scale acceptance**: confirm actual protocol/settings, Windows adapter, units/tare, calibrated loads, and disconnect recovery; see [weighing-scales.md](weighing-scales.md).
 
 ### Milestone 1.3: Filament Admin Analytics & ERP Widgets (`✅ COMPLETED`)
 - [x] **Dashboard KPI Cards (`StatsOverviewWidget`)**: Gross sales, +% vs yesterday, transaction count, active shifts, low stock alert counter.

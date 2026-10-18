@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { roundQuantity } from '../../electron/quantity';
 import { usePosStore } from '../stores/usePosStore';
 import { api } from '../services/api';
 import type { RefundReceipt } from '../types/pos';
@@ -72,9 +73,9 @@ export const RefundModal: React.FC = () => {
           uuid: item.uuid,
           name: item.product_name,
           maxQty: item.quantity,
-          returnQty: 1,
+          returnQty: Math.min(1, Number(item.quantity)),
           unitPrice,
-          lineTotal: unitPrice,
+          lineTotal: Math.min(1, Number(item.quantity)) * unitPrice,
         },
       });
     }
@@ -84,7 +85,7 @@ export const RefundModal: React.FC = () => {
     const existing = selectedItems[itemId];
     if (!existing) return;
 
-    const clampedQty = Math.max(1, Math.min(newQty, existing.maxQty));
+    const clampedQty = roundQuantity(Math.max(0.001, Math.min(newQty, existing.maxQty)));
     setSelectedItems({
       ...selectedItems,
       [itemId]: {
@@ -304,10 +305,11 @@ export const RefundModal: React.FC = () => {
                                   <span className="text-[10px] text-slate-400">Qty:</span>
                                   <input
                                     type="number"
-                                    min={1}
+                                    min={0.001}
+                                    step={0.001}
                                     max={current.maxQty}
                                     value={current.returnQty}
-                                    onChange={(e) => updateItemQty(item.id, parseInt(e.target.value, 10) || 1)}
+                                    onChange={(e) => updateItemQty(item.id, parseFloat(e.target.value) || 0.001)}
                                     className="w-12 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white text-center font-mono outline-none"
                                   />
                                 </div>

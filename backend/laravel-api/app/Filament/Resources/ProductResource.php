@@ -68,12 +68,12 @@ class ProductResource extends Resource
                                         Forms\Components\Select::make('unit')
                                             ->label('Unit of Measure')
                                             ->options([
-                                                'piece'  => 'Piece / Unit (pcs)',
-                                                'kg'     => 'Kilogram (kg)',
-                                                'g'      => 'Gram (g)',
-                                                'liter'  => 'Liter (L)',
-                                                'ml'     => 'Milliliter (ml)',
-                                                'pack'   => 'Pack / Box',
+                                                'piece' => 'Piece / Unit (pcs)',
+                                                'kg' => 'Kilogram (kg)',
+                                                'g' => 'Gram (g)',
+                                                'liter' => 'Liter (L)',
+                                                'ml' => 'Milliliter (ml)',
+                                                'pack' => 'Pack / Box',
                                                 'bottle' => 'Bottle',
                                             ])
                                             ->default('piece')
@@ -91,7 +91,7 @@ class ProductResource extends Resource
                                     ->schema([
                                         Forms\Components\TextInput::make('sku')
                                             ->label('SKU (Stock Keeping Unit)')
-                                            ->default(fn () => 'SKU-' . strtoupper(Str::random(8)))
+                                            ->default(fn () => 'SKU-'.strtoupper(Str::random(8)))
                                             ->required()
                                             ->unique(ignoreRecord: true)
                                             ->maxLength(100),
@@ -155,8 +155,11 @@ class ProductResource extends Resource
                                     ->schema([
                                         Forms\Components\TextInput::make('initial_stock')
                                             ->label('Initial Stock Quantity (Store 1)')
-                                            ->helperText('Initial inventory count added upon product creation')
+                                            ->helperText('Initial inventory count in the product unit; up to three decimals')
                                             ->numeric()
+                                            ->step(0.001)
+                                            ->minValue(0)
+                                            ->rules(['decimal:0,3'])
                                             ->default(10)
                                             ->visible(fn (string $operation) => $operation === 'create'),
 
@@ -266,9 +269,9 @@ class ProductResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListProducts::route('/'),
+            'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
-            'edit'   => Pages\EditProduct::route('/{record}/edit'),
+            'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
     }
 }
