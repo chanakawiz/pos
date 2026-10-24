@@ -1,7 +1,7 @@
 # OmniLuxe Store (`omniluxe-store`) 💎
 
 > **Unified Omnichannel Retail, Desktop POS, Consumer Mobile App & Central ERP Engine**  
-> **Target Enterprise Tier**: Flagship Department Stores, Luxury Tech & Boutiques, Multi-Vertical Retail Chains (Smartphones & Tech, Designer Fashion & Haute Couture, Footwear & Sneakers, Luxury Automobili & High-Value Assets)  
+> **Target Enterprise Tier**: Flagship Department Stores, Luxury Tech & Boutiques, Multi-Vertical Retail Chains (Smartphones & Tech, Designer Fashion & Haute Couture, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
 > **Commercial Readiness**: Turnkey Solution Ready for Commercial Licensing & Multi-Store Deployment
 
 ---
@@ -20,17 +20,18 @@ OmniLuxe Store delivers an integrated multi-channel retail infrastructure with s
 │  • Customer Sign Up & Sign In        │  • High-throughput cashier lanes     │
 │  • OmniLuxe Privilege Digital Card   │  • Cashier PIN quick sign-in (1234)  │
 │  • Loyalty Points (Earn & Redeem)    │  • USB & Bluetooth barcode scanner   │
-│  • Animated luxury gold splash screen│  • Cash drawer kick & thermal print  │
-│  • Omnichannel real-time cart & stock│  • Multi-lane held bills reservation │
-│  • Instant SMS E-receipts dispatch   │  • Counter device codes (COUNTER-01) │
+│  • Push Alerts (FCM & Reverb WS)     │  • Cash drawer kick & thermal print  │
+│  • Profile, Notifications & Concierge│  • Multi-lane held bills reservation │
+│  • Omnichannel real-time cart & stock│  • Counter device codes (COUNTER-01) │
+│  • Instant SMS E-receipts dispatch   │  • Direct offline-first SQLite sync  │
 ├──────────────────────────────────────┴──────────────────────────────────────┤
 │                   3. CENTRAL CLOUD ERP & ADMIN PANEL                        │
-│                   (Laravel 11 / Filament v3 at /admin)                      │
+│                   (Laravel 11 / Filament v3 / Single MySQL 8 at /admin)     │
 │                                                                             │
 │  • Super Admin (admin@omniluxe.store) & Store Manager (manager@smartshop.com│
-│  • Multi-department catalog: Tech, Fashion, Footwear, Luxury Automobili    │
+│  • Multi-department catalog: Fashion, Beauty, Footwear, Kids, Lifestyle Tech│
 │  • Real-time stock ledger, purchase orders, refunds, and cash sessions      │
-│  • RESTful API (Sanctum), offline SQLite sync revisions, and SMS gateway    │
+│  • RESTful API (Sanctum), Laravel Reverb WebSockets, and SMS gateway        │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -64,21 +65,25 @@ pos/
 ## ⚡ Key Highlights & Capabilities
 
 1. **Consumer Mobile Shopping App (`apps/mobile-pos`)**:
-   - Editorial dark luxury aesthetic (`#0A0E17` obsidian canvas, `#10B981` emerald, `#D4AF37` champagne gold).
+   - Editorial light luxury aesthetic (`#FBFBF9` ivory canvas, `#233C32` forest green, `#C29B38` champagne gold).
    - Animated gold monogram medallion splash screen (`SplashScreen`).
-   - 5-Tab flagship shopping: **Home** (lifestyle hero, premier brand spotlight), **Explore** (catalog with live filters), **Bag** (real-time subtotal), **Orders** (local SQLite archive & digital receipt viewer), and **VIP Club** (**OmniLuxe Privilege** digital loyalty card, points redemption, customer login/register).
+   - 5-Tab flagship shopping: **Home** (editorial lookbook hero, premier department spotlights), **Explore** (catalog with live filters), **Cart** (standardized steppers, real-time subtotal), **Orders** (local SQLite archive & digital receipt viewer), and **VIP Club** (**OmniLuxe Privilege** digital loyalty card, points redemption, customer login/register).
+   - **Full Customer Suite**: Customer Profile (`StoreProfileScreen`), In-App Notification Center (`StoreNotificationsScreen`) with filter chips & unread counter, and Concierge & More screen (`StoreMoreScreen`) with boutique locator and returns policy.
+   - **Firebase Cloud Messaging (FCM)**: Native push notification listener service and device token synchronization.
 2. **Flagship Web Storefront (`backend/laravel-api` & `apps/web-store`)**:
    - Fast customer self-service with dedicated `/login` and `/register` routes.
    - 100 Welcome loyalty points awarded on registration.
    - Member hub at `/account` displaying the OmniLuxe Privilege digital card and complete order history.
    - Slide-over synchronized cart drawer and verified e-receipt lookup at `/receipt/{invoice}` with phone privacy masking (`077 •••• 567`).
+   - **Real-Time Laravel Reverb WebSockets**: Subscribes to authenticated private channels (`private-customer.{uuid}`) and public catalog broadcasts, showing XSS-safe luxury toasts.
+   - **Single Master Database of Truth**: Both storefront ports (8000 & 8010) read and write to the exact same MySQL database (`smartshop_pos`) with identical products, categories, stock, and orders.
 3. **Dedicated In-Store Cashier POS (`apps/windows-pos`)**:
    - Hardware-ready for Windows and macOS touchscreen POS stations.
    - 4-digit quick numeric PIN pad (`1234`) tied to counter device codes (`COUNTER-01`).
    - Hardware barcode scanner listener (`<60ms` keystroke burst) with audio synthesiser feedback.
    - Thermal 80mm & 58mm ESC/POS receipt generation, RJ11 cash drawer pulse, and multi-lane cloud held bills.
 4. **Central Cloud ERP & Filament v3 Admin (`/admin`)**:
-   - Multi-store catalog management across Apple, Samsung, Sony, Nike, Adidas, Clarks, Studio Ceylon, Ralph Lauren, Toyota, Defender, and BYD.
+   - Multi-store catalog management across Apple, Samsung, Sony, Nike, Adidas, Clarks, Studio Ceylon, Ralph Lauren, Dior, Calvin Klein, Chanel, Tommy Hilfiger, and Fossil.
    - Immutable stock movements ledger tracking all sales, web orders, returns, and write-offs.
    - Role-based access control for Super Admins, Store Managers, Cashiers, and Customers.
 5. **Customer Protection & Verified SMS E-Receipts**:

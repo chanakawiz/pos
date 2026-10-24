@@ -9,7 +9,7 @@
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Sage `#7B846D`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer platforms  
 > **Authentication**: Guest Explorer Mode + Multi-Step VIP Onboarding  
-> **Current Version**: 3.2.0  
+> **Current Version**: 3.3.0  
 > **Commercial Readiness**: Turnkey Flagship Platform Ready for Commercial Enterprise Deployment
 
 ---
@@ -29,15 +29,15 @@ The platform establishes strict separation across customer, cashier, and adminis
 │  • Multi-Step Sign In & Sign Up      │  • Cashier PIN quick sign-in (1234)  │
 │  • OmniLuxe Privilege VIP Card       │  • USB & Bluetooth barcode scanner   │
 │  • Loyalty Points (Earn & Redeem)    │  • Cash drawer kick & thermal print  │
-│  • Editorial light aesthetic & splash│  • Multi-lane held bills reservation │
-│  • Standardized Cart terminology     │  • Counter device codes (COUNTER-01) │
+│  • Push Notifications (FCM & Pusher) │  • Multi-lane held bills reservation │
+│  • Customer Profile & More Concierge │  • Counter device codes (COUNTER-01) │
 │  • Instant SMS E-receipts dispatch   │  • Direct offline-first SQLite sync  │
 ├──────────────────────────────────────┴──────────────────────────────────────┤
 │                   3. CENTRAL CLOUD ERP & ADMIN PANEL                        │
 │                   (Laravel 11 / Filament v3 at /admin)                      │
 │                                                                             │
 │  • Super Admin (admin@omniluxe.store) & Store Manager (manager@smartshop.com│
-│  • Multi-department catalog: Tech, Fashion, Footwear, Luxury Automobili    │
+│  • Multi-department catalog: Fashion, Beauty, Footwear, Kids, Lifestyle Tech│
 │  • Real-time stock ledger, purchase orders, refunds, and cash sessions      │
 │  • RESTful API (Sanctum), offline SQLite sync revisions, and SMS gateway    │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -55,9 +55,9 @@ The platform establishes strict separation across customer, cashier, and adminis
   - `cashier`: Register operations with numeric PIN login (`cashier1@smartshop.com` / PIN `1234`).
   - `customer`: Online shoppers with loyalty card and order history (`customer@lifestyle.test`).
 - [x] **Counter Register Devices**: Pre-seeded `COUNTER-01` (Flagship POS) and `COUNTER-02` (Express POS).
-- [x] **Pristine Brand Names & Multi-Vertical Catalog**:
-  - Purged all non-English subtitles from product names.
-  - Curated international flagship brands: Apple, Samsung, Sony, Nike, Adidas, Clarks, Studio Ceylon, Ralph Lauren, Toyota, Defender, BYD.
+- [x] **Pristine Brand Names & Department Store Catalog**:
+  - Purged all non-English subtitles and automotive vehicle references.
+  - Curated international department store brands: Apple, Samsung, Sony, Nike, Adidas, Clarks, Studio Ceylon, Ralph Lauren, Dior, Calvin Klein, Chanel, Tommy Hilfiger, Fossil, Polo Kids.
   - Zero Sinhala product name entries in database records (`sinhala_name` is NULL).
 
 ### Milestone 2: Central ERP Control Room & Role RBAC (`✅ COMPLETED`)
@@ -114,6 +114,45 @@ The platform establishes strict separation across customer, cashier, and adminis
 - [x] Clean light editorial design consistency across all customer-facing touchpoints (Web Storefront + Flutter Mobile).
 - [x] Comprehensive documentation structured milestone-wise without third-party competitor mentions.
 - [x] Verified full regression pass across all 28 Laravel backend tests and all 21 Flutter automated tests.
+
+### Milestone 7: Real-Time Omnichannel Push Notifications & Extended Customer Suite (`✅ COMPLETED`)
+- [x] **Firebase Cloud Messaging (FCM) Push Engine**:
+  - Laravel backend `FcmNotificationService` dispatches targeted device pushes on bill creation, loyalty points accumulation, and promotion events using Firebase HTTP v1 API with service account OAuth2 signing.
+  - Device token registration API endpoint `POST /api/v1/customer/device-token` with customer-to-device mapping.
+  - Flutter `NotificationService` handles Firebase FCM background/foreground message reception, channel routing, and badge sync.
+- [x] **Customer Profile Screen (`StoreProfileScreen`)**:
+  - Shopper identification, verified phone number with SMS bill badge, delivery address, and push notification toggle switches.
+- [x] **In-App Notification Center (`StoreNotificationsScreen`)**:
+  - Categorized alert feed with filter chips (`All`, `Orders`, `VIP`, `Promos`), unread badges, and 1-tap "Mark all read".
+  - Live unread notification counter badge in AppBar across Home and VIP screens.
+- [x] **Customer Concierge & More Screen (`StoreMoreScreen`)**:
+  - Flagship boutique locator (Colombo, Kandy, Galle) with contact numbers.
+  - Official warranty claims, 14-day exchange policy, and 100% authenticity guarantee modal.
+  - 24/7 VIP Concierge WhatsApp link, privilege tier breakdown, and customer privacy protection.
+
+### Milestone 8: Enterprise Security Hardening & Zero-Leakage Channel Isolation (`✅ COMPLETED`)
+- [x] **Strict Consumer & Operational Boundary Enforcement**:
+  - Purged all cashier PIN logins, staff terminal switchers, and ESC/POS hardware pairing from consumer mobile app (`apps/mobile-pos`).
+  - Purged `/admin` ERP hyperlinks from the public web storefront (`layout.blade.php`), ensuring the company's internal ERP control room remains 100% hidden from outsiders and unauthorized consumers.
+  - Confined all physical cashier operations (barcode gun wedge, ESC/POS thermal slips, RJ11 drawer pulse, cashier shifts, X/Z reports) strictly to the dedicated in-store counter station (`apps/windows-pos`).
+- [x] **Verified Zero-Regression Test Pass**:
+  - 28/28 passed on Laravel API backend (`php artisan test`).
+  - 22/22 passed on Flutter mobile consumer app (`flutter test`).
+
+### Milestone 9: Laravel Reverb WebSockets & Unified Master Database (`✅ COMPLETED`)
+- [x] **Full Migration from Pusher to Laravel Reverb WebSockets**:
+  - Installed and configured `laravel/reverb:^1.4` running on high-throughput native port 8080.
+  - Secure Sanctum broadcast authentication endpoint `POST /api/v1/broadcasting/auth`.
+  - Authenticated private channels (`private-customer.{uuid}`) for order updates and VIP rewards.
+  - Internal staff operations channel (`private-store.{uuid}.operations`) strictly guarded by `isStaff()`.
+  - Public channels (`catalog` and `promotions`) dispatch coarse, sanitized availability band changes with zero pricing or supplier data exposure.
+  - Web storefront toast notifications hardened with XSS-safe DOM text nodes (`textContent`).
+- [x] **Single Unified MySQL Database of Truth**:
+  - Migrated `apps/web-store` from disconnected SQLite to the central MySQL database (`smartshop_pos`).
+  - Both web storefront ports (8000 & 8010), Central ERP, and POS counter write to and read from the exact same database tables with identical products (Dior, Nike, Apple, Calvin Klein), categories, and stock.
+  - Created centralized `customer_notifications` persistent inbox and `customer_device_tokens` tables.
+- [x] **Mobile App Synchronization with Central Inbox**:
+  - Flutter `NotificationService` and `NotificationNotifier` updated to fetch notification history from `GET /api/v1/customer/notifications`, sync read states via `POST /api/v1/customer/notifications/{uuid}/read`, and sync device tokens.
 
 ---
 

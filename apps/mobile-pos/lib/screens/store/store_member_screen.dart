@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import 'store_auth_steps_screen.dart';
+import 'store_notifications_screen.dart';
+import 'store_profile_screen.dart';
 
 class StoreMemberScreen extends ConsumerStatefulWidget {
   const StoreMemberScreen({super.key});
@@ -56,6 +58,26 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 22),
+            tooltip: 'Notifications',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StoreNotificationsScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: 22),
+            tooltip: 'Profile & Settings',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StoreProfileScreen()),
+              );
+            },
+          ),
           if (user != null)
             IconButton(
               icon: const Icon(Icons.logout, color: AppColors.textSecondary, size: 20),

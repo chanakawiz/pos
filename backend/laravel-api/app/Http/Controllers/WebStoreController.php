@@ -83,26 +83,32 @@ class WebStoreController extends Controller
 
         $cartItems = json_decode($validated['cart_items'], true);
         if (empty($cartItems)) {
-            return back()->with('error', 'Your shopping bag is empty.');
+            return back()->with('error', 'Your shopping cart is empty.');
         }
 
         $store = Store::first();
         $storeId = $store ? $store->id : 1;
+        $currentUser = \Illuminate\Support\Facades\Auth::user();
 
-        $sale = DB::transaction(function () use ($validated, $cartItems, $store, $storeId) {
+        $sale = DB::transaction(function () use ($validated, $cartItems, $store, $storeId, $currentUser) {
             // Find or create customer (with privacy consideration)
             $phoneClean = preg_replace('/[^0-9+]/', '', $validated['customer_phone']);
             $customer = Customer::firstOrCreate(
                 ['phone' => $phoneClean],
                 [
                     'uuid' => (string) Str::uuid(),
+                    'user_id' => $currentUser?->id,
                     'name' => $validated['customer_name'],
-                    'email' => $validated['customer_email'] ?? null,
+                    'email' => $validated['customer_email'] ?? $currentUser?->email,
                     'address' => $validated['shipping_address'],
                     'loyalty_points' => 0,
                     'store_credit' => 0.00,
                 ]
             );
+
+            if ($currentUser && ! $customer->user_id) {
+                $customer->update(['user_id' => $currentUser->id]);
+            }
 
             $subtotal = 0.0;
             $itemsToCreate = [];
@@ -198,6 +204,22 @@ class WebStoreController extends Controller
                 'reference_number' => 'WEB-' . strtoupper(Str::random(8)),
                 'status' => $validated['payment_method'] === 'cod' ? 'pending' : 'completed',
             ]);
+
+            // Loyalty points (1 point per Rs. 10 spent)
+            $earnedPoints = (int) floor($subtotal / 10);
+            if ($earnedPoints > 0) {
+                $customer->increment('loyalty_points', $earnedPoints);
+                app(\App\Services\CustomerNotifier::class)->loyaltyCredited($customer, $earnedPoints, $sale->invoice_number);
+            }
+
+            // Real-Time Reverb WebSocket private customer notification + FCM push
+            app(\App\Services\CustomerNotifier::class)->orderConfirmed($sale);
+
+            // Real-Time stock availability broadcast across Reverb catalog
+            $productIds = collect($cartItems)->pluck('product_id')->filter()->all();
+            if ($store) {
+                app(\App\Services\InventoryBroadcaster::class)->changed($store, $productIds, 'web');
+            }
 
             return $sale;
         });
@@ -312,10 +334,11 @@ class WebStoreController extends Controller
 
         // Create or link Customer model with welcome loyalty points
         $cleanPhone = preg_replace('/[^0-9+]/', '', $validated['phone']);
-        Customer::firstOrCreate(
+        $customer = Customer::firstOrCreate(
             ['phone' => $cleanPhone],
             [
                 'uuid' => (string) Str::uuid(),
+                'user_id' => $user->id,
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'address' => $validated['address'] ?? null,
@@ -325,6 +348,10 @@ class WebStoreController extends Controller
                 'version' => 1,
             ]
         );
+
+        if (! $customer->user_id) {
+            $customer->update(['user_id' => $user->id]);
+        }
 
         \Illuminate\Support\Facades\Auth::login($user);
         $request->session()->regenerate();

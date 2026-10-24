@@ -6,7 +6,10 @@ import '../../core/constants/app_colors.dart';
 import '../../data/models/product.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
+import '../../providers/notification_provider.dart';
 import 'product_detail_screen.dart';
+import 'store_more_screen.dart';
+import 'store_notifications_screen.dart';
 
 class StoreHomeScreen extends ConsumerWidget {
   final Function(String? categoryUuid) onSelectCategory;
@@ -53,6 +56,51 @@ class StoreHomeScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          // Push Notifications Bell with Unread Badge
+          Consumer(
+            builder: (context, ref, _) {
+              final unread = ref.watch(unreadNotificationCountProvider);
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined, color: AppColors.forest),
+                    tooltip: 'Notifications',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const StoreNotificationsScreen()),
+                      );
+                    },
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.gold,
+                        ),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Text(
+                          '$unread',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+
+          // Shopping Cart Action
           Stack(
             alignment: Alignment.center,
             children: [
@@ -84,6 +132,18 @@ class StoreHomeScreen extends ConsumerWidget {
                   ),
                 ),
             ],
+          ),
+
+          // More & Services Menu
+          IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.forest),
+            tooltip: 'More & Services',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StoreMoreScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -155,7 +215,7 @@ class StoreHomeScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Tech • Haute Couture • Footwear • Automobili',
+                          'Apparel • Footwear • Beauty & Fragrance • Tech',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: Colors.white.withOpacity(0.85),
@@ -188,14 +248,14 @@ class StoreHomeScreen extends ConsumerWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  _buildBrandChip('Apple'),
-                  _buildBrandChip('Nike'),
-                  _buildBrandChip('Toyota'),
                   _buildBrandChip('Studio Ceylon'),
-                  _buildBrandChip('Zara'),
                   _buildBrandChip('Ralph Lauren'),
-                  _buildBrandChip('BYD'),
-                  _buildBrandChip('Sony'),
+                  _buildBrandChip('Tommy Hilfiger'),
+                  _buildBrandChip('Calvin Klein'),
+                  _buildBrandChip('Nike'),
+                  _buildBrandChip('Zara'),
+                  _buildBrandChip('Dior'),
+                  _buildBrandChip('Apple'),
                   _buildBrandChip('Adidas'),
                 ],
               ),
@@ -223,21 +283,21 @@ class StoreHomeScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: _buildDepartmentCard(
-                      title: 'Smartphones & Tech',
-                      subtitle: 'Apple, Samsung, Sony',
-                      icon: Icons.phone_iphone,
+                      title: 'Designer Fashion',
+                      subtitle: 'Studio Ceylon, Zara, Polo',
+                      icon: Icons.checkroom,
                       accentColor: AppColors.forest,
-                      onTap: () => onSelectCategory('cat-tech'),
+                      onTap: () => onSelectCategory('cat-fashion'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildDepartmentCard(
-                      title: 'Designer Fashion',
-                      subtitle: 'Studio Ceylon, Zara',
-                      icon: Icons.checkroom,
-                      accentColor: AppColors.gold,
-                      onTap: () => onSelectCategory('cat-fashion'),
+                      title: 'Footwear & Leather',
+                      subtitle: 'Nike, Adidas, Clarks',
+                      icon: Icons.roller_skating,
+                      accentColor: AppColors.sage,
+                      onTap: () => onSelectCategory('cat-footwear'),
                     ),
                   ),
                 ],
@@ -250,24 +310,35 @@ class StoreHomeScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: _buildDepartmentCard(
-                      title: 'Footwear & Sneakers',
-                      subtitle: 'Nike, Adidas, Clarks',
-                      icon: Icons.roller_skating,
-                      accentColor: AppColors.sage,
-                      onTap: () => onSelectCategory('cat-footwear'),
+                      title: 'Perfumes & Beauty',
+                      subtitle: 'Dior, Calvin Klein, Chanel',
+                      icon: Icons.spa_outlined,
+                      accentColor: AppColors.gold,
+                      onTap: () => onSelectCategory('cat-beauty'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildDepartmentCard(
-                      title: 'Luxury Automobili',
-                      subtitle: 'Toyota, Defender, BYD',
-                      icon: Icons.directions_car_filled,
+                      title: 'Kids & Teens',
+                      subtitle: 'Polo Kids, Toys & Apparel',
+                      icon: Icons.child_care_outlined,
                       accentColor: AppColors.forestDark,
-                      onTap: () => onSelectCategory('cat-vehicles'),
+                      onTap: () => onSelectCategory('cat-kids'),
                     ),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildDepartmentCard(
+                title: 'Smartphones & Lifestyle Tech',
+                subtitle: 'Apple, Samsung, Sony Audio & Watches',
+                icon: Icons.phone_iphone,
+                accentColor: AppColors.forest,
+                onTap: () => onSelectCategory('cat-tech'),
               ),
             ),
 

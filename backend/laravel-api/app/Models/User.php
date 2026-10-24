@@ -63,4 +63,27 @@ class User extends Authenticatable implements FilamentUser
     {
         return in_array($this->role, ['super_admin', 'admin', 'manager']) && $this->is_active;
     }
+
+    public function customerProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Customer::class);
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->role === 'customer';
+    }
+
+    /**
+     * Staff = anyone allowed to operate store systems (POS counters, ERP).
+     */
+    public function isStaff(): bool
+    {
+        return $this->is_active && in_array($this->role, ['super_admin', 'admin', 'manager', 'cashier'], true);
+    }
+
+    public function isHeadOffice(): bool
+    {
+        return $this->is_active && in_array($this->role, ['super_admin', 'admin'], true);
+    }
 }

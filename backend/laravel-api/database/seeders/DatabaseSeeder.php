@@ -150,12 +150,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 5. High-End Flagship Retail Vertical Categories
+        // 5. High-End Flagship Retail Department Categories
         $categories = [
             'Smartphones & Tech' => ['slug' => 'smartphones-tech', 'order' => 1],
             'Designer Fashion & Apparel' => ['slug' => 'designer-fashion-apparel', 'order' => 2],
             'Footwear & Sneakers' => ['slug' => 'footwear-sneakers', 'order' => 3],
-            'Vehicles & Luxury Automotive' => ['slug' => 'vehicles-luxury-auto', 'order' => 4],
+            'Perfumes, Cosmetics & Accessories' => ['slug' => 'beauty-fragrance-accessories', 'order' => 4],
+            'Kids, Teens & Lifestyle' => ['slug' => 'kids-teens-lifestyle', 'order' => 5],
         ];
 
         $catModels = [];
@@ -183,16 +184,18 @@ class DatabaseSeeder extends Seeder
             'Zara' => 'zara',
             'Ralph Lauren' => 'ralph-lauren',
             'Levi\'s' => 'levis',
-            // Footwear & Sneaker Brands
+            'Tommy Hilfiger' => 'tommy-hilfiger',
+            'Calvin Klein' => 'calvin-klein',
+            // Footwear Brands
             'Nike' => 'nike',
             'Adidas' => 'adidas',
             'Clarks' => 'clarks',
             'Puma' => 'puma',
-            // Luxury Vehicle & Automotive Brands
-            'Toyota' => 'toyota',
-            'Land Rover' => 'land-rover',
-            'BYD' => 'byd',
-            'Honda' => 'honda',
+            // Fragrance, Accessories & Kids Brands
+            'Dior' => 'dior',
+            'Chanel' => 'chanel',
+            'Fossil' => 'fossil',
+            'Polo Kids' => 'polo-kids',
         ];
 
         $brandModels = [];
@@ -457,81 +460,81 @@ class DatabaseSeeder extends Seeder
                 'initial_stock' => 25,
             ],
 
-            // --- VEHICLES & LUXURY AUTOMOTIVE (Toyota, Land Rover, BYD, Honda) ---
+            // --- FRAGRANCES, ACCESSORIES & KIDS (Dior, Calvin Klein, Tommy Hilfiger, Fossil, Polo Kids) ---
             [
-                'name' => 'Toyota Land Cruiser Prado 250 (2025 Hybrid AWD)',
-                'sku' => 'AUTO-TOY-PRADO250',
+                'name' => 'Dior Sauvage Eau de Parfum (100ml Edition)',
+                'sku' => 'BEAUTY-DIOR-SAUV100',
                 'barcode' => '900001',
-                'category' => 'Vehicles & Luxury Automotive',
-                'brand' => 'Toyota',
-                'unit' => 'vehicle',
-                'warranty_period' => '3 Years / 100,000 km Warranty',
-                'requires_serial' => true, // VIN / Chassis Number
-                'cost_price' => 42000000.00,
-                'selling_price' => 48500000.00,
+                'category' => 'Perfumes, Cosmetics & Accessories',
+                'brand' => 'Dior',
+                'unit' => 'bottle',
+                'warranty_period' => '100% Original Authentic Guarantee',
+                'requires_serial' => true, // Batch Serial
+                'cost_price' => 36000.00,
+                'selling_price' => 48500.00,
                 'tax_rate' => 0.00,
-                'min_stock_level' => 1,
-                'initial_stock' => 3,
+                'min_stock_level' => 3,
+                'initial_stock' => 15,
             ],
             [
-                'name' => 'Land Rover Defender 110 X-Dynamic HSE',
-                'sku' => 'AUTO-LRV-DEF110',
+                'name' => 'Calvin Klein Saffiano Leather Structured Crossbody',
+                'sku' => 'ACC-CK-CROSSBODY01',
                 'barcode' => '900002',
-                'category' => 'Vehicles & Luxury Automotive',
-                'brand' => 'Land Rover',
-                'unit' => 'vehicle',
-                'warranty_period' => '3 Years Manufacturer Warranty',
-                'requires_serial' => true, // VIN Number
-                'cost_price' => 54000000.00,
-                'selling_price' => 62000000.00,
+                'category' => 'Perfumes, Cosmetics & Accessories',
+                'brand' => 'Calvin Klein',
+                'unit' => 'piece',
+                'warranty_period' => '1 Year Official Leather Warranty',
+                'requires_serial' => true, // Serial Tag
+                'cost_price' => 26000.00,
+                'selling_price' => 38000.00,
                 'tax_rate' => 0.00,
-                'min_stock_level' => 1,
-                'initial_stock' => 2,
+                'min_stock_level' => 2,
+                'initial_stock' => 12,
             ],
             [
-                'name' => 'BYD Seal EV Performance AWD (82.5 kWh)',
-                'sku' => 'AUTO-BYD-SEAL01',
+                'name' => 'Tommy Hilfiger Signature Heritage Oxford Shirt',
+                'sku' => 'FASH-TH-OXFORD01',
                 'barcode' => '900003',
-                'category' => 'Vehicles & Luxury Automotive',
-                'brand' => 'BYD',
-                'unit' => 'vehicle',
-                'warranty_period' => '8 Years Battery Warranty',
-                'requires_serial' => true, // VIN + Battery Pack Serial
-                'cost_price' => 17000000.00,
-                'selling_price' => 19800000.00,
-                'tax_rate' => 0.00,
-                'min_stock_level' => 1,
-                'initial_stock' => 4,
-            ],
-            [
-                'name' => 'Honda Civic RS Turbo (Sport Edition)',
-                'sku' => 'AUTO-HND-CIVICRS',
-                'barcode' => '900004',
-                'category' => 'Vehicles & Luxury Automotive',
-                'brand' => 'Honda',
-                'unit' => 'vehicle',
-                'warranty_period' => '3 Years Official Warranty',
-                'requires_serial' => true,
-                'cost_price' => 14500000.00,
-                'selling_price' => 16500000.00,
-                'tax_rate' => 0.00,
-                'min_stock_level' => 1,
-                'initial_stock' => 3,
-            ],
-            [
-                'name' => 'Toyota Genuine Ceramic Brake Pad Set & Hybrid Filter',
-                'sku' => 'AUTO-TOY-BRK01',
-                'barcode' => '900005',
-                'category' => 'Vehicles & Luxury Automotive',
-                'brand' => 'Toyota',
-                'unit' => 'set',
-                'warranty_period' => '1 Year Parts Guarantee',
+                'category' => 'Designer Fashion & Apparel',
+                'brand' => 'Tommy Hilfiger',
+                'unit' => 'piece',
+                'warranty_period' => 'Brand Authentic Guarantee',
                 'requires_serial' => false,
-                'cost_price' => 24000.00,
-                'selling_price' => 35000.00,
+                'cost_price' => 16500.00,
+                'selling_price' => 24500.00,
                 'tax_rate' => 0.00,
                 'min_stock_level' => 5,
-                'initial_stock' => 20,
+                'initial_stock' => 25,
+            ],
+            [
+                'name' => 'Fossil Machine Chronograph Gunmetal Stainless Watch',
+                'sku' => 'ACC-FSL-CHRONO01',
+                'barcode' => '900004',
+                'category' => 'Perfumes, Cosmetics & Accessories',
+                'brand' => 'Fossil',
+                'unit' => 'piece',
+                'warranty_period' => '2 Years International Movement Warranty',
+                'requires_serial' => true, // Watch Movement Serial
+                'cost_price' => 29000.00,
+                'selling_price' => 42000.00,
+                'tax_rate' => 0.00,
+                'min_stock_level' => 2,
+                'initial_stock' => 10,
+            ],
+            [
+                'name' => 'Polo Kids Organic Piqué Cotton Polo & Chino Set',
+                'sku' => 'KIDS-POLO-SET01',
+                'barcode' => '900005',
+                'category' => 'Kids, Teens & Lifestyle',
+                'brand' => 'Polo Kids',
+                'unit' => 'set',
+                'warranty_period' => 'Official Quality Guarantee',
+                'requires_serial' => false,
+                'cost_price' => 9500.00,
+                'selling_price' => 14500.00,
+                'tax_rate' => 0.00,
+                'min_stock_level' => 5,
+                'initial_stock' => 30,
             ],
         ];
 

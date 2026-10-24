@@ -59,15 +59,16 @@ class ProductModel {
     if (lower.startsWith('adidas')) return 'Adidas';
     if (lower.startsWith('clarks')) return 'Clarks';
     if (lower.startsWith('puma')) return 'Puma';
-    if (lower.startsWith('toyota')) return 'Toyota';
-    if (lower.startsWith('land rover')) return 'Land Rover';
-    if (lower.startsWith('byd')) return 'BYD';
-    if (lower.startsWith('honda')) return 'Honda';
+    if (lower.startsWith('dior')) return 'Dior';
+    if (lower.startsWith('calvin klein')) return 'Calvin Klein';
+    if (lower.startsWith('tommy hilfiger')) return 'Tommy Hilfiger';
+    if (lower.startsWith('fossil')) return 'Fossil';
+    if (lower.startsWith('polo kids') || lower.startsWith('polo')) return 'Polo Kids';
     if (lower.startsWith('ralph lauren')) return 'Ralph Lauren';
     if (lower.startsWith('zara') || lower.contains('italian tailored')) return 'Zara';
     if (lower.startsWith('levi')) return "Levi's";
     if (lower.contains('linen') || lower.contains('dress')) return 'Studio Ceylon';
-    return 'SmartShop Brand';
+    return 'OmniLuxe Premier';
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {

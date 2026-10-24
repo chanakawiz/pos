@@ -6,6 +6,7 @@ use App\Traits\HasUuid;
 use App\Traits\TracksSyncVersion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -15,6 +16,7 @@ class Customer extends Model
 
     protected $fillable = [
         'uuid',
+        'user_id',
         'name',
         'phone',
         'email',
@@ -35,5 +37,28 @@ class Customer extends Model
     public function sales(): HasMany
     {
         return $this->hasMany(Sale::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(CustomerDeviceToken::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(CustomerNotification::class);
+    }
+
+    /**
+     * Private Reverb channel name (without the "private-" prefix).
+     */
+    public function broadcastChannelName(): string
+    {
+        return 'customer.'.$this->uuid;
     }
 }

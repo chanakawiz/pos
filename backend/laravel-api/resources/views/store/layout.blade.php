@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'OmniLuxe Store — Flagship Omnichannel Retail & POS')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -116,9 +118,14 @@
                     </a>
                 @endauth
 
-                <a href="/admin" target="_blank" class="hidden md:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-cream border border-hairline text-forest hover:border-forest transition-colors" title="Open Admin Control Room">
-                    <span>⚡</span> ERP
-                </a>
+                <!-- Real-Time Push Notification Indicator -->
+                <button type="button" onclick="showPusherToast('Notifications Active', 'Subscribed to real-time order and loyalty updates via Pusher Broadcast.', 'info')" 
+                    class="relative p-2 rounded-xl bg-cream border border-hairline text-forest hover:border-forest transition-colors" title="Push Notifications">
+                    <svg class="w-5 h-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span id="pusherLiveDot" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                </button>
 
                 <button onclick="toggleCartDrawer()" class="relative flex items-center gap-2 px-3.5 py-2 rounded-xl bg-forest hover:bg-forestDark text-white transition-all shadow-sm">
                     <svg class="w-5 h-5 text-goldLuxury" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,6 +137,9 @@
             </div>
         </div>
     </header>
+
+    <!-- Real-Time Push Notification Toast Container (Pusher Protocol) -->
+    <div id="pusherToastContainer" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
 
     <!-- Main Content Area -->
     <main class="flex-1">
@@ -352,6 +362,116 @@
 
         // Initialize cart on page load
         document.addEventListener('DOMContentLoaded', renderCart);
+
+        // Real-Time Laravel Reverb WebSocket Client
+        @php
+            $reverbCustomerUuid = null;
+            if (auth()->check()) {
+                $userCustomer = auth()->user()->customerProfile ?? \App\Models\Customer::where('user_id', auth()->id())->first();
+                $reverbCustomerUuid = $userCustomer?->uuid;
+            }
+        @endphp
+
+        const reverbConfig = {
+            key: '{{ env('REVERB_APP_KEY', 'wopxltn0qoeuklfyjfgz') }}',
+            host: '{{ env('REVERB_HOST', 'localhost') }}',
+            port: {{ (int) env('REVERB_PORT', 8080) }},
+            scheme: '{{ env('REVERB_SCHEME', 'http') }}',
+            customerUuid: '{{ $reverbCustomerUuid ?? '' }}',
+            csrfToken: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        };
+
+        try {
+            if (typeof Pusher !== 'undefined' && reverbConfig.key) {
+                const reverbClient = new Pusher(reverbConfig.key, {
+                    wsHost: reverbConfig.host,
+                    wsPort: reverbConfig.port,
+                    wssPort: reverbConfig.port,
+                    forceTLS: reverbConfig.scheme === 'https',
+                    enabledTransports: ['ws', 'wss'],
+                    authEndpoint: '/broadcasting/auth',
+                    auth: {
+                        headers: {
+                            'X-CSRF-TOKEN': reverbConfig.csrfToken,
+                            'Accept': 'application/json'
+                        }
+                    }
+                });
+
+                // 1. Private Customer Channel (Strict isolation: only authenticated account owner receives their orders & VIP points)
+                if (reverbConfig.customerUuid) {
+                    const privateChannel = reverbClient.subscribe('private-customer.' + reverbConfig.customerUuid);
+                    privateChannel.bind('notification.created', function(data) {
+                        showReverbToast(data.title || 'Order Update', data.body || 'Transaction recorded.');
+                    });
+                }
+
+                // 2. Public Promotions Channel (Harmless marketing announcements for all visitors)
+                const promoChannel = reverbClient.subscribe('promotions');
+                promoChannel.bind('promotion.published', function(data) {
+                    showReverbToast(data.title || 'Exclusive Collection', data.body || 'New arrivals drop.');
+                });
+
+                // Update live status pulse
+                reverbClient.connection.bind('connected', function() {
+                    const dot = document.getElementById('pusherLiveDot');
+                    if (dot) dot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                });
+                reverbClient.connection.bind('disconnected', function() {
+                    const dot = document.getElementById('pusherLiveDot');
+                    if (dot) dot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400';
+                });
+            }
+        } catch(e) {
+            console.warn('Reverb WebSocket client initialized in offline fallback mode', e);
+        }
+
+        // XSS-Safe Toast Notification Renderer
+        function showReverbToast(title, body) {
+            const container = document.getElementById('pusherToastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto bg-paper border border-forest/30 shadow-2xl rounded-2xl p-4 flex items-start gap-3 transition-all duration-300 transform translate-y-2 opacity-0';
+
+            const iconBox = document.createElement('div');
+            iconBox.className = 'w-9 h-9 rounded-xl bg-forest/10 border border-forest/20 flex items-center justify-center shrink-0 text-forest font-bold text-sm';
+            iconBox.textContent = '★';
+
+            const contentBox = document.createElement('div');
+            contentBox.className = 'flex-1 min-w-0';
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'text-xs font-bold text-ink uppercase tracking-wider truncate';
+            titleEl.textContent = title;
+
+            const bodyEl = document.createElement('div');
+            bodyEl.className = 'text-xs text-sage mt-0.5';
+            bodyEl.textContent = body;
+
+            contentBox.appendChild(titleEl);
+            contentBox.appendChild(bodyEl);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'text-sage hover:text-ink text-sm font-bold ml-2';
+            closeBtn.textContent = '✕';
+            closeBtn.onclick = () => toast.remove();
+
+            toast.appendChild(iconBox);
+            toast.appendChild(contentBox);
+            toast.appendChild(closeBtn);
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 400);
+            }, 7000);
+        }
     </script>
 </body>
 </html>

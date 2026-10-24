@@ -96,22 +96,25 @@ flowchart TB
 
 ### 3.1 Consumer Mobile Shopping App (`apps/mobile-pos`)
 * **Technology**: Flutter 3.27+ with Dart 3.6, Flutter Riverpod state management.
-* **Architecture Pattern**: Feature-driven clean architecture with reactive StateNotifiers (`CartNotifier`, `CatalogNotifier`, `AuthNotifier`, `SyncNotifier`).
-* **Persistence**: Local SQLite database via `sqflite` for offline catalog caching, bag state, and completed order history.
-* **Key Persona**: Online luxury shopper & VIP member.
+* **Architecture Pattern**: Feature-driven clean architecture with reactive StateNotifiers (`CartNotifier`, `CatalogNotifier`, `AuthNotifier`, `SyncNotifier`, `NotificationNotifier`).
+* **Persistence**: Local SQLite database via `sqflite` for offline catalog caching, cart state, notification history, and completed orders.
+* **Key Persona**: Online department store shopper & VIP member.
 * **Key Features**:
-  * 5-Tab flagship shopping layout (`Home`, `Explore`, `Bag`, `Orders`, `VIP Club`).
-  * Hero lifestyle lookbook carousel & premier brand spotlights (Apple, Nike, Toyota, Studio Ceylon, Zara).
+  * 5-Tab flagship shopping layout (`Home`, `Explore`, `Cart`, `Orders`, `VIP Club`).
+  * Dedicated customer suite: **Profile** (`StoreProfileScreen`), **In-App Notification Center** (`StoreNotificationsScreen`), and **More Services Concierge** (`StoreMoreScreen`).
+  * Live unread push notification counter badge in AppBar.
+  * Hero lifestyle lookbook carousel & premier brand spotlights (Apple, Nike, Dior, Calvin Klein, Chanel, Ralph Lauren).
   * Gold-foil **OmniLuxe Privilege** digital loyalty card.
-  * Instant SMS order confirmation & public receipt links.
+  * Instant Firebase FCM push notifications & public receipt links.
 
 ### 3.2 Flagship Web Storefront (`backend/laravel-api` & `apps/web-store`)
-* **Technology**: Laravel 11 Blade templates, Alpine.js reactive components, TailwindCSS with Obsidian Dark Luxury styling tokens.
-* **Architecture Pattern**: Server-side rendered luxury storefront with micro-reactive Alpine.js drawers (slide-over bag, login modal, search).
+* **Technology**: Laravel 11 Blade templates, Alpine.js reactive components, TailwindCSS with Editorial Light Luxury styling tokens.
+* **Architecture Pattern**: Server-side rendered luxury storefront with micro-reactive Alpine.js drawers (slide-over cart, login modal, search).
 * **Key Persona**: Web visitors, corporate clients, and online VIP shoppers.
 * **Key Features**:
-  * Multi-vertical flagship lookbook and department filters.
+  * Multi-department flagship lookbook and department filters (Fashion, Beauty, Footwear, Kids, Lifestyle Tech).
   * Customer registration with **100 Welcome Loyalty Points**.
+  * Real-Time Laravel Reverb WebSocket client with authenticated private channels (`private-customer.{uuid}`) and floating toast alerts for new orders and VIP rewards.
   * Member hub at `/account` displaying order ledger and digital VIP privilege card.
   * Verifiable public e-receipt lookup at `/receipt/{invoice}` with phone number privacy protection (`077 •••• 567`).
 
@@ -152,7 +155,7 @@ sequenceDiagram
     actor Cashier as Store Cashier
 
     Note over Shopper,CentralERP: Online Purchase
-    Shopper->>MobileApp: Add Nike Pegasus 40 (UK 9) to Bag & Checkout
+    Shopper->>MobileApp: Add Nike Pegasus 40 (UK 9) to Cart & Checkout
     MobileApp->>CentralERP: POST /api/v1/sales (Order submission)
     CentralERP->>CentralERP: Atomically decrement stock in inventories table
     CentralERP->>CentralERP: Record immutable entry in stock_movements ledger
@@ -164,3 +167,118 @@ sequenceDiagram
     CentralERP-->>DesktopPOS: Return current stock (reflecting online purchase)
     DesktopPOS->>Cashier: Display verified live inventory
 ```
+
+---
+
+## 5. Omnichannel Push Notifications & Laravel Reverb Real-Time WebSockets
+
+OmniLuxe Store incorporates a secure, enterprise-grade real-time messaging pipeline built on **Laravel Reverb WebSockets** (replacing external proprietary third-party brokers like Pusher) alongside **Firebase Cloud Messaging (FCM v1)** and an atomic central database inbox:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Customer / VIP Member
+    participant FlutterApp as Mobile App (Flutter)
+    participant WebApp as Web Storefront (Port 8000 & 8010)
+    participant CentralERP as Central ERP / CustomerNotifier
+    participant CentralDB as Central MySQL DB (smartshop_pos)
+    participant ReverbServer as Laravel Reverb WebSockets (Port 8080)
+    participant FCM as Firebase Cloud Messaging (FCM v1)
+
+    Note over FlutterApp,CentralERP: Device Token Registration & Inbox Hydration
+    FlutterApp->>FCM: Request FCM Device Token
+    FCM-->>FlutterApp: Return Hardware Token (fcm_token_xyz)
+    FlutterApp->>CentralERP: POST /api/v1/customer/device-token { device_token, platform: 'ios' }
+    CentralERP->>CentralDB: Upsert into customer_device_tokens table
+    FlutterApp->>CentralERP: GET /api/v1/customer/notifications
+    CentralERP-->>FlutterApp: Return persistent notification history
+
+    Note over WebApp,ReverbServer: Secure WebSocket Handshake
+    WebApp->>CentralERP: POST /api/v1/broadcasting/auth (Sanctum Auth)
+    CentralERP-->>WebApp: Authorize private-customer.{uuid} channel
+    WebApp->>ReverbServer: Connect WSS & Subscribe to private-customer.{uuid}
+
+    Note over Customer,CentralERP: Transaction Finalization & Real-Time Alert
+    Customer->>CentralERP: Checkout Finalized / Bill Settled
+    CentralERP->>CentralERP: CustomerNotifier::notify() triggered
+
+    par Persistent Database Inbox
+        CentralERP->>CentralDB: INSERT into customer_notifications table (UUID, title, body, data)
+    and Secure Laravel Reverb WebSockets
+        CentralERP->>ReverbServer: Broadcast CustomerNotificationCreated on private-customer.{uuid}
+        ReverbServer->>WebApp: WebSocket Event dispatch
+        WebApp->>WebApp: Show XSS-sanitized luxury toast notification
+    and Mobile FCM Push Dispatch
+        CentralERP->>FCM: SendCustomerPushNotification queued job (HTTP v1 OAuth2)
+        FCM->>FlutterApp: APNs / FCM Push payload
+        FlutterApp->>FlutterApp: Increment unread badge & hydrate notification provider
+    end
+```
+
+### Component Roles & WebSocket Channels:
+1. **`CustomerNotifier` (Central Domain Service)**: Unified entry point that guarantees all customer communications simultaneously persist into the central `customer_notifications` database table, broadcast instantly over Laravel Reverb private channels, and queue for Firebase FCM v1 mobile delivery.
+2. **`Laravel Reverb` (High-Throughput WebSocket Server)**: Native, high-performance WebSocket server running at `ws://127.0.0.1:8080` (or `wss://` in production) speaking the Pusher protocol without third-party external dependencies or SaaS subscription limits.
+3. **Channel Security & Authorization (`routes/channels.php`)**:
+   - `private-customer.{customerUuid}`: Strictly isolated to the authenticated customer account matching `auth()->user()->customerProfile->uuid` or `customer.user_id`. Outside consumers cannot intercept other customers' orders or VIP alerts.
+   - `private-store.{storeUuid}.operations`: Strictly restricted to authenticated staff with `isStaff()` role. In-store cashiers receive counter sync events; zero leakage to consumer channels.
+   - `catalog` (Public): Dispatches sanitized product availability band changes (`in_stock`, `low_stock`, `out_of_stock`). Never exposes supplier prices, margin figures, or exact quantity numbers.
+   - `promotions` (Public): Dispatches curated brand collection drops and seasonal lookbook releases.
+4. **`CustomerNotification` & `CustomerDeviceToken` Models**: Central persistence engine linking hardware tokens and notification inboxes with read-tracking (`read_at`), deep linking metadata, and automatic dead-token pruning.
+5. **Mobile Push & Notification Service (`apps/mobile-pos`)**: Riverpod-driven `NotificationService` and `NotificationNotifier` that fetch persistent inboxes from `GET /api/v1/customer/notifications`, sync FCM tokens with `POST /api/v1/customer/device-token`, and synchronize read status via `POST /api/v1/customer/notifications/{uuid}/read`.
+6. **Web Storefront Toast Client (`layout.blade.php`)**: Subscribes to Reverb WebSockets and presents micro-animated editorial toasts using secure DOM element text injection (`textContent`) to prevent XSS.
+
+---
+
+## 6. Enterprise Security Boundary & Single Unified Database Architecture
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                      ZERO-LEAKAGE ENTERPRISE CHANNEL ISOLATION                         │
+├───────────────────────────────────────────┬────────────────────────────────────────────┤
+│       1. EXTERNAL / CONSUMER ZONE         │        2. INTERNAL OPERATIONS ZONE         │
+│  (Pure Consumer Shopping — Zero Leakage)  │   (Restricted to Physical Store & Staff)   │
+│                                           │                                            │
+│  • Public Web Storefront & Flutter Mobile │  • Dedicated Desktop POS (apps/windows-pos)│
+│  • Sanitized public API endpoints only    │  • Cashier PIN quick sign-in (1234)        │
+│  • ZERO visibility of internal operations │  • Counter register codes (COUNTER-01)     │
+│  • ZERO staff terminal or cashier access  │  • Hardware pairing: ESC/POS, barcode wedge│
+│  • ZERO exposure of ERP or admin URLs     │  • Cash drawer kicks, X-Report & Z-Report  │
+│  • Phone number masking (077 •••• 567)    │  • Multi-lane held bills cloud sync        │
+├───────────────────────────────────────────┴────────────────────────────────────────────┤
+│                       3. RESTRICTED ERP & CONTROL ROOM                                 │
+│                       (Laravel 11 / Filament v3 at /admin)                             │
+│                                                                                        │
+│  • Accessible strictly to authenticated Super Admins & Store Managers via RBAC         │
+│  • Supplier relations, purchase orders, refunds approval, and cash drawer reconciles   │
+│  • Isolated from public discovery (no links from consumer storefront or mobile app)    │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                       4. SINGLE UNIFIED DATABASE OF TRUTH                              │
+│                       (Central MySQL 8 — 25 Migrations)                                │
+│                                                                                        │
+│  • Unified Single Relational Database: Eliminates multi-database sync drift            │
+│  • Clean relational schema shared across all layers:                                   │
+│    - products, categories, brands, inventories, stock_movements (atomic ledgers)       │
+│    - sales, sale_items, payments, customers, loyalty_transactions                      │
+│    - cash_sessions, devices, stores, sync_revisions                                    │
+│  • Strict Data Projection: Public customer APIs only return sanitized retail data;     │
+│    cost prices, supplier records, margins, and audit ledgers never cross boundary      │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Architectural Principles:
+
+1. **Zero Public Leakage (Defense-in-Depth)**:
+   - Outsiders and consumers browsing the web store or mobile shopping app are strictly isolated from the internal company structure.
+   - Cashier register access, hardware pairing (thermal printers, barcode scanners, cash drawers), and staff terminals are physically and logically segregated to the dedicated in-store desktop POS (`apps/windows-pos`).
+   - The central ERP administration portal (`/admin`) has zero public hyperlinks and is protected by Spatie RBAC, session timeouts, and IP whitelisting capabilities.
+
+2. **Single Database as the Master Source of Truth (Zero Drift Across Web & Store)**:
+   - Rather than fragmenting into divergent databases that risk stock sync errors and catalog drift, **all online channels and ERP instances operate against one identical MySQL relational database (`smartshop_pos`)**:
+     - Both the central ERP API host (`http://127.0.0.1:8000`) and the dedicated web store application (`http://127.0.0.1:8010`, `apps/web-store`) write to and read from the exact same MySQL tables.
+     - Products (Apple, Nike, Dior, Calvin Klein, etc.), categories, brands, inventory balances, customer accounts, and sales transactions are 100% unified.
+     - When a customer purchases on `apps/web-store`, an in-store cashier completes a sale on `apps/windows-pos`, or an order is submitted via the mobile app, stock decrements atomically in the same `inventories` and `stock_movements` ledger tables.
+   - Offline SQLite instances on the Desktop POS and Mobile App exist strictly as **ephemeral, read-through / write-ahead offline caches** for resilience during connectivity drops, synchronizing bidirectionally back into the master MySQL database via versioned revision logs (`sync_revisions`).
+
+3. **Data Sanitization & Customer Privacy**:
+   - Customer phone numbers are masked on public e-receipt verification links (`077 •••• 567`).
+   - Consumer REST endpoints (`/api/v1/catalog`, `/api/v1/customer/*`) project sanitized views that strip all internal procurement metadata (`cost_price`, `supplier_id`, internal accounting codes).

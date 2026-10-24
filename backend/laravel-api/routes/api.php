@@ -13,10 +13,17 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/devices/register', [DeviceController::class, 'register']);
+    Route::post('/customer/device-token', [\App\Http\Controllers\Api\v1\DeviceTokenController::class, 'store']);
+    Route::get('/customer/notifications', [\App\Http\Controllers\Api\v1\NotificationController::class, 'index']);
+    Route::post('/customer/notifications/{uuid}/read', [\App\Http\Controllers\Api\v1\NotificationController::class, 'markAsRead']);
+    Route::post('/customer/notifications/read-all', [\App\Http\Controllers\Api\v1\NotificationController::class, 'markAllAsRead']);
     Route::get('/sync/status', [SyncController::class, 'status']);
 
     // Authenticated POS & Management routes
     Route::middleware('auth:sanctum')->group(function () {
+        // Real-Time Reverb WebSocket Channel Auth for Mobile / POS
+        Route::post('/broadcasting/auth', [\Illuminate\Broadcasting\BroadcastController::class, 'authenticate']);
+
         // Auth
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);

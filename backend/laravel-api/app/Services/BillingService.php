@@ -21,7 +21,9 @@ use Illuminate\Support\Str;
 class BillingService
 {
     public function __construct(
-        protected InventoryService $inventoryService
+        protected InventoryService $inventoryService,
+        protected CustomerNotifier $customerNotifier,
+        protected InventoryBroadcaster $inventoryBroadcaster,
     ) {}
 
     /**
@@ -172,14 +174,22 @@ class BillingService
                 ]);
             }
 
-            // Customer loyalty point update if customer linked
+            // Customer loyalty point update & real-time notification
             if ($customerId) {
                 $customer = Customer::find($customerId);
                 if ($customer) {
                     $earnedPoints = (int) floor($finalTotal / 10);
                     $customer->increment('loyalty_points', $earnedPoints);
+                    $this->customerNotifier->loyaltyCredited($customer, $earnedPoints, $sale->invoice_number);
                 }
             }
+
+            // Real-Time Reverb WebSocket private customer notification + background FCM push
+            $this->customerNotifier->orderConfirmed($sale);
+
+            // Real-time stock availability broadcast across Reverb
+            $productIds = collect($saleItemsToInsert)->pluck('product.id')->filter()->all();
+            $this->inventoryBroadcaster->changed($store, $productIds, 'pos');
 
             return $sale->load(['items.product', 'payments', 'cashier', 'store', 'customer']);
         });
