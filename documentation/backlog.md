@@ -87,6 +87,8 @@
 | **MOB-007** | Network / WiFi Thermal Print & Cash Drawer | P1 | `✅ DONE` | ESC/POS binary engine, raw TCP socket (port 9100), 80mm/58mm column formatting, pin 2/5 drawer kick, and in-app simulator. |
 | **MOB-008** | Sales History & Receipt Reprint | P1 | `✅ DONE` | Recent transactions list with invoice/customer search, sync status filters (All/Synced/Pending), line items bottom sheet, and instant reprinting. |
 | **MOB-009** | Cash Register Shift Audit & X-Report | P1 | `✅ DONE` | Mid-shift cash audit dialog, cash-in-drawer tally, tender breakdowns (Cash/Card/Bank), manual drawer kick, and ESC/POS X-Report printing. |
+| **MOB-010** | Multi-Lane Cloud Held Bills Sync | P1 | `✅ DONE` | Cross-register hold and recall via `/api/v1/held-bills` with local SQLite fallback for aisle queue-busting. |
+| **MOB-011** | Quick Customer Registration & CRM | P1 | `✅ DONE` | In-cart rapid customer creation dialog with auto-sync to `/api/v1/customers` and immediate cart attachment. |
 
 ---
 

@@ -87,6 +87,8 @@
 | **ESC/POS Printing & Drawer**| `✅ DONE` | Raw TCP socket (port 9100), 80/58mm formatting, pin 2/5 drawer kick, and in-app simulator. |
 | **Sales History & Reprint** | `✅ DONE` | Recent sales list, invoice/customer search, sync status filters, and one-tap reprinting. |
 | **Cash Session & X-Report** | `✅ DONE` | Register shift summary, tender breakdown (Cash/Card/Bank), drawer kick, and ESC/POS X-Report. |
+| **Multi-Lane Held Bills**   | `✅ DONE` | Cloud hold & recall (`/api/v1/held-bills`) with SQLite offline fallback for queue-busting. |
+| **Customer CRM & Quick Add**| `✅ DONE` | In-cart quick customer creation modal with phone/email and instant cart selection. |
 
 ---
 
@@ -104,7 +106,7 @@ $ npm test && npm run build (apps/windows-pos)
 ```bash
 $ flutter analyze && flutter test (apps/mobile-pos)
   No issues found!
-  00:03 +18: All tests passed!
+  00:03 +20: All tests passed!
 ```
 
 

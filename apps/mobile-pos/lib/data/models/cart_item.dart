@@ -60,6 +60,28 @@ class CartItemModel {
     };
   }
 
+  Map<String, dynamic> toMap() {
+    final map = toJson();
+    map['product'] = product.toDbMap();
+    return map;
+  }
+
+  factory CartItemModel.fromMap(Map<String, dynamic> map) {
+    ProductModel prod;
+    if (map['product'] != null && map['product'] is Map<String, dynamic>) {
+      prod = ProductModel.fromDbMap(map['product'] as Map<String, dynamic>);
+    } else {
+      prod = ProductModel(
+        uuid: map['product_uuid']?.toString() ?? '',
+        name: map['product_name']?.toString() ?? 'Product',
+        sinhalaName: map['sinhala_name']?.toString(),
+        sku: map['sku']?.toString() ?? '',
+        sellingPrice: (map['unit_price'] as num?)?.toDouble() ?? 0.0,
+      );
+    }
+    return CartItemModel.fromJson(map, prod);
+  }
+
   factory CartItemModel.fromJson(Map<String, dynamic> json, ProductModel product) {
     return CartItemModel(
       product: product,

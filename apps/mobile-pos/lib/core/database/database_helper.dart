@@ -6,6 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../data/models/category.dart';
 import '../../data/models/customer.dart';
+import '../../data/models/held_bill.dart';
 import '../../data/models/product.dart';
 import '../../data/models/sale.dart';
 
@@ -44,6 +45,22 @@ class DatabaseHelper {
       path,
       version: 1,
       onCreate: _createDB,
+      onOpen: (db) async {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS held_bills (
+            uuid TEXT PRIMARY KEY,
+            hold_reference TEXT NOT NULL,
+            cashier_name TEXT NOT NULL,
+            customer_name TEXT,
+            customer_phone TEXT,
+            customer_uuid TEXT,
+            items_count INTEGER NOT NULL,
+            subtotal REAL NOT NULL,
+            held_at TEXT NOT NULL,
+            cart_items_json TEXT NOT NULL
+          )
+        ''');
+      },
     );
   }
 
@@ -138,6 +155,22 @@ class DatabaseHelper {
       CREATE TABLE sync_meta (
         key TEXT PRIMARY KEY,
         value TEXT
+      )
+    ''');
+
+    // 6. Held Bills Table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS held_bills (
+        uuid TEXT PRIMARY KEY,
+        hold_reference TEXT NOT NULL,
+        cashier_name TEXT NOT NULL,
+        customer_name TEXT,
+        customer_phone TEXT,
+        customer_uuid TEXT,
+        items_count INTEGER NOT NULL,
+        subtotal REAL NOT NULL,
+        held_at TEXT NOT NULL,
+        cart_items_json TEXT NOT NULL
       )
     ''');
   }
@@ -246,6 +279,15 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
+  Future<void> insertCustomer(CustomerModel customer) async {
+    final db = await database;
+    await db.insert(
+      'customers',
+      customer.toDbMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
   // --- Sales & Offline Queue ---
   Future<void> insertSale(SaleModel sale) async {
     final db = await database;
@@ -350,6 +392,34 @@ class DatabaseHelper {
       'taxTotal': tax,
       'discountTotal': discount,
     };
+  }
+
+  // --- Held Bills Operations ---
+  Future<void> insertHeldBill(HeldBillModel bill) async {
+    final db = await database;
+    await db.insert(
+      'held_bills',
+      bill.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<HeldBillModel>> getAllHeldBills() async {
+    final db = await database;
+    final result = await db.query(
+      'held_bills',
+      orderBy: 'held_at DESC',
+    );
+    return result.map((m) => HeldBillModel.fromMap(m)).toList();
+  }
+
+  Future<void> deleteHeldBill(String uuid) async {
+    final db = await database;
+    await db.delete(
+      'held_bills',
+      where: 'uuid = ?',
+      whereArgs: [uuid],
+    );
   }
 
   // --- Sync Meta (Last Revision Version) ---

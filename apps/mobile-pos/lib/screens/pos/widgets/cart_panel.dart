@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../data/models/customer.dart';
+import '../../../data/repositories/held_bill_repository.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../providers/catalog_provider.dart';
 import '../../checkout/payment_dialog.dart';
 import 'cart_item_tile.dart';
+import 'held_bills_modal.dart';
+import 'new_customer_dialog.dart';
 
 class CartPanel extends ConsumerWidget {
   final VoidCallback? onCheckoutComplete;
@@ -100,6 +103,20 @@ class CartPanel extends ConsumerWidget {
             ),
           ),
           actions: [
+            TextButton.icon(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final newCustomer = await showDialog<CustomerModel>(
+                  context: context,
+                  builder: (_) => const NewCustomerDialog(),
+                );
+                if (newCustomer != null) {
+                  ref.read(cartProvider.notifier).setCustomer(newCustomer);
+                }
+              },
+              icon: const Icon(Icons.person_add, size: 16),
+              label: const Text('New Customer'),
+            ),
             TextButton(
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Close', style: TextStyle(color: AppColors.textSecondary)),
@@ -203,31 +220,17 @@ class CartPanel extends ConsumerWidget {
                   ),
                 ),
 
-                // Held Bills indicator (if any)
-                if (cartState.heldBills.isNotEmpty)
-                  PopupMenuButton<int>(
-                    tooltip: 'Held Bills',
-                    color: AppColors.surface,
-                    icon: Badge(
-                      label: Text('${cartState.heldBills.length}'),
-                      child: const Icon(Icons.pause_circle_outline, color: AppColors.accent),
-                    ),
-                    itemBuilder: (ctx) => cartState.heldBills.asMap().entries.map((e) {
-                      final index = e.key;
-                      final heldItems = e.value;
-                      final total = heldItems.fold(0.0, (sum, i) => sum + i.total);
-                      return PopupMenuItem<int>(
-                        value: index,
-                        child: Text(
-                          'Held #${index + 1} (${heldItems.length} items) - ${CurrencyFormatter.format(total, symbol: currencySymbol)}',
-                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
-                        ),
-                      );
-                    }).toList(),
-                    onSelected: (index) {
-                      cartNotifier.resumeHeldBill(index);
-                    },
-                  ),
+                // Held Bills trigger
+                IconButton(
+                  tooltip: 'Held Bills (Parked Sales)',
+                  icon: const Icon(Icons.pause_circle_outline, color: AppColors.accent),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => const HeldBillsModal(),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -367,7 +370,27 @@ class CartPanel extends ConsumerWidget {
                     Expanded(
                       flex: 1,
                       child: OutlinedButton(
-                        onPressed: cartState.isEmpty ? null : () => cartNotifier.holdCurrentBill(),
+                        onPressed: cartState.isEmpty
+                            ? null
+                            : () async {
+                                final authState = ref.read(authProvider);
+                                final repo = ref.read(heldBillRepositoryProvider);
+                                final bill = await repo.holdBill(
+                                  items: List.from(cartState.items),
+                                  subtotal: cartState.subtotal,
+                                  cashierName: authState.user?.name ?? 'Cashier',
+                                  customer: cartState.customer,
+                                );
+                                cartNotifier.clearCart();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Bill parked (${bill.holdReference}) to cloud & local queue'),
+                                      backgroundColor: AppColors.accent,
+                                    ),
+                                  );
+                                }
+                              },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
