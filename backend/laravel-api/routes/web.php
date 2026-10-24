@@ -24,3 +24,9 @@ Route::post('/register', [WebStoreController::class, 'register'])->name('store.r
 Route::post('/logout', [WebStoreController::class, 'logout'])->name('store.logout');
 Route::get('/account', [WebStoreController::class, 'account'])->name('store.account');
 
+// Hosted Online Payment Gateway & Callbacks
+Route::get('/checkout/payment/{uuid}', [\App\Http\Controllers\PaymentController::class, 'showCheckout'])->name('store.payment');
+Route::post('/checkout/payment/{uuid}/process', [\App\Http\Controllers\PaymentController::class, 'processCard'])->name('store.payment.process');
+Route::get('/checkout/payment/{uuid}/success', [\App\Http\Controllers\PaymentController::class, 'success'])->name('store.payment.success');
+Route::get('/checkout/payment/{uuid}/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('store.payment.cancel');
+

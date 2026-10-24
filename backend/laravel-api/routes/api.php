@@ -19,6 +19,10 @@ Route::prefix('v1')->group(function () {
     Route::post('/customer/notifications/read-all', [\App\Http\Controllers\Api\v1\NotificationController::class, 'markAllAsRead']);
     Route::get('/sync/status', [SyncController::class, 'status']);
 
+    // Payment Gateway APIs & Webhooks
+    Route::post('/payments/initiate', [\App\Http\Controllers\PaymentController::class, 'apiInitiate']);
+    Route::post('/payments/webhook/{gateway}', [\App\Http\Controllers\PaymentController::class, 'webhook']);
+
     // Authenticated POS & Management routes
     Route::middleware('auth:sanctum')->group(function () {
         // Real-Time Reverb WebSocket Channel Auth for Mobile / POS

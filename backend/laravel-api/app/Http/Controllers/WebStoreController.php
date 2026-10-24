@@ -127,6 +127,7 @@ class WebStoreController extends Controller
             ];
         }
 
+        $isOnlineCard = $validated['payment_method'] === 'card';
         $paymentMethod = match ($validated['payment_method']) {
             'card' => 'card',
             'bank_transfer' => 'bank_transfer',
@@ -140,9 +141,9 @@ class WebStoreController extends Controller
             'customer_id' => $customer->id,
             'discount_amount' => 0.00,
             'source' => 'online',
-            'notes' => 'Web Store Order | Ship to: ' . $validated['shipping_address'] . ' (' . $validated['customer_name'] . ')',
+            'notes' => 'Web Store Order | Ship to: ' . $validated['shipping_address'] . ' (' . $validated['customer_name'] . ')' . ($isOnlineCard ? ' | Pending Gateway Payment' : ''),
             'items' => $saleItems,
-            'payments' => [
+            'payments' => $isOnlineCard ? [] : [
                 [
                     'payment_method' => $paymentMethod,
                     'amount' => $subtotal,
@@ -152,6 +153,14 @@ class WebStoreController extends Controller
 
         $billingService = app(\App\Services\BillingService::class);
         $sale = $billingService->processSale($salePayload, $store, $adminUser);
+
+        if ($isOnlineCard) {
+            $paymentService = app(\App\Services\PaymentGatewayService::class);
+            $transaction = $paymentService->initiate($sale, 'payhere');
+
+            return redirect()->route('store.payment', ['uuid' => $transaction->uuid])
+                ->with('info', 'Order created. Please complete payment.');
+        }
 
         return redirect()->route('store.receipt', ['invoice' => $sale->invoice_number])
             ->with('success', 'Order placed successfully! SMS receipt dispatched to customer.');

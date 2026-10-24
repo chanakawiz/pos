@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/database/database_helper.dart';
+import '../../core/network/api_client.dart';
 import '../../data/models/sale.dart';
 import '../../providers/cart_provider.dart';
 import 'order_confirmation_screen.dart';
@@ -87,6 +88,21 @@ class _StoreCheckoutScreenState extends ConsumerState<StoreCheckoutScreen> {
       );
 
       await DatabaseHelper.instance.insertSale(sale);
+
+      // Initiate online gateway transaction session with backend if Card selected
+      if (_paymentMethod == 'card') {
+        try {
+          await ApiClient.instance.dio.post(
+            '/api/v1/payments/initiate',
+            data: {
+              'invoice_number': orderNumber,
+              'gateway': 'payhere',
+            },
+          );
+        } catch (netErr) {
+          debugPrint('[PaymentGateway] Mobile checkout session call skipped: $netErr');
+        }
+      }
 
       // 2. Clear Shopping Cart
       ref.read(cartProvider.notifier).clearCart();

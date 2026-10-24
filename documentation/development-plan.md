@@ -155,6 +155,22 @@ The platform establishes strict separation across customer, cashier, and adminis
 - [x] **Mobile App Synchronization with Central Inbox**:
   - Flutter `NotificationService` and `NotificationNotifier` updated to fetch notification history from `GET /api/v1/customer/notifications`, sync read states via `POST /api/v1/customer/notifications/{uuid}/read`, and sync device tokens.
 
+### Milestone 10: Live Payment Gateway Integration & Webhooks (`✅ COMPLETED`)
+- [x] **Universal Payment Gateway Engine (`PaymentGatewayService`)**:
+  - Driver architecture supporting Sri Lankan flagship gateway (**PayHere** with dynamic MD5 signature generation and validation), **Stripe** (SHA256 signature verification), and **Instant Sandbox** driver.
+  - Dedicated `payment_transactions` database table tracking session UUIDs, gateway references, payload parameters, and timestamps.
+- [x] **Luxury Web Storefront Checkout (`store.payment`)**:
+  - Hosted 256-bit SSL checkout page at `/checkout/payment/{uuid}` featuring credit/debit card authorization, PayHere direct redirect, and sandbox verification.
+  - Immediate redirect to tamper-evident public e-receipt at `/receipt/{invoice}` upon confirmation.
+- [x] **Secure Asynchronous Webhooks & CSRF Exemption**:
+  - Webhook endpoint `POST /api/v1/payments/webhook/{gateway}` with CSRF exemption in `bootstrap/app.php`.
+  - Atomic transaction completion updating `sales.payment_status` to `'paid'`, inserting into `payments` ledger, and triggering real-time Reverb and FCM customer notifications.
+- [x] **Mobile REST API & Client Checkout**:
+  - Session initiation endpoint `POST /api/v1/payments/initiate` linked with Flutter `StoreCheckoutScreen`.
+- [x] **100% Verified Automated Test Suite**:
+  - 5 feature tests in `PaymentGatewayTest.php` passing all assertions for initiation, rendering, processing, and signature verification.
+  - Full backend test suite passing with 33/33 tests (`php artisan test`).
+
 ---
 
 ## 3. Technology Stack & Design Tokens

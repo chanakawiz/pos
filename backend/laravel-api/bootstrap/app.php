@@ -13,7 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->validateCsrfTokens(except: [
+            'api/v1/payments/webhook/*',
+            'payments/webhook/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
