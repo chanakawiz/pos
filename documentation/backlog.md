@@ -26,6 +26,7 @@
 | **API-013** | Bilingual Sinhala & English Catalog Schema | P0 | `✅ DONE` | Database migration `sinhala_name` on products table, API index & barcode lookup support. |
 | **API-014** | Smart Items & Mobile Devices Schema | P0 | `✅ DONE` | Warranty periods, serial/IMEI tracking flags on products, and `serial_number` & `warranty_notes` on sale items. |
 | **API-015** | Durable Catalog Sync Revisions | P0 | `✅ DONE` | Transactional global revision sequence, inventory invalidation, soft/permanent deletion tombstones, and complete bilingual/warranty catalog payloads. |
+| **API-016** | Docker Containerization Stack | P0 | `✅ DONE` | Full Docker Compose orchestration: PHP 8.2-FPM with all extensions, Nginx reverse proxy, MySQL 8.0 with healthcheck, and background queue worker. |
 
 ---
 

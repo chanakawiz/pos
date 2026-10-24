@@ -1,0 +1,16 @@
+.git
+.github
+.agents
+.gemini
+**/node_modules
+**/vendor
+**/storage/logs/*
+**/storage/framework/cache/*
+**/storage/framework/sessions/*
+**/storage/framework/views/*
+apps/windows-pos/dist
+apps/windows-pos/release
+apps/mobile-pos/build
+apps/mobile-pos/.dart_tool
+documentation
+*.md

@@ -1,0 +1,88 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: smartshop-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./backend/laravel-api:/var/www/html
+    environment:
+      APP_NAME: "SmartShop POS"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: smartshop_pos
+      DB_USERNAME: smartshop
+      DB_PASSWORD: secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - smartshop-net
+
+  web:
+    image: nginx:alpine
+    container_name: smartshop-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8000}:80"
+    volumes:
+      - ./backend/laravel-api:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - smartshop-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: smartshop-mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: smartshop_pos
+      MYSQL_USER: smartshop
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    ports:
+      - "${DB_PORT:-33060}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootsecret"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - smartshop-net
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: smartshop-queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3"]
+    volumes:
+      - ./backend/laravel-api:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+      app:
+        condition: service_started
+    networks:
+      - smartshop-net
+
+networks:
+  smartshop-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

@@ -36,6 +36,7 @@
 | **Supply Chain & POs** | `✅ DONE` | Suppliers directory, PO drafting, stock receiving. |
 | **Reporting & Analytics** | `✅ DONE` | Sales summary, top products, low stock alerts. |
 | **Offline Sync Engine** | `✅ DONE` | Push (dedup + stock reconcile), Pull (version delta).|
+| **Docker Stack**        | `✅ DONE` | PHP 8.2-FPM Alpine, Nginx reverse proxy, MySQL 8.0, and Queue Worker with entrypoint orchestration. |
 
 ### 2.2 Filament v3 Admin ERP (`backend/laravel-api`)
 | Resource | Status | Notes |
