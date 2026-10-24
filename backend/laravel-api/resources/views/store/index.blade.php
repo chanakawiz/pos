@@ -96,7 +96,9 @@
 
                             <!-- Product Title -->
                             <h3 class="font-display font-bold text-ink text-sm leading-snug group-hover:text-forest transition-colors">
-                                {{ $product->name }}
+                                <a href="{{ route('store.product', $product->id) }}" class="hover:underline">
+                                    {{ $product->name }}
+                                </a>
                             </h3>
 
                             <!-- Badges row: Serial/IMEI, Warranty -->

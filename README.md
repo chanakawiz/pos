@@ -42,11 +42,10 @@ OmniLuxe Store delivers an integrated multi-channel retail infrastructure with s
 ```text
 pos/
 ├── apps/
-│   ├── windows-pos/             # Dedicated Desktop Cashier POS (Electron + React 18 + TypeScript + Vite + SQLite)
-│   ├── mobile-pos/              # Consumer Mobile Shopping App (Flutter + Riverpod + Editorial Light Luxury + SQLite)
-│   └── web-store/               # Branded E-Commerce Web Storefront (Laravel 11 Blade + Alpine.js + Editorial Light)
+│   ├── windows-pos/             # Dedicated In-Store Cashier POS (Electron + React 18 + TypeScript + Vite + SQLite)
+│   └── mobile-pos/              # Consumer Mobile Shopping App (Flutter + Riverpod + Editorial Light Luxury + SQLite)
 ├── backend/
-│   └── laravel-api/             # Central ERP Engine + REST API Gateway (/api/v1) + Filament v3 Admin (/admin)
+│   └── laravel-api/             # Unified Central Retail Engine (E-Commerce Web Storefront + Filament v3 Admin + REST API + Reverb WebSockets)
 ├── documentation/
 │   ├── development-plan.md      # Master Phased Implementation & Engineering Milestones
 │   ├── flutter-screens-catalog.md # Complete Flutter Screen Catalog, Routes & Providers

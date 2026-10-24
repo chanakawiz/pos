@@ -2,14 +2,15 @@
 
 > **System**: OmniLuxe Store (`omniluxe-store`) — Flagship Omnichannel Retail, Desktop POS & Central ERP Engine  
 > **Document**: Phased Implementation & Engineering Milestones Roadmap  
+> **Consolidated Architecture**: Web Storefront and Central ERP Engine are **combined into a single unified Laravel project** (`backend/laravel-api`) on one master MySQL database (`smartshop_pos`), eliminating separate project divergence and submodule friction.  
 > **Target Personas & Channels**:
-> 1. **Online Shoppers**: OmniLuxe Web Storefront (`backend/laravel-api` & `apps/web-store`) + Mobile Shopping App (`apps/mobile-pos`)
-> 2. **In-Store Cashiers**: Dedicated High-Throughput Counter POS Terminal (`apps/windows-pos`)
-> 3. **Admins & Store Managers**: Central ERP & Filament v3 Control Room (`/admin`)  
+> 1. **Web Storefront & Central ERP Engine**: `backend/laravel-api` (Port 8000 Web Store + Filament v3 Admin + REST API + Reverb WebSockets)
+> 2. **In-Store Cashier POS Counter**: `apps/windows-pos` (Electron + React 18 + Vite)
+> 3. **Consumer Mobile Shopping App**: `apps/mobile-pos` (Flutter 3.x + Riverpod)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Sage `#7B846D`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer platforms  
 > **Authentication**: Guest Explorer Mode + Multi-Step VIP Onboarding  
-> **Current Version**: 3.3.0  
+> **Current Version**: 3.4.0  
 > **Commercial Readiness**: Turnkey Flagship Platform Ready for Commercial Enterprise Deployment
 
 ---
@@ -29,9 +30,9 @@ The platform establishes strict separation across customer, cashier, and adminis
 │  • Multi-Step Sign In & Sign Up      │  • Cashier PIN quick sign-in (1234)  │
 │  • OmniLuxe Privilege VIP Card       │  • USB & Bluetooth barcode scanner   │
 │  • Loyalty Points (Earn & Redeem)    │  • Cash drawer kick & thermal print  │
-│  • Push Notifications (FCM & Pusher) │  • Multi-lane held bills reservation │
 │  • Customer Profile & More Concierge │  • Counter device codes (COUNTER-01) │
 │  • Instant SMS E-receipts dispatch   │  • Direct offline-first SQLite sync  │
+│  • Push Alerts (FCM & Reverb WS)     │  • Cash drawer kick & thermal print  │
 ├──────────────────────────────────────┴──────────────────────────────────────┤
 │                   3. CENTRAL CLOUD ERP & ADMIN PANEL                        │
 │                   (Laravel 11 / Filament v3 at /admin)                      │
@@ -174,3 +175,36 @@ The platform establishes strict separation across customer, cashier, and adminis
 - **Hairline Border**: `#E3E5DF` (Refined subtle boundary lines)
 - **Sage Secondary**: `#7B846D` (Botanical secondary accents & subtitles)
 - **Champagne Gold**: `#C29B38` (VIP membership badges, loyalty point highlights)
+
+---
+
+## 4. Current Execution Roadmap (3-Stage Ordered Delivery)
+
+As requested, development progresses sequentially across the 3 core platform channels:
+
+### 🌟 Stage 1: Web Storefront Deep-Dive & Commerce (`backend/laravel-api`) — `IN PROGRESS`
+> **Consolidation**: The Web Storefront is combined directly inside `backend/laravel-api`, running from the single project and identical MySQL database (`smartshop_pos`). Zero submodule overhead, zero duplicated models.
+- [x] Consolidate Web Store views, routes, and controllers inside `backend/laravel-api`.
+- [x] Implement luxury editorial product detail view (`/product/{id}`) with inventory availability, warranty tags, and serial tracking chips.
+- [x] Standardize Cart drawer with Alpine.js reactivity, guest checkout option, and subtotal calculation.
+- [x] Multi-step customer registration wizard with 100 VIP welcome loyalty points.
+- [x] Integrate Laravel Reverb WebSockets client (Port 8080) for real-time stock availability and order toasts.
+- [x] Verified public e-receipt page at `/receipt/{invoice}` with customer phone number masking (`077 •••• 567`).
+- [ ] End-to-end checkout validation: Guest order placement, VIP points deduction, atomic inventory decrement in MySQL, and SMS link generation.
+
+### 💻 Stage 2: In-Store Cashier POS System (`apps/windows-pos`) — `QUEUED`
+> **Counter Hardware & Terminal Integration**: Dedicated desktop POS station for retail staff.
+- [ ] Verify cashier shift workflow (opening float, cash sessions, mid-day drops, X/Z reports).
+- [ ] Test hardware barcode scanner wedge (<60ms key bursts) and instant line item addition.
+- [ ] Test ESC/POS thermal printer engine (58mm/80mm slips) and RJ11 drawer kick pulse.
+- [ ] Test multi-lane held bills cloud sync and retrieval across registers.
+- [ ] Verify atomic inventory synchronization against the central MySQL database on sale completion.
+
+### 📱 Stage 3: Consumer Mobile App Harmonization (`apps/mobile-pos`) — `QUEUED`
+> **Customer Mobile Experience**: Flagship luxury shopping on iOS and Android.
+- [ ] Connect Flutter Riverpod state to central persistent notification inbox API (`GET /api/v1/customer/notifications`).
+- [ ] Push notification read state synchronization (`POST /api/v1/customer/notifications/{uuid}/read`).
+- [ ] Hardware device push token registration (`POST /api/v1/customer/device-token`).
+- [ ] Enforce zero-leakage security (zero staff PIN login or counter hardware pairing on consumer mobile).
+- [ ] End-to-end catalog browsing, cart steppers, guest mode, orders ledger, and VIP card.
+

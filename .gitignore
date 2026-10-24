@@ -35,6 +35,5 @@ backend/laravel-api/bootstrap/cache/*
 # OS & IDE
 .DS_Store
 Thumbs.db
-.idea/
-.vscode/
-*.swp
+# Deprecated separate web store (now consolidated into backend/laravel-api)
+apps/web-store/

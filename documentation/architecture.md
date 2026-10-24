@@ -107,9 +107,9 @@ flowchart TB
   * Gold-foil **OmniLuxe Privilege** digital loyalty card.
   * Instant Firebase FCM push notifications & public receipt links.
 
-### 3.2 Flagship Web Storefront (`backend/laravel-api` & `apps/web-store`)
+### 3.2 Flagship Web Storefront (`backend/laravel-api`)
 * **Technology**: Laravel 11 Blade templates, Alpine.js reactive components, TailwindCSS with Editorial Light Luxury styling tokens.
-* **Architecture Pattern**: Server-side rendered luxury storefront with micro-reactive Alpine.js drawers (slide-over cart, login modal, search).
+* **Architecture Pattern**: Fully unified within the central Laravel application at `http://127.0.0.1:8000/`, sharing the identical database, models, and Reverb WebSockets without separate project divergence.
 * **Key Persona**: Web visitors, corporate clients, and online VIP shoppers.
 * **Key Features**:
   * Multi-department flagship lookbook and department filters (Fashion, Beauty, Footwear, Kids, Lifestyle Tech).
@@ -272,11 +272,10 @@ sequenceDiagram
    - Cashier register access, hardware pairing (thermal printers, barcode scanners, cash drawers), and staff terminals are physically and logically segregated to the dedicated in-store desktop POS (`apps/windows-pos`).
    - The central ERP administration portal (`/admin`) has zero public hyperlinks and is protected by Spatie RBAC, session timeouts, and IP whitelisting capabilities.
 
-2. **Single Database as the Master Source of Truth (Zero Drift Across Web & Store)**:
-   - Rather than fragmenting into divergent databases that risk stock sync errors and catalog drift, **all online channels and ERP instances operate against one identical MySQL relational database (`smartshop_pos`)**:
-     - Both the central ERP API host (`http://127.0.0.1:8000`) and the dedicated web store application (`http://127.0.0.1:8010`, `apps/web-store`) write to and read from the exact same MySQL tables.
-     - Products (Apple, Nike, Dior, Calvin Klein, etc.), categories, brands, inventory balances, customer accounts, and sales transactions are 100% unified.
-     - When a customer purchases on `apps/web-store`, an in-store cashier completes a sale on `apps/windows-pos`, or an order is submitted via the mobile app, stock decrements atomically in the same `inventories` and `stock_movements` ledger tables.
+2. **Single Database as the Master Source of Truth (Zero Drift Across Web, Store & POS)**:
+   - Rather than fragmenting into divergent databases that risk stock sync errors and catalog drift, **the Web Storefront is consolidated directly within `backend/laravel-api`**, running against the exact same master MySQL relational database (`smartshop_pos`):
+     - Products (Apple, Nike, Dior, Calvin Klein, Tommy Hilfiger), categories, brands, inventory balances, customer accounts, and sales transactions are 100% unified in a single codebase.
+     - When a customer purchases on the web store (`http://127.0.0.1:8000`), an in-store cashier completes a sale on `apps/windows-pos`, or an order is submitted via the mobile app, stock decrements atomically in the same `inventories` and `stock_movements` ledger tables.
    - Offline SQLite instances on the Desktop POS and Mobile App exist strictly as **ephemeral, read-through / write-ahead offline caches** for resilience during connectivity drops, synchronizing bidirectionally back into the master MySQL database via versioned revision logs (`sync_revisions`).
 
 3. **Data Sanitization & Customer Privacy**:
