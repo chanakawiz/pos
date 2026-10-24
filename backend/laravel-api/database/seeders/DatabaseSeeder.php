@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
         $cashierRole = Role::firstOrCreate(['name' => 'cashier']);
 
         // 2. Default Store
-        $store = Store::firstOrCreate(
+        $store = Store::updateOrCreate(
             ['code' => 'STORE-001'],
             [
                 'name' => 'OmniLuxe Store Flagship',

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import 'store_auth_steps_screen.dart';
 
 class StoreMemberScreen extends ConsumerStatefulWidget {
   const StoreMemberScreen({super.key});
@@ -12,63 +13,6 @@ class StoreMemberScreen extends ConsumerStatefulWidget {
 }
 
 class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
-  bool _isSignUp = false;
-  final _emailController = TextEditingController(text: 'customer@lifestyle.test');
-  final _passwordController = TextEditingController(text: 'password');
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController(text: '0771234567');
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _nameController.dispose();
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleAuth() async {
-    final authNotifier = ref.read(authProvider.notifier);
-    if (_isSignUp) {
-      if (_nameController.text.trim().isEmpty ||
-          _emailController.text.trim().isEmpty ||
-          _phoneController.text.trim().isEmpty ||
-          _passwordController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill all required fields')),
-        );
-        return;
-      }
-      final ok = await authNotifier.registerCustomer(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      if (ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColors.success,
-            content: Text('Welcome! 100 Welcome Points awarded to your VIP card.'),
-          ),
-        );
-      }
-    } else {
-      final ok = await authNotifier.loginWithPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      if (ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColors.success,
-            content: Text('Signed in successfully!'),
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -77,33 +21,35 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         title: Row(
           children: [
             Text(
-              'OMNILUXE VIP',
+              'OMNILUXE PRIVILEGE',
               style: GoogleFonts.outfit(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.5,
-                color: Colors.white,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.gold.withOpacity(0.18),
+                color: user != null ? AppColors.gold.withOpacity(0.18) : AppColors.surfaceElevated,
                 borderRadius: BorderRadius.circular(5),
-                border: Border.all(color: AppColors.gold.withOpacity(0.4)),
+                border: Border.all(
+                  color: user != null ? AppColors.gold.withOpacity(0.4) : AppColors.border,
+                ),
               ),
               child: Text(
-                'MEMBER',
+                user != null ? 'VIP MEMBER' : 'GUEST MODE',
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.gold,
+                  color: user != null ? AppColors.gold : AppColors.textSecondary,
                 ),
               ),
             ),
@@ -123,20 +69,213 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // If user logged in, display the luxury digital membership card
             if (user != null) ...[
+              // Authenticated Digital Loyalty Card (Deep Forest Luxury)
               _buildDigitalLoyaltyCard(user),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _buildPerksSection(user),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _buildAccountDetails(user),
             ] else ...[
-              // If not logged in, show Auth Card with Sign In / Sign Up toggle
-              _buildAuthCard(authState),
+              // Guest Mode Overview & Auth Steps Trigger
+              _buildGuestModeBanner(),
+              const SizedBox(height: 20),
+              _buildGuestPrivilegesPreview(),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildGuestModeBanner() {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceElevated,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Icon(Icons.person_outline, size: 24, color: AppColors.primary),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Guest Explorer Mode',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      'Browsing with instant checkout & SMS verification',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            'You can curate your shopping cart and complete purchases directly as a guest. Want to earn loyalty points, private allocations, and 100 welcome points?',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: AppColors.textPrimary,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Multi-Step Auth Launch Button
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const StoreAuthStepsScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.arrow_forward, size: 16),
+            label: Text(
+              'Sign In or Register with Steps (+100 Pts)',
+              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Instant demo customer button
+          OutlinedButton.icon(
+            onPressed: () {
+              ref.read(authProvider.notifier).loginWithPassword(
+                    email: 'customer@lifestyle.test',
+                    password: 'password',
+                  );
+            },
+            icon: const Icon(Icons.flash_on, color: AppColors.gold, size: 16),
+            label: Text(
+              'Instant Demo: Dulantha (VIP Gold Member)',
+              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.border),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuestPrivilegesPreview() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'OMNILUXE PRIVILEGE PERKS',
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          _buildPerkRow(
+            Icons.card_giftcard,
+            '100 Welcome Points',
+            'Instant credit applied to your digital card on registration.',
+          ),
+          const Divider(color: AppColors.border, height: 20),
+          _buildPerkRow(
+            Icons.receipt_long_outlined,
+            'Tamper-Evident E-Receipts',
+            'Verified warranty receipts sent via SMS to all Sri Lankan networks.',
+          ),
+          const Divider(color: AppColors.border, height: 20),
+          _buildPerkRow(
+            Icons.sync_alt,
+            'Omnichannel Store Credit',
+            'Spend points seamlessly across Colombo boutique POS and online store.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerkRow(IconData icon, String title, String description) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: AppColors.primary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -146,28 +285,23 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF1E2638),
-            Color(0xFF111827),
-            Color(0xFF090D16),
+            Color(0xFF233C32), // Signature Forest Green
+            Color(0xFF172B23), // Deep Forest Night
+            Color(0xFF0F1E18),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: AppColors.gold.withOpacity(0.45),
+          color: AppColors.gold.withOpacity(0.5),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-          BoxShadow(
-            color: AppColors.gold.withOpacity(0.08),
-            blurRadius: 25,
-            spreadRadius: 1,
+            color: const Color(0xFF233C32).withOpacity(0.3),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -192,7 +326,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
-                          color: Colors.black,
+                          color: const Color(0xFF233C32),
                         ),
                       ),
                     ),
@@ -212,9 +346,9 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.gold.withOpacity(0.4)),
                 ),
                 child: Text(
                   user.tier.toUpperCase(),
@@ -227,14 +361,14 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
           Text(
             'CARDHOLDER',
             style: GoogleFonts.inter(
               fontSize: 9,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
-              color: AppColors.textSecondary,
+              color: Colors.white.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 4),
@@ -252,13 +386,13 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
             user.email,
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: Colors.white.withOpacity(0.7),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Container(
             height: 1,
-            color: AppColors.border,
+            color: Colors.white.withOpacity(0.15),
           ),
           const SizedBox(height: 16),
           Row(
@@ -273,7 +407,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
                       fontSize: 9,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.2,
-                      color: AppColors.textSecondary,
+                      color: Colors.white.withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -286,7 +420,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 24,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
+                          color: AppColors.gold,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -295,7 +429,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textSecondary,
+                          color: Colors.white.withOpacity(0.8),
                         ),
                       ),
                     ],
@@ -311,7 +445,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
                       fontSize: 9,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.2,
-                      color: AppColors.textSecondary,
+                      color: Colors.white.withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -337,12 +471,12 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'VIP PRIVILEGES',
-          style: GoogleFonts.outfit(
-            fontSize: 13,
+          'VIP PRIVILEGES & REWARDS',
+          style: GoogleFonts.inter(
+            fontSize: 11,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
-            color: Colors.white,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -351,7 +485,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
             Expanded(
               child: _buildPerkCard(
                 icon: Icons.currency_exchange,
-                title: 'Point Value',
+                title: 'Points Cash Value',
                 value: 'Rs. ${(user.loyaltyPoints * 1.5).toStringAsFixed(2)}',
                 color: AppColors.primary,
               ),
@@ -360,8 +494,8 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
             Expanded(
               child: _buildPerkCard(
                 icon: Icons.verified_user_outlined,
-                title: 'Warranty',
-                value: 'Protected',
+                title: 'Official Warranty',
+                value: 'Active & Audited',
                 color: AppColors.secondary,
               ),
             ),
@@ -399,10 +533,10 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
           const SizedBox(height: 2),
           Text(
             value,
-            style: GoogleFonts.outfit(
-              fontSize: 16,
+            style: GoogleFonts.inter(
+              fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textPrimary,
             ),
           ),
         ],
@@ -422,7 +556,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ACCOUNT CREDENTIALS',
+            'MEMBER CREDENTIALS',
             style: GoogleFonts.inter(
               fontSize: 10,
               fontWeight: FontWeight.bold,
@@ -435,7 +569,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
           const Divider(color: AppColors.border, height: 20),
           _buildInfoRow('Email Address', user.email),
           const Divider(color: AppColors.border, height: 20),
-          _buildInfoRow('Phone (SMS Bills)', user.phone ?? '0771234567'),
+          _buildInfoRow('Phone (SMS Bills)', user.phone ?? '077 123 4567'),
           const Divider(color: AppColors.border, height: 20),
           _buildInfoRow('Channel Status', 'Omnichannel (POS + Web + App)'),
         ],
@@ -459,199 +593,10 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.textPrimary,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAuthCard(AuthState authState) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Segmented Toggle: Sign In vs Sign Up
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _isSignUp = false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: !_isSignUp ? AppColors.cardHover : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Sign In',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: !_isSignUp ? Colors.white : AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _isSignUp = true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: _isSignUp ? AppColors.cardHover : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Sign Up (+100 Pts)',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: _isSignUp ? AppColors.gold : AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          if (_isSignUp) ...[
-            TextField(
-              controller: _nameController,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              decoration: InputDecoration(
-                labelText: 'Full Name',
-                labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                filled: true,
-                fillColor: AppColors.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              decoration: InputDecoration(
-                labelText: 'Mobile Number (for SMS E-Receipts)',
-                labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                filled: true,
-                fillColor: AppColors.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-          ],
-
-          TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: InputDecoration(
-              labelText: 'Email Address',
-              labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-              filled: true,
-              fillColor: AppColors.background,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          TextField(
-            controller: _passwordController,
-            obscureText: true,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: InputDecoration(
-              labelText: 'Password',
-              labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-              filled: true,
-              fillColor: AppColors.background,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.border),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          ElevatedButton(
-            onPressed: authState.isLoading ? null : _handleAuth,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.gold,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: authState.isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                  )
-                : Text(
-                    _isSignUp ? 'Create VIP Account' : 'Sign In to VIP Account',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-          ),
-          const SizedBox(height: 16),
-
-          // Instant demo customer button
-          OutlinedButton.icon(
-            onPressed: () {
-              ref.read(authProvider.notifier).loginWithPassword(
-                    email: 'customer@lifestyle.test',
-                    password: 'password',
-                  );
-            },
-            icon: const Icon(Icons.flash_on, color: AppColors.gold, size: 16),
-            label: Text(
-              'Quick Demo: Dulantha (VIP Gold)',
-              style: GoogleFonts.inter(fontSize: 12, color: AppColors.gold),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: AppColors.gold.withOpacity(0.4)),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

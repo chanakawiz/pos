@@ -25,7 +25,7 @@ class _StoreMainScreenState extends ConsumerState<StoreMainScreen> {
     setState(() => _currentIndex = 1);
   }
 
-  void _navigateToBag() {
+  void _navigateToCart() {
     setState(() => _currentIndex = 2);
   }
 
@@ -36,10 +36,10 @@ class _StoreMainScreenState extends ConsumerState<StoreMainScreen> {
     final screens = [
       StoreHomeScreen(
         onSelectCategory: _navigateToCatalog,
-        onOpenBag: _navigateToBag,
+        onOpenCart: _navigateToCart,
       ),
       StoreCatalogScreen(
-        onOpenBag: _navigateToBag,
+        onOpenCart: _navigateToCart,
       ),
       StoreCartScreen(
         onBrowseCatalog: () => setState(() => _currentIndex = 1),
@@ -56,7 +56,7 @@ class _StoreMainScreenState extends ConsumerState<StoreMainScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: AppColors.surface,
+          color: Colors.white,
           border: Border(top: BorderSide(color: AppColors.border, width: 1)),
         ),
         child: SafeArea(
@@ -65,18 +65,19 @@ class _StoreMainScreenState extends ConsumerState<StoreMainScreen> {
             onDestinationSelected: (index) {
               setState(() => _currentIndex = index);
             },
-            backgroundColor: AppColors.surface,
-            indicatorColor: AppColors.gold.withOpacity(0.18),
+            backgroundColor: Colors.white,
+            indicatorColor: AppColors.primaryLight,
+            elevation: 0,
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             destinations: [
               NavigationDestination(
                 icon: const Icon(Icons.home_outlined, color: AppColors.textSecondary),
-                selectedIcon: const Icon(Icons.home, color: AppColors.gold),
+                selectedIcon: const Icon(Icons.home, color: AppColors.forest),
                 label: 'Home',
               ),
               NavigationDestination(
                 icon: const Icon(Icons.explore_outlined, color: AppColors.textSecondary),
-                selectedIcon: const Icon(Icons.explore, color: AppColors.gold),
+                selectedIcon: const Icon(Icons.explore, color: AppColors.forest),
                 label: 'Explore',
               ),
               NavigationDestination(
@@ -87,11 +88,11 @@ class _StoreMainScreenState extends ConsumerState<StoreMainScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Colors.white,
                     ),
                   ),
-                  backgroundColor: AppColors.gold,
-                  child: const Icon(Icons.shopping_bag_outlined, color: AppColors.textSecondary),
+                  backgroundColor: AppColors.forest,
+                  child: const Icon(Icons.shopping_cart_outlined, color: AppColors.textSecondary),
                 ),
                 selectedIcon: Badge(
                   isLabelVisible: cart.totalItemCount > 0,
@@ -100,22 +101,22 @@ class _StoreMainScreenState extends ConsumerState<StoreMainScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Colors.white,
                     ),
                   ),
-                  backgroundColor: AppColors.gold,
-                  child: const Icon(Icons.shopping_bag, color: AppColors.gold),
+                  backgroundColor: AppColors.forest,
+                  child: const Icon(Icons.shopping_cart, color: AppColors.forest),
                 ),
-                label: 'Bag',
+                label: 'Cart',
               ),
               NavigationDestination(
                 icon: const Icon(Icons.receipt_long_outlined, color: AppColors.textSecondary),
-                selectedIcon: const Icon(Icons.receipt_long, color: AppColors.gold),
+                selectedIcon: const Icon(Icons.receipt_long, color: AppColors.forest),
                 label: 'Orders',
               ),
               NavigationDestination(
                 icon: const Icon(Icons.card_membership_outlined, color: AppColors.textSecondary),
-                selectedIcon: const Icon(Icons.card_membership, color: AppColors.gold),
+                selectedIcon: const Icon(Icons.card_membership, color: AppColors.forest),
                 label: 'VIP Club',
               ),
             ],

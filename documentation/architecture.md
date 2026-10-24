@@ -1,114 +1,166 @@
-# SmartShop Enterprise Omnichannel Platform — System Architecture Specification
+# OmniLuxe Store Enterprise Omnichannel Platform — System Architecture Specification
 
-## 1. Architectural Overview
-
-SmartShop is an **enterprise-grade, distributed retail & e-commerce platform** engineered for high-end multi-department retail enterprises. The platform is designed around four primary components:
-
-1. **Consumer Mobile Shopping App (Flutter iOS/Android)**: Editorial lifestyle mobile store with catalog discovery, department filters, variant selectors, interactive bag, online card/COD checkout, and verified digital SMS receipts.
-2. **Dedicated In-Store Cashier POS (Electron Windows/Mac)**: High-speed counter checkout terminal for retail cashiers, supporting barcode guns, thermal receipt printers, cash drawers, staff shifts (X/Z reports), and offline SQLite WAL durability.
-3. **Customizable E-Commerce Web Storefront (`apps/web-store`)**: Public e-commerce website with real-time stock availability, luxury dark branding, and online card payments.
-4. **Central Cloud ERP & Core Engine (Laravel 11 + Filament v3)**: Unified cloud administrative system managing inventory ledgers, purchase orders, multi-branch operations, customer privacy, and the SMS notification engine.
-
-```mermaid
-flowchart TD
-    subgraph ConsumerLayer["Consumer Channels"]
-        CustomerWeb["E-Commerce Web Storefront\n(apps/web-store • Port 8010 / Port 8000)"]
-        CustomerMobile["Consumer Mobile App\n(apps/mobile-pos • Flutter iOS/Android)"]
-    end
-
-    subgraph StoreTerminalLayer["In-Store Staff Terminal Layer"]
-        subgraph Terminal1["Lane 1: Windows / macOS Desktop POS (apps/windows-pos)"]
-            W1_UI["React 18 + Tailwind POS UI"]
-            W1_State["Zustand Store (Cart, Cashier, Sync)"]
-            W1_Bridge["Preload IPC Bridge (Context Isolation)"]
-            W1_Main["Electron Main Process"]
-            W1_DB[("Local SQLite Database (better-sqlite3)")]
-            W1_Sync["Background Sync Worker"]
-            W1_UI --> W1_State
-            W1_State --> W1_Bridge
-            W1_Bridge --> W1_Main
-            W1_Main --> W1_DB
-            W1_Main --> W1_Sync
-        end
-
-        subgraph Hardware["Counter Peripherals"]
-            ThermalPrinter["Thermal Receipt Printer (80mm/58mm ESC/POS)"]
-            BarcodeScanner["Barcode / 2D Scanner (HID/Serial Gun)"]
-            CashDrawer["Cash Drawer (RJ11 Kickout)"]
-            W1_Main -.-> ThermalPrinter
-            W1_Main -.-> CashDrawer
-            BarcodeScanner -.-> W1_UI
-        end
-    end
-
-    subgraph CloudLevel["Central Cloud / Data Center (backend/laravel-api)"]
-        subgraph LaravelApp["Laravel 11 Enterprise Core Engine"]
-            API_Gateway["REST API Gateway (/api/v1)"]
-            Auth_Guard["Sanctum Auth & Device Verification"]
-            Sync_Service["Idempotent Bidirectional Sync Engine"]
-            Billing_Service["Billing & Invoicing Engine"]
-            Inventory_Service["Stock Movement & Locking Ledger"]
-            Filament_Admin["Filament 3 ERP Dashboard (/admin)"]
-            Sms_Gateway["SMS E-Receipt Engine (Notify.lk / Twilio)"]
-        end
-
-        subgraph Databases["Data Persistence & Queues"]
-            MySQL_Master[("MySQL 8+ Primary Database")]
-            Redis_Broker[("Redis Cache & Background Queues")]
-        end
-
-        API_Gateway --> Auth_Guard
-        Auth_Guard --> Sync_Service
-        Sync_Service --> Inventory_Service
-        Sync_Service --> Billing_Service
-        Billing_Service --> Sms_Gateway
-        Filament_Admin --> Inventory_Service
-        Filament_Admin --> Billing_Service
-
-        Inventory_Service --> MySQL_Master
-        Billing_Service --> MySQL_Master
-        LaravelApp --> Redis_Broker
-    end
-
-    CustomerWeb --> LaravelApp
-    CustomerMobile <-->|REST API & Local SQLite| API_Gateway
-    W1_Sync <-->|Bidirectional Offline Sync| API_Gateway
-```
+> **System Scope**: Multi-Platform Flagship Retail Ecosystem  
+> **Platform Version**: 3.2.0  
+> **Brand & Identity**: OmniLuxe Store (`omniluxe-store`)  
+> **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Sage `#7B846D`, Champagne Gold `#C29B38`)  
+> **Cart Terminology**: Standardized to **Cart** across all consumer platforms  
+> **Customer Access**: Guest Explorer Mode + Multi-Step VIP Onboarding  
 
 ---
 
-## 2. Component Directory Structure
+## 1. Executive Omnichannel Architecture
+
+OmniLuxe Store connects four specialized application layers into a unified real-time retail engine:
 
 ```text
-pos/
-├── apps/
-│   ├── mobile-pos/        # Consumer Mobile App (Flutter iOS/Android)
-│   │   ├── lib/
-│   │   │   ├── screens/store/  # Consumer Home, Catalog, Bag, Checkout, Orders
-│   │   │   ├── providers/      # Riverpod Cart, Catalog, Auth
-│   │   │   ├── data/           # Repositories & Models
-│   │   │   └── core/           # DatabaseHelper (SQLite), AppColors, AppTheme
-│   │   └── test/               # Automated unit & widget tests (21/21 passing)
-│   ├── web-store/         # Public E-Commerce Web Storefront (Laravel / Blade)
-│   │   └── resources/views/store/ # Home, Shop, Product, Cart, Checkout
-│   └── windows-pos/       # Dedicated Desktop Cashier POS (Electron / React)
-│       └── src/                # Cart, Barcode gun, Thermal printer, Cashier shifts
-├── backend/
-│   └── laravel-api/       # Central Cloud ERP & API Engine (Laravel 11)
-│       ├── app/Filament/       # Filament v3 ERP Admin Resources
-│       ├── app/Http/Controllers/
-│       │   ├── Api/V1/         # POS REST API & Sync endpoints
-│       │   └── WebStoreController.php # Integrated Storefront & Public E-Receipts
-│       ├── database/seeders/   # Multi-Vertical Lifestyle & Department Seeders
-│       └── routes/             # web.php (Storefront & /receipt), api.php
-└── documentation/         # System specifications, architecture, and guides
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                      OMNILUXE STORE MULTI-PLATFORM ECOSYSTEM                           │
+├───────────────────────────────────────────┬────────────────────────────────────────────┤
+│         1. CONSUMER ONLINE CHANNELS       │         2. IN-STORE CASHIER POS TERMINAL   │
+│                                           │                                            │
+│  A. Web Storefront (Blade / Alpine / CSS) │  Dedicated Desktop POS (Electron / React)  │
+│     • Routes: /, /shop, /login, /account  │  • Windows & macOS counter terminals       │
+│     • OmniLuxe Privilege digital hub      │  • Cashier PIN quick authentication (1234) │
+│     • Public verifiable SMS e-receipts    │  • Barcode scanner wedge (<60ms burst)     │
+│                                           │  • Thermal ESC/POS slip (80mm / 58mm)      │
+│  B. Mobile App (Flutter 3.x / Riverpod)   │  • RJ11 cash drawer kickout pulse          │
+│     • iOS & Android flagship shopping     │  • Multi-lane cloud held bills             │
+│     • 5-Tab luxury customer journey       │  • Offline SQLite WAL local durability     │
+│     • Animated gold monogram splash       │  • Register device pairing (COUNTER-01)    │
+│     • Offline order archiving in SQLite   │                                            │
+├───────────────────────────────────────────┴────────────────────────────────────────────┤
+│                       3. CENTRAL CLOUD ERP & BACKEND API                               │
+│                       (Laravel 11 / MySQL 8 / Redis at Port 8000)                      │
+│                                                                                        │
+│  • RESTful API Gateway (/api/v1) with Sanctum authentication & Spatie RBAC             │
+│  • Filament v3 ERP Admin Control Room (/admin) for catalog, inventory, and POs         │
+│  • Real-time stock movement ledger with atomic reservations on web & POS sales         │
+│  • Customer CRM, VIP loyalty ledger, and phone number privacy masking                  │
+│  • Verified SMS E-Receipt Engine (Notify.lk, Twilio, Dialog, Mobitel, Mock drivers)    │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Real-Time Inventory & Concurrency Management
+## 2. End-to-End System Component Diagram
 
-- **Atomic Stock Reservation**: Online orders placed via the consumer mobile app or web storefront decrement central inventory immediately.
-- **In-Store Over-the-Counter Priority**: Counter cashiers on Desktop POS query real-time stock balances; if offline, local SQLite stock counts are decremented and reconciled upon reconnection with revision versioning.
-- **Serial & VIN Tracking**: Tech items (IMEI/Serial) and high-value vehicles (VIN/Chassis) capture unique identifiers at point of sale, preventing duplicate warranty registrations.
-- **Public Verified E-Receipts**: All sales generate a cryptographic or unique reference (`/receipt/{invoice}`) accessible publicly with customer phone privacy masking.
+```mermaid
+flowchart TB
+    subgraph Consumers["Customer Channels (Online Shoppers)"]
+        CustomerWeb["Luxury E-Commerce Web Storefront\n(Laravel Blade • Alpine.js • Tailwind Luxe)"]
+        CustomerMobile["Consumer Mobile Shopping App\n(Flutter iOS & Android • Riverpod • SQLite)"]
+    end
+
+    subgraph InStoreStaff["In-Store Staff Channels"]
+        DesktopPOS["Dedicated In-Store Cashier POS\n(Electron • React 18 • TypeScript • better-sqlite3)"]
+        CounterHardware["Counter Peripherals\n(Barcode Gun • 80mm Thermal Printer • RJ11 Cash Drawer)"]
+        DesktopPOS --- CounterHardware
+    end
+
+    subgraph CentralEngine["Central Cloud ERP & REST Engine (Laravel 11)"]
+        APIGateway["REST API Gateway (/api/v1)\nSanctum Token Auth • Device Headers"]
+        FilamentAdmin["Filament v3 ERP Admin Panel (/admin)\nMulti-Store • POs • Shifts • Audit Ledgers"]
+        InventoryLedger["Atomic Inventory & Movement Ledger\nReal-Time Decrement • Safety Stock • Serial Tracking"]
+        BillingEngine["Billing, Invoicing & Digital E-Receipt Engine"]
+        CustomerCRM["Customer CRM & VIP Loyalty Club\nPhone Masking • Points Engine (1 Pt = Rs. 10)"]
+        SmsEngine["SMS E-Receipt Gateway Engine\nNotify.lk • Twilio • Dialog • Mobitel Driver"]
+    end
+
+    subgraph StorageLayer["Data Persistence & Queues"]
+        MasterMySQL[("MySQL 8+ Primary Database\n25 Core Migrations • UUIDs")]
+        RedisQueue[("Redis Cache, Sessions & Queues")]
+    end
+
+    CustomerWeb --> CentralEngine
+    CustomerMobile <-->|REST API (/api/v1)| APIGateway
+    DesktopPOS <-->|Bidirectional Offline Sync| APIGateway
+
+    APIGateway --> BillingEngine
+    APIGateway --> InventoryLedger
+    APIGateway --> CustomerCRM
+    FilamentAdmin --> InventoryLedger
+    FilamentAdmin --> BillingEngine
+
+    BillingEngine --> SmsEngine
+    SmsEngine -.->|Verified SMS E-Receipt| Consumers
+    SmsEngine -.->|SMS Bill Link| InStoreStaff
+
+    CentralEngine --> MasterMySQL
+    CentralEngine --> RedisQueue
+```
+
+---
+
+## 3. Detailed Architecture of Each Application
+
+### 3.1 Consumer Mobile Shopping App (`apps/mobile-pos`)
+* **Technology**: Flutter 3.27+ with Dart 3.6, Flutter Riverpod state management.
+* **Architecture Pattern**: Feature-driven clean architecture with reactive StateNotifiers (`CartNotifier`, `CatalogNotifier`, `AuthNotifier`, `SyncNotifier`).
+* **Persistence**: Local SQLite database via `sqflite` for offline catalog caching, bag state, and completed order history.
+* **Key Persona**: Online luxury shopper & VIP member.
+* **Key Features**:
+  * 5-Tab flagship shopping layout (`Home`, `Explore`, `Bag`, `Orders`, `VIP Club`).
+  * Hero lifestyle lookbook carousel & premier brand spotlights (Apple, Nike, Toyota, Studio Ceylon, Zara).
+  * Gold-foil **OmniLuxe Privilege** digital loyalty card.
+  * Instant SMS order confirmation & public receipt links.
+
+### 3.2 Flagship Web Storefront (`backend/laravel-api` & `apps/web-store`)
+* **Technology**: Laravel 11 Blade templates, Alpine.js reactive components, TailwindCSS with Obsidian Dark Luxury styling tokens.
+* **Architecture Pattern**: Server-side rendered luxury storefront with micro-reactive Alpine.js drawers (slide-over bag, login modal, search).
+* **Key Persona**: Web visitors, corporate clients, and online VIP shoppers.
+* **Key Features**:
+  * Multi-vertical flagship lookbook and department filters.
+  * Customer registration with **100 Welcome Loyalty Points**.
+  * Member hub at `/account` displaying order ledger and digital VIP privilege card.
+  * Verifiable public e-receipt lookup at `/receipt/{invoice}` with phone number privacy protection (`077 •••• 567`).
+
+### 3.3 Dedicated In-Store Cashier POS (`apps/windows-pos`)
+* **Technology**: Electron, React 18, TypeScript, TailwindCSS, Vite.
+* **Architecture Pattern**: Context-isolated dual-process architecture:
+  * **Renderer Process**: High-throughput cashier UI, Zustand state store, Web Audio synthesizer chimes.
+  * **Main Process**: `better-sqlite3` native database, raw ESC/POS thermal raster driver, USB/Bluetooth barcode scanner wedge listener, serial scale parser.
+* **Key Persona**: Store cashiers and counter supervisors.
+* **Key Features**:
+  * Numeric PIN pad authentication (`1234`) tied to counter device codes (`COUNTER-01`).
+  * Instant sub-60ms barcode gun input detection.
+  * ESC/POS 80mm & 58mm thermal receipts with warranty serial numbers.
+  * RJ11 cash drawer kickout pulse on cash finalization.
+  * Multi-lane cloud held bills for high-traffic queues.
+
+### 3.4 Central ERP & REST API Engine (`backend/laravel-api`)
+* **Technology**: Laravel 11, Filament v3 Admin Panel, MySQL 8, Redis, Spatie Permissions.
+* **Architecture Pattern**: Domain-driven service layer with immutable audit ledgers.
+* **Key Persona**: Super Admins (`admin@omniluxe.store`), Store Managers (`manager@smartshop.com`), and System Auditors.
+* **Key Features**:
+  * Complete control room at `http://127.0.0.1:8000/admin`.
+  * Multi-store catalog and serialized inventory ledger (`stock_movements`).
+  * Atomic inventory reservation guaranteeing zero overselling across web, mobile, and counter channels.
+  * Pluggable SMS gateway dispatching tamper-evident digital bill links.
+
+---
+
+## 4. Omnichannel Data Flow: Real-Time Stock Sync
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Shopper as Mobile / Web Customer
+    participant MobileApp as OmniLuxe Mobile App
+    participant CentralERP as Central Laravel ERP (Port 8000)
+    participant DesktopPOS as Counter Cashier POS
+    actor Cashier as Store Cashier
+
+    Note over Shopper,CentralERP: Online Purchase
+    Shopper->>MobileApp: Add Nike Pegasus 40 (UK 9) to Bag & Checkout
+    MobileApp->>CentralERP: POST /api/v1/sales (Order submission)
+    CentralERP->>CentralERP: Atomically decrement stock in inventories table
+    CentralERP->>CentralERP: Record immutable entry in stock_movements ledger
+    CentralERP-->>MobileApp: Return 201 Created (Order ORD-2026-001)
+
+    Note over DesktopPOS,Cashier: Real-Time In-Store Stock Sync
+    Cashier->>DesktopPOS: Cashier scans barcode on counter terminal
+    DesktopPOS->>CentralERP: Query real-time available stock
+    CentralERP-->>DesktopPOS: Return current stock (reflecting online purchase)
+    DesktopPOS->>Cashier: Display verified live inventory
+```

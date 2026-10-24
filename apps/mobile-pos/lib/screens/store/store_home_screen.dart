@@ -10,12 +10,12 @@ import 'product_detail_screen.dart';
 
 class StoreHomeScreen extends ConsumerWidget {
   final Function(String? categoryUuid) onSelectCategory;
-  final VoidCallback onOpenBag;
+  final VoidCallback onOpenCart;
 
   const StoreHomeScreen({
     super.key,
     required this.onSelectCategory,
-    required this.onOpenBag,
+    required this.onOpenCart,
   });
 
   @override
@@ -28,7 +28,7 @@ class StoreHomeScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.white,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,15 +39,15 @@ class StoreHomeScreen extends ConsumerWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2,
-                color: AppColors.textPrimary,
+                color: AppColors.forest,
               ),
             ),
             Text(
               'Colombo 03 Flagship • Omnichannel Cloud Synced',
               style: GoogleFonts.inter(
                 fontSize: 10,
-                color: AppColors.gold,
-                fontWeight: FontWeight.w500,
+                color: AppColors.sage,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -57,8 +57,9 @@ class StoreHomeScreen extends ConsumerWidget {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined, color: AppColors.textPrimary),
-                onPressed: onOpenBag,
+                icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.forest),
+                onPressed: onOpenCart,
+                tooltip: 'Shopping Cart',
               ),
               if (cart.totalItemCount > 0)
                 Positioned(
@@ -68,7 +69,7 @@ class StoreHomeScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.gold,
+                      color: AppColors.forest,
                     ),
                     constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
@@ -76,7 +77,7 @@ class StoreHomeScreen extends ConsumerWidget {
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -90,35 +91,34 @@ class StoreHomeScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Lifestyle Banner
+            // Hero Lookbook Banner (Forest Green Luxury Gradient)
             Container(
               margin: const EdgeInsets.all(16),
-              height: 190,
+              height: 196,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(20),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+                  colors: [AppColors.forest, AppColors.forestDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: AppColors.forest.withOpacity(0.18),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Stack(
                 children: [
                   Positioned(
-                    right: -20,
-                    bottom: -20,
+                    right: -24,
+                    bottom: -24,
                     child: Icon(
                       Icons.diamond_outlined,
-                      size: 160,
-                      color: Colors.white.withOpacity(0.04),
+                      size: 170,
+                      color: Colors.white.withOpacity(0.06),
                     ),
                   ),
                   Padding(
@@ -139,26 +139,26 @@ class StoreHomeScreen extends ConsumerWidget {
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1,
-                              color: Colors.black,
+                              color: Colors.white,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         Text(
                           'Curated Luxury &\nDepartment Collections',
                           style: GoogleFonts.outfit(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            color: Colors.white,
                             height: 1.15,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         Text(
                           'Tech • Haute Couture • Footwear • Automobili',
                           style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.85),
                           ),
                         ),
                       ],
@@ -168,7 +168,7 @@ class StoreHomeScreen extends ConsumerWidget {
               ),
             ),
 
-            // Brand Showcase Bar
+            // Premier Brands Carousel
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
@@ -226,7 +226,7 @@ class StoreHomeScreen extends ConsumerWidget {
                       title: 'Smartphones & Tech',
                       subtitle: 'Apple, Samsung, Sony',
                       icon: Icons.phone_iphone,
-                      accentColor: AppColors.secondary,
+                      accentColor: AppColors.forest,
                       onTap: () => onSelectCategory('cat-tech'),
                     ),
                   ),
@@ -253,7 +253,7 @@ class StoreHomeScreen extends ConsumerWidget {
                       title: 'Footwear & Sneakers',
                       subtitle: 'Nike, Adidas, Clarks',
                       icon: Icons.roller_skating,
-                      accentColor: AppColors.primary,
+                      accentColor: AppColors.sage,
                       onTap: () => onSelectCategory('cat-footwear'),
                     ),
                   ),
@@ -263,7 +263,7 @@ class StoreHomeScreen extends ConsumerWidget {
                       title: 'Luxury Automobili',
                       subtitle: 'Toyota, Defender, BYD',
                       icon: Icons.directions_car_filled,
-                      accentColor: const Color(0xFFEF4444),
+                      accentColor: AppColors.forestDark,
                       onTap: () => onSelectCategory('cat-vehicles'),
                     ),
                   ),
@@ -295,7 +295,7 @@ class StoreHomeScreen extends ConsumerWidget {
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.gold,
+                        color: AppColors.forest,
                       ),
                     ),
                   ),
@@ -306,7 +306,7 @@ class StoreHomeScreen extends ConsumerWidget {
 
             // Horizontal Featured Reel
             SizedBox(
-              height: 240,
+              height: 246,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -321,13 +321,13 @@ class StoreHomeScreen extends ConsumerWidget {
 
             const SizedBox(height: 28),
 
-            // Omnichannel Guarantee Banner
+            // Unified Central Retail Guarantee Banner
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(14),
+                color: AppColors.cream,
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.border),
               ),
               child: Row(
@@ -335,10 +335,11 @@ class StoreHomeScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.12),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.border),
                     ),
-                    child: const Icon(Icons.verified_outlined, color: AppColors.gold, size: 24),
+                    child: const Icon(Icons.verified_outlined, color: AppColors.forest, size: 24),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -359,7 +360,7 @@ class StoreHomeScreen extends ConsumerWidget {
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             color: AppColors.textSecondary,
-                            height: 1.3,
+                            height: 1.35,
                           ),
                         ),
                       ],
@@ -381,7 +382,7 @@ class StoreHomeScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
       ),
@@ -407,13 +408,20 @@ class StoreHomeScreen extends ConsumerWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,8 +429,9 @@ class StoreHomeScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.cream,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.borderSubtle),
               ),
               child: Icon(icon, size: 22, color: accentColor),
             ),
@@ -435,11 +444,11 @@ class StoreHomeScreen extends ConsumerWidget {
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
             Text(
               subtitle,
               style: GoogleFonts.inter(
-                fontSize: 10,
+                fontSize: 11,
                 color: AppColors.textSecondary,
               ),
             ),
@@ -465,35 +474,40 @@ class StoreHomeScreen extends ConsumerWidget {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        width: 160,
+        width: 164,
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               height: 110,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF141E30), Color(0xFF243B55)],
-                ),
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                color: AppColors.cream,
               ),
               child: Center(
                 child: Icon(
                   Icons.auto_awesome,
                   size: 36,
-                  color: AppColors.gold.withOpacity(0.85),
+                  color: AppColors.sage,
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -503,17 +517,17 @@ class StoreHomeScreen extends ConsumerWidget {
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1,
-                      color: AppColors.gold,
+                      color: AppColors.sage,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   Text(
                     product.name,
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
-                      height: 1.2,
+                      height: 1.25,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -522,9 +536,9 @@ class StoreHomeScreen extends ConsumerWidget {
                   Text(
                     currencyFormatter.format(product.sellingPrice),
                     style: GoogleFonts.outfit(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: AppColors.forest,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

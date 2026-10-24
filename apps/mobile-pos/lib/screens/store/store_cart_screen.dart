@@ -23,15 +23,15 @@ class StoreCartScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'SHOPPING BAG (${cart.totalItemCount})',
+          'SHOPPING CART (${cart.totalItemCount})',
           style: GoogleFonts.outfit(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             letterSpacing: 2,
-            color: AppColors.textPrimary,
+            color: AppColors.forest,
           ),
         ),
         actions: [
@@ -41,19 +41,23 @@ class StoreCartScreen extends ConsumerWidget {
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    backgroundColor: AppColors.surface,
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: AppColors.border),
+                    ),
                     title: Text(
-                      'Clear Shopping Bag?',
-                      style: GoogleFonts.outfit(color: AppColors.textPrimary),
+                      'Clear Shopping Cart?',
+                      style: GoogleFonts.outfit(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
                     ),
                     content: Text(
-                      'Are you sure you want to remove all luxury pieces from your bag?',
+                      'Are you sure you want to remove all pieces from your cart?',
                       style: GoogleFonts.inter(color: AppColors.textSecondary),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx),
-                        child: const Text('Cancel'),
+                        child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
                       ),
                       TextButton(
                         onPressed: () {
@@ -70,6 +74,7 @@ class StoreCartScreen extends ConsumerWidget {
                 'Clear',
                 style: GoogleFonts.inter(
                   fontSize: 13,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.textMuted,
                 ),
               ),
@@ -90,121 +95,139 @@ class StoreCartScreen extends ConsumerWidget {
                       return Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(14),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: AppColors.border),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Thumbnail Box
                             Container(
-                              width: 60,
-                              height: 60,
+                              width: 72,
+                              height: 72,
                               decoration: BoxDecoration(
-                                color: AppColors.card,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(12),
+                                color: AppColors.cream,
                                 border: Border.all(color: AppColors.border),
                               ),
-                              child: Icon(
-                                _getCategoryIcon(item.product.categoryName),
-                                color: AppColors.gold,
-                                size: 28,
+                              child: Center(
+                                child: Icon(
+                                  _getCategoryIcon(item.product.categoryName),
+                                  size: 28,
+                                  color: AppColors.sage,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 14),
 
-                            // Info Column
+                            // Item Meta
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
+                                    item.product.brandName.toUpperCase(),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                      color: AppColors.sage,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
                                     item.product.name,
                                     style: GoogleFonts.inter(
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textPrimary,
+                                      height: 1.25,
                                     ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   if (item.warrantyNotes != null) ...[
-                                    const SizedBox(height: 3),
+                                    const SizedBox(height: 4),
                                     Text(
                                       item.warrantyNotes!,
                                       style: GoogleFonts.inter(
-                                        fontSize: 11,
-                                        color: AppColors.textSecondary,
+                                        fontSize: 10,
+                                        color: AppColors.forest,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    currencyFormatter.format(item.unitPrice),
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Quantity Steppers & Delete
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline, size: 18),
-                                  color: AppColors.textMuted,
-                                  onPressed: () {
-                                    ref.read(cartProvider.notifier).removeItem(item.product.uuid);
-                                  },
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.card,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.border),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      InkWell(
-                                        onTap: () {
-                                          ref
-                                              .read(cartProvider.notifier)
-                                              .decrementQuantity(item.product.uuid);
-                                        },
-                                        child: const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          child: Icon(Icons.remove, size: 14),
-                                        ),
-                                      ),
                                       Text(
-                                        '${item.quantity.toInt()}',
+                                        currencyFormatter.format(item.total),
                                         style: GoogleFonts.outfit(
-                                          fontSize: 13,
+                                          fontSize: 14,
                                           fontWeight: FontWeight.bold,
+                                          color: AppColors.forest,
                                         ),
                                       ),
-                                      InkWell(
-                                        onTap: () {
-                                          ref
-                                              .read(cartProvider.notifier)
-                                              .incrementQuantity(item.product.uuid);
-                                        },
-                                        child: const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          child: Icon(Icons.add, size: 14),
+
+                                      // Stepper
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(8),
+                                          color: AppColors.cream,
+                                          border: Border.all(color: AppColors.border),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            InkWell(
+                                              onTap: () {
+                                                ref.read(cartProvider.notifier).updateQuantity(
+                                                      item.product.uuid,
+                                                      item.quantity - 1,
+                                                      serialNumber: item.serialNumber,
+                                                    );
+                                              },
+                                              child: const Padding(
+                                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                child: Icon(Icons.remove, size: 14, color: AppColors.forest),
+                                              ),
+                                            ),
+                                            Text(
+                                              '${item.quantity.toInt()}',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.textPrimary,
+                                              ),
+                                            ),
+                                            InkWell(
+                                              onTap: () {
+                                                ref.read(cartProvider.notifier).updateQuantity(
+                                                      item.product.uuid,
+                                                      item.quantity + 1,
+                                                      serialNumber: item.serialNumber,
+                                                    );
+                                              },
+                                              child: const Padding(
+                                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                child: Icon(Icons.add, size: 14, color: AppColors.forest),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -213,11 +236,11 @@ class StoreCartScreen extends ConsumerWidget {
                   ),
                 ),
 
-                // Bottom Checkout Container
+                // Cart Summary Sticky Footer
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: const BoxDecoration(
-                    color: AppColors.surface,
+                    color: Colors.white,
                     border: Border(top: BorderSide(color: AppColors.border, width: 1)),
                   ),
                   child: SafeArea(
@@ -228,19 +251,17 @@ class StoreCartScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'BAG SUBTOTAL',
+                              'Subtotal',
                               style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1,
+                                fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
                             ),
                             Text(
                               currencyFormatter.format(cart.subtotal),
                               style: GoogleFonts.outfit(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
                                 color: AppColors.textPrimary,
                               ),
                             ),
@@ -253,8 +274,8 @@ class StoreCartScreen extends ConsumerWidget {
                             Text(
                               'Delivery / Packaging',
                               style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: AppColors.textMuted,
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                             Text(
@@ -262,7 +283,7 @@ class StoreCartScreen extends ConsumerWidget {
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
+                                color: AppColors.forest,
                               ),
                             ),
                           ],
@@ -272,8 +293,8 @@ class StoreCartScreen extends ConsumerWidget {
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.gold,
-                              foregroundColor: Colors.black,
+                              backgroundColor: AppColors.forest,
+                              foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -318,18 +339,18 @@ class StoreCartScreen extends ConsumerWidget {
               height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.card,
+                color: AppColors.cream,
                 border: Border.all(color: AppColors.border),
               ),
               child: const Icon(
-                Icons.shopping_bag_outlined,
-                size: 44,
-                color: AppColors.textMuted,
+                Icons.shopping_cart_outlined,
+                size: 42,
+                color: AppColors.sage,
               ),
             ),
             const SizedBox(height: 20),
             Text(
-              'Your Shopping Bag is Empty',
+              'Your Shopping Cart is Empty',
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -349,7 +370,7 @@ class StoreCartScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.forest,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(

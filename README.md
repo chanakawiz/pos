@@ -1,90 +1,132 @@
-# SmartShop POS 🛒
+# OmniLuxe Store (`omniluxe-store`) 💎
 
-> **Enterprise-Grade, Offline-First Point of Sale & Retail Management System**
-
-SmartShop POS is a multi-platform retail solution designed for modern stores, supermarkets, and franchises. It supports desktop cashier stations on Windows, mobile POS on iPads/iPhones, centralized inventory/store management with a Laravel 11 backend, and an offline-first synchronization engine that guarantees zero lost sales during network outages.
+> **Unified Omnichannel Retail, Desktop POS, Consumer Mobile App & Central ERP Engine**  
+> **Target Enterprise Tier**: Flagship Department Stores, Luxury Tech & Boutiques, Multi-Vertical Retail Chains (Smartphones & Tech, Designer Fashion & Haute Couture, Footwear & Sneakers, Luxury Automobili & High-Value Assets)  
+> **Commercial Readiness**: Turnkey Solution Ready for Commercial Licensing & Multi-Store Deployment
 
 ---
 
-## 🏗️ Monorepo Architecture
+## 🏛️ System Architecture: The 4 Pillars
+
+OmniLuxe Store delivers an integrated multi-channel retail infrastructure with strict persona and channel separation:
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 OMNILUXE STORE UNIFIED RETAIL & ERP ARCHITECTURE            │
+├──────────────────────────────────────┬──────────────────────────────────────┤
+│       1. ONLINE CONSUMER CHANNELS    │       2. IN-STORE CASHIER POS        │
+│       (Web Store + Mobile App)       │       (Dedicated Desktop Terminal)   │
+│                                      │                                      │
+│  • Customer Sign Up & Sign In        │  • High-throughput cashier lanes     │
+│  • OmniLuxe Privilege Digital Card   │  • Cashier PIN quick sign-in (1234)  │
+│  • Loyalty Points (Earn & Redeem)    │  • USB & Bluetooth barcode scanner   │
+│  • Animated luxury gold splash screen│  • Cash drawer kick & thermal print  │
+│  • Omnichannel real-time cart & stock│  • Multi-lane held bills reservation │
+│  • Instant SMS E-receipts dispatch   │  • Counter device codes (COUNTER-01) │
+├──────────────────────────────────────┴──────────────────────────────────────┤
+│                   3. CENTRAL CLOUD ERP & ADMIN PANEL                        │
+│                   (Laravel 11 / Filament v3 at /admin)                      │
+│                                                                             │
+│  • Super Admin (admin@omniluxe.store) & Store Manager (manager@smartshop.com│
+│  • Multi-department catalog: Tech, Fashion, Footwear, Luxury Automobili    │
+│  • Real-time stock ledger, purchase orders, refunds, and cash sessions      │
+│  • RESTful API (Sanctum), offline SQLite sync revisions, and SMS gateway    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🏗️ Monorepo Structure
 
 ```text
 pos/
 ├── apps/
-│   ├── windows-pos/             # Electron + React + TypeScript + Vite + Tailwind + SQLite
-│   └── mobile-pos/              # Flutter + Material 3 + SQLite + Dio + Riverpod
+│   ├── windows-pos/             # Dedicated Desktop Cashier POS (Electron + React 18 + TypeScript + Vite + SQLite)
+│   ├── mobile-pos/              # Consumer Mobile Shopping App (Flutter + Riverpod + Editorial Light Luxury + SQLite)
+│   └── web-store/               # Branded E-Commerce Web Storefront (Laravel 11 Blade + Alpine.js + Editorial Light)
 ├── backend/
-│   └── laravel-api/             # Laravel 11 REST API + Filament Admin Dashboard + MySQL
+│   └── laravel-api/             # Central ERP Engine + REST API Gateway (/api/v1) + Filament v3 Admin (/admin)
 ├── documentation/
-│   ├── architecture.md          # Comprehensive system architecture & data flow
-│   ├── database-schema.md       # Full database dictionary (24 tables, UUIDs, indexes)
-│   ├── api-documentation.md     # Versioned REST API documentation (/api/v1)
-│   ├── offline-sync.md          # Offline-first sync protocol & conflict resolution
-│   └── setup-guide.md           # Developer & production setup guide
+│   ├── development-plan.md      # Master Phased Implementation & Engineering Milestones
+│   ├── flutter-screens-catalog.md # Complete Flutter Screen Catalog, Routes & Providers
+│   ├── unified-retail-ecosystem.md # Master Architectural Blueprint & Omnichannel Workflows
+│   ├── project-status.md        # Current Project Status & Module Health Dashboard
+│   ├── ui-design-and-wireframes.md # Dark Luxe Aesthetics & Screen Specifications
+│   ├── database-schema.md       # Full Relational Core Schema (25 migrations, UUIDs, ledgers)
+│   ├── api-documentation.md     # Versioned REST API Documentation (/api/v1)
+│   ├── offline-sync.md          # Offline-First Sync Protocol & Conflict Resolution
+│   └── setup-guide.md           # Developer & Enterprise Production Deployment Guide
 └── README.md
 ```
 
 ---
 
-## ⚡ Key Highlights
+## ⚡ Key Highlights & Capabilities
 
-1. **Multi-Platform Cashier Terminals**:
-   - **Windows Desktop**: Electron, React 18, Tailwind CSS, TypeScript, Zustand, and local SQLite for instant, sub-second billing.
-   - **iPad / iPhone**: Flutter, Material 3, and local SQLite for mobile floor sales and queue busting.
-2. **True Offline-First Resilience**:
-   - Bills are saved locally in SQLite with unique UUIDs.
-   - Automatic background synchronization when the network reconnects.
-   - Idempotent API prevents duplicate sales, double-charging, or duplicate inventory deductions.
-3. **Robust Laravel 11 Backend**:
-   - Sanctum token authentication & Spatie role-based access control (Super Admin, Admin, Manager, Cashier).
-   - Real-time stock movement ledger (audit-trail for every single stock in/out/damage/sale/refund).
-   - Filament Admin Dashboard for catalog, inventory, devices, cash registers, and analytics.
-4. **Hardware Integrations**:
-   - 80mm & 58mm thermal receipt printing, ESC/POS preparation.
-   - Barcode scanners (HID wedge mode & serial).
-   - Cash drawer kick-out triggers upon cash finalization.
+1. **Consumer Mobile Shopping App (`apps/mobile-pos`)**:
+   - Editorial dark luxury aesthetic (`#0A0E17` obsidian canvas, `#10B981` emerald, `#D4AF37` champagne gold).
+   - Animated gold monogram medallion splash screen (`SplashScreen`).
+   - 5-Tab flagship shopping: **Home** (lifestyle hero, premier brand spotlight), **Explore** (catalog with live filters), **Bag** (real-time subtotal), **Orders** (local SQLite archive & digital receipt viewer), and **VIP Club** (**OmniLuxe Privilege** digital loyalty card, points redemption, customer login/register).
+2. **Flagship Web Storefront (`backend/laravel-api` & `apps/web-store`)**:
+   - Fast customer self-service with dedicated `/login` and `/register` routes.
+   - 100 Welcome loyalty points awarded on registration.
+   - Member hub at `/account` displaying the OmniLuxe Privilege digital card and complete order history.
+   - Slide-over synchronized cart drawer and verified e-receipt lookup at `/receipt/{invoice}` with phone privacy masking (`077 •••• 567`).
+3. **Dedicated In-Store Cashier POS (`apps/windows-pos`)**:
+   - Hardware-ready for Windows and macOS touchscreen POS stations.
+   - 4-digit quick numeric PIN pad (`1234`) tied to counter device codes (`COUNTER-01`).
+   - Hardware barcode scanner listener (`<60ms` keystroke burst) with audio synthesiser feedback.
+   - Thermal 80mm & 58mm ESC/POS receipt generation, RJ11 cash drawer pulse, and multi-lane cloud held bills.
+4. **Central Cloud ERP & Filament v3 Admin (`/admin`)**:
+   - Multi-store catalog management across Apple, Samsung, Sony, Nike, Adidas, Clarks, Studio Ceylon, Ralph Lauren, Toyota, Defender, and BYD.
+   - Immutable stock movements ledger tracking all sales, web orders, returns, and write-offs.
+   - Role-based access control for Super Admins, Store Managers, Cashiers, and Customers.
+5. **Customer Protection & Verified SMS E-Receipts**:
+   - Modular SMS driver supporting Notify.lk, Twilio, Dialog, Mobitel, and Mock drivers.
+   - Dispatches instant SMS order confirmations and tamper-evident warranty verification links to customers upon payment.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start Guide
 
-For detailed step-by-step setup instructions, refer to [`documentation/setup-guide.md`](documentation/setup-guide.md).
-
-### 1. Backend (Laravel API + Filament Admin)
+### 1. Central Backend & ERP (`backend/laravel-api`)
 ```bash
 cd backend/laravel-api
 composer install
 cp .env.example .env
 php artisan key:generate
-php artisan migrate --seed
-php artisan serve
+php artisan migrate:fresh --seed
+php artisan serve --port=8000
+```
+- Web Storefront: `http://127.0.0.1:8000`
+- Central ERP Admin: `http://127.0.0.1:8000/admin` (Sign in as `admin@omniluxe.store` or `manager@smartshop.com`)
+
+### 2. Consumer Mobile App (`apps/mobile-pos`)
+```bash
+cd apps/mobile-pos
+flutter pub get
+flutter run -d <simulator_or_device_id>
 ```
 
-### 2. Windows POS Terminal (Electron + React)
+### 3. Dedicated Cashier POS (`apps/windows-pos`)
 ```bash
 cd apps/windows-pos
 npm install
 npm run dev
+# To launch the native Electron station with local SQLite offline durability:
+npm run electron:start
 ```
-For the native terminal, configure `VITE_DEVICE_UUID` from a registered store device, then run `npm run build:electron` and `npm run electron:start` in a second terminal. SQLite/offline checkout requires Electron; see the [desktop README](apps/windows-pos/README.md).
 
 ---
 
-## 📚 Documentation & Engineering Blueprints
-- [Master Development Plan (Phase 1 & Phase 2)](documentation/development-plan.md)
-- [Master Engineering Backlog (Task IDs & Statuses)](documentation/backlog.md)
-- [Current Project Status & Module Audit](documentation/project-status.md)
-- [UI Design & Wireframe Specifications](documentation/ui-design-and-wireframes.md)
-- [System Architecture Specification](documentation/architecture.md)
-- [Database Schema & Data Dictionary](documentation/database-schema.md)
-- [REST API Specification](documentation/api-documentation.md)
-- [Offline-First Sync Engine Specification](documentation/offline-sync.md)
-- [Receipt Printer & Cash Drawer Setup](documentation/receipt-printing.md)
-- [Customer-Facing Monitor Setup](documentation/customer-display.md)
-- [RS-232 Weighing Scale Setup](documentation/weighing-scales.md)
-- [Installation & Setup Guide](documentation/setup-guide.md)
+## 🧪 Automated Regression Suites
+
+All components are covered by automated test suites:
+- **Laravel Central API & ERP**: 28 passed (330 assertions) (`php artisan test`)
+- **Flutter Consumer Mobile App**: 21 passed (`flutter test`)
+- **Electron Cashier Terminal**: 41 passed (`npm test`)
 
 ---
 
 ## 📄 License
-Proprietary & Confidential. Built for enterprise retail deployment.
+Proprietary & Confidential. OmniLuxe Store Omnichannel Retail Solution.

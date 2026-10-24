@@ -9,9 +9,9 @@ import '../../providers/catalog_provider.dart';
 import 'product_detail_screen.dart';
 
 class StoreCatalogScreen extends ConsumerWidget {
-  final VoidCallback? onOpenBag;
+  final VoidCallback? onOpenCart;
 
-  const StoreCatalogScreen({super.key, this.onOpenBag});
+  const StoreCatalogScreen({super.key, this.onOpenCart});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,15 +21,15 @@ class StoreCatalogScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           'EXPLORE BOUTIQUE',
           style: GoogleFonts.outfit(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             letterSpacing: 2,
-            color: AppColors.textPrimary,
+            color: AppColors.forest,
           ),
         ),
         actions: [
@@ -37,8 +37,9 @@ class StoreCatalogScreen extends ConsumerWidget {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined, color: AppColors.textPrimary),
-                onPressed: onOpenBag,
+                icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.forest),
+                onPressed: onOpenCart,
+                tooltip: 'Shopping Cart',
               ),
               if (cart.totalItemCount > 0)
                 Positioned(
@@ -48,7 +49,7 @@ class StoreCatalogScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.gold,
+                      color: AppColors.forest,
                     ),
                     constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
@@ -56,7 +57,7 @@ class StoreCatalogScreen extends ConsumerWidget {
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -124,7 +125,7 @@ class StoreCatalogScreen extends ConsumerWidget {
           // Catalog Grid
           Expanded(
             child: catalog.isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                ? const Center(child: CircularProgressIndicator(color: AppColors.forest))
                 : catalog.products.isEmpty
                     ? Center(
                         child: Text(
@@ -138,7 +139,7 @@ class StoreCatalogScreen extends ConsumerWidget {
                           crossAxisCount: 2,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 14,
-                          childAspectRatio: 0.64,
+                          childAspectRatio: 0.65,
                         ),
                         itemCount: catalog.products.length,
                         itemBuilder: (context, index) {
@@ -163,18 +164,18 @@ class StoreCatalogScreen extends ConsumerWidget {
         label: Text(label),
         selected: isSelected,
         onSelected: (_) => onTap(),
-        selectedColor: AppColors.gold,
-        backgroundColor: AppColors.surface,
-        checkmarkColor: Colors.black,
+        selectedColor: AppColors.forest,
+        backgroundColor: Colors.white,
+        checkmarkColor: Colors.white,
         labelStyle: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          color: isSelected ? Colors.black : AppColors.textPrimary,
+          color: isSelected ? Colors.white : AppColors.textPrimary,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: isSelected ? AppColors.gold : AppColors.border,
+            color: isSelected ? AppColors.forest : AppColors.border,
             width: 1,
           ),
         ),
@@ -191,33 +192,40 @@ class StoreCatalogScreen extends ConsumerWidget {
 
     return InkWell(
       onTap: () async {
-        final goToBag = await Navigator.push<bool>(
+        final goToCart = await Navigator.push<bool>(
           context,
           MaterialPageRoute(
             builder: (_) => ProductDetailScreen(product: product),
           ),
         );
-        if (goToBag == true && onOpenBag != null) {
-          onOpenBag!();
+        if (goToCart == true && onOpenCart != null) {
+          onOpenCart!();
         }
       },
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Media Preview Container
             Container(
-              height: 125,
+              height: 120,
               width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
-                gradient: _getCategoryGradient(product.categoryName),
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                color: AppColors.cream,
               ),
               child: Stack(
                 children: [
@@ -226,8 +234,8 @@ class StoreCatalogScreen extends ConsumerWidget {
                       tag: 'prod-icon-${product.uuid}',
                       child: Icon(
                         _getCategoryIcon(product.categoryName),
-                        size: 48,
-                        color: Colors.white.withOpacity(0.85),
+                        size: 46,
+                        color: AppColors.sage,
                       ),
                     ),
                   ),
@@ -235,17 +243,18 @@ class StoreCatalogScreen extends ConsumerWidget {
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Text(
                         'In Stock',
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: AppColors.forest,
                         ),
                       ),
                     ),
@@ -257,7 +266,7 @@ class StoreCatalogScreen extends ConsumerWidget {
             // Card Body
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -268,7 +277,7 @@ class StoreCatalogScreen extends ConsumerWidget {
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1,
-                        color: AppColors.gold,
+                        color: AppColors.sage,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -291,17 +300,18 @@ class StoreCatalogScreen extends ConsumerWidget {
                     // Warranty Pill
                     if (product.warrantyPeriod != null) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.gold.withOpacity(0.12),
+                          color: AppColors.primaryLight,
                           borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Text(
                           product.warrantyPeriod!,
                           style: GoogleFonts.inter(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.gold,
+                            color: AppColors.forest,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -321,7 +331,7 @@ class StoreCatalogScreen extends ConsumerWidget {
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                              color: AppColors.forest,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -332,23 +342,23 @@ class StoreCatalogScreen extends ConsumerWidget {
                             ref.read(cartProvider.notifier).addItem(product);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                backgroundColor: AppColors.surface,
+                                backgroundColor: AppColors.forest,
                                 content: Text(
-                                  'Added ${product.name} to Bag',
-                                  style: GoogleFonts.inter(color: AppColors.textPrimary),
+                                  'Added ${product.name} to Cart',
+                                  style: GoogleFonts.inter(color: Colors.white),
                                 ),
                                 duration: const Duration(seconds: 1),
                               ),
                             );
                           },
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(8),
                           child: Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: AppColors.gold,
-                              borderRadius: BorderRadius.circular(6),
+                              color: AppColors.forest,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.add, size: 14, color: Colors.black),
+                            child: const Icon(Icons.add, size: 14, color: Colors.white),
                           ),
                         ),
                       ],
@@ -375,26 +385,5 @@ class StoreCatalogScreen extends ConsumerWidget {
       return Icons.directions_car_filled;
     }
     return Icons.inventory_2;
-  }
-
-  LinearGradient _getCategoryGradient(String? categoryName) {
-    final cat = (categoryName ?? '').toLowerCase();
-    if (cat.contains('tech')) {
-      return const LinearGradient(
-        colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
-      );
-    } else if (cat.contains('fashion')) {
-      return const LinearGradient(
-        colors: [Color(0xFF232526), Color(0xFF414345)],
-      );
-    } else if (cat.contains('footwear')) {
-      return const LinearGradient(
-        colors: [Color(0xFF141E30), Color(0xFF243B55)],
-      );
-    } else {
-      return const LinearGradient(
-        colors: [Color(0xFF1F1C18), Color(0xFF8E0E00)],
-      );
-    }
   }
 }

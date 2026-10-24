@@ -88,7 +88,7 @@ class _StoreCheckoutScreenState extends ConsumerState<StoreCheckoutScreen> {
 
       await DatabaseHelper.instance.insertSale(sale);
 
-      // 2. Clear Cart Bag
+      // 2. Clear Shopping Cart
       ref.read(cartProvider.notifier).clearCart();
 
       // 3. Navigate to Order Confirmation Screen
@@ -151,6 +151,45 @@ class _StoreCheckoutScreenState extends ConsumerState<StoreCheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Guest Mode Notice Banner
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceElevated,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.shield_outlined, size: 20, color: AppColors.primary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Guest Checkout Enabled',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Complete order without an account. Tamper-evident warranty SMS dispatched upon placement.',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // Contact & Recipient Details
               Text(
                 '1. RECIPIENT INFORMATION (FOR VERIFIED SMS RECEIPT)',
@@ -346,8 +385,8 @@ class _StoreCheckoutScreenState extends ConsumerState<StoreCheckoutScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gold,
-                    foregroundColor: Colors.black,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -360,7 +399,7 @@ class _StoreCheckoutScreenState extends ConsumerState<StoreCheckoutScreen> {
                           width: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : Text(

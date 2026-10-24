@@ -6,8 +6,10 @@
 > 1. **Online Shoppers**: OmniLuxe Web Storefront (`backend/laravel-api` & `apps/web-store`) + Mobile Shopping App (`apps/mobile-pos`)
 > 2. **In-Store Cashiers**: Dedicated High-Throughput Counter POS Terminal (`apps/windows-pos`)
 > 3. **Admins & Store Managers**: Central ERP & Filament v3 Control Room (`/admin`)  
-> **Aesthetic Theme**: Luxury Editorial Dark (Obsidian `#0A0E17`, Deep Slate `#111827`, Hairline `#223048`, Emerald `#10B981`, Champagne Gold `#D4AF37`, Cyan `#06B6D4`)  
-> **Current Version**: 3.1.0  
+> **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Sage `#7B846D`, Champagne Gold `#C29B38`)  
+> **Cart Terminology**: Standardized to **Cart** across all consumer platforms  
+> **Authentication**: Guest Explorer Mode + Multi-Step VIP Onboarding  
+> **Current Version**: 3.2.0  
 > **Commercial Readiness**: Turnkey Flagship Platform Ready for Commercial Enterprise Deployment
 
 ---
@@ -23,12 +25,13 @@ The platform establishes strict separation across customer, cashier, and adminis
 │       1. ONLINE CONSUMER CHANNELS    │       2. IN-STORE CASHIER POS        │
 │       (Web Store + Mobile App)       │       (Dedicated Desktop Terminal)   │
 │                                      │                                      │
-│  • Customer Sign Up & Sign In        │  • High-throughput cashier lanes     │
-│  • OmniLuxe Privilege Digital Card   │  • Cashier PIN quick sign-in (1234)  │
-│  • Loyalty Points (Earn & Redeem)    │  • USB & Bluetooth barcode scanner   │
-│  • Animated luxury gold splash screen│  • Cash drawer kick & thermal print  │
-│  • Omnichannel real-time cart & stock│  • Multi-lane held bills reservation │
-│  • Instant SMS E-receipts dispatch   │  • Counter device codes (COUNTER-01) │
+│  • Guest Explorer & Guest Checkout   │  • High-throughput cashier lanes     │
+│  • Multi-Step Sign In & Sign Up      │  • Cashier PIN quick sign-in (1234)  │
+│  • OmniLuxe Privilege VIP Card       │  • USB & Bluetooth barcode scanner   │
+│  • Loyalty Points (Earn & Redeem)    │  • Cash drawer kick & thermal print  │
+│  • Editorial light aesthetic & splash│  • Multi-lane held bills reservation │
+│  • Standardized Cart terminology     │  • Counter device codes (COUNTER-01) │
+│  • Instant SMS E-receipts dispatch   │  • Direct offline-first SQLite sync  │
 ├──────────────────────────────────────┴──────────────────────────────────────┤
 │                   3. CENTRAL CLOUD ERP & ADMIN PANEL                        │
 │                   (Laravel 11 / Filament v3 at /admin)                      │
@@ -67,31 +70,38 @@ The platform establishes strict separation across customer, cashier, and adminis
   - Instant dispatch of transaction summaries and warranty tracking links (`http://127.0.0.1:8000/receipt/{invoice}`).
   - Phone number privacy masking (`077 •••• 567`) for customer protection.
 
-### Milestone 3: Flagship Web Storefront & Customer Self-Service (`✅ COMPLETED`)
-- [x] **Customer Sign In & Sign Up Experience**:
-  - Dedicated dark luxury web authentication at `/login` and `/register`.
-  - Automatic credit of 100 VIP loyalty points on registration.
+### Milestone 3: Editorial Light Web Storefront & Self-Service (`✅ COMPLETED`)
+- [x] **Editorial Light Theme Matching Web App**:
+  - Warm cream (`#F4F2EB`), pure white paper (`#FFFFFF`), signature forest green (`#233C32`), deep ink text (`#242B27`), and hairline borders (`#E3E5DF`).
+  - Removed black/dark theme; unified luxury brand feel.
+- [x] **Guest Mode & Multi-Step Authentication**:
+  - Dedicated multi-step wizard at `/login` and `/register` with step tracker.
+  - Prominent "Continue in Guest Mode" bypass allowing shoppers to add to cart and place orders without upfront registration.
+  - Automatic credit of 100 VIP loyalty points upon enrollment.
+- [x] **Standardized Cart Terminology**:
+  - Replaced all occurrences of "Bag" with "Cart" across navigation, drawer, catalog, and checkout.
 - [x] **OmniLuxe Privilege Account Hub (`/account`)**:
-  - Gold-foil digital privilege card with cardholder name, member ID, loyalty points, and store credit limit.
+  - Deep forest green digital privilege card with cardholder name, member ID, loyalty points, and store credit limit.
   - Order history archive with real-time status badges and direct links to verifiable e-receipts.
 - [x] **Real-Time Synchronized Cart Drawer**:
-  - Floating slide-over cart drawer with subtotal calculation.
-  - Pre-filled customer profile details for logged-in shoppers.
-  - Automatic stock decrement in central ERP `inventories` and `stock_movements`.
+  - Slide-over cart drawer with subtotal calculation, quantity steppers, and guest checkout support.
 
 ### Milestone 4: Consumer Mobile Shopping App & VIP Club (`✅ COMPLETED`)
+- [x] **Editorial Light Theme Transformation**:
+  - Ivory canvas (`#FBFBF9`), warm cream (`#F4F2EB`), forest green (`#233C32`), and deep ink (`#242B27`).
 - [x] **Animated Luxury Splash Screen (`SplashScreen`)**:
-  - Pulsing gold OmniLuxe monogram medallion (`O`), luxury tagline, and smooth transition into main screen.
-- [x] **VIP Club Member Screen (`StoreMemberScreen`)**:
-  - Gold-bordered digital card displaying Loyalty Points (`350 PTS`), tier badge (`GOLD VIP`), and credit limit (`Rs. 500,000`).
-  - Interactive tabs for Customer Sign In & Sign Up with instant demo login for VIP testing.
-- [x] **5-Tab Navigation Architecture**:
-  - `Home`: Hero showcase carousel, premier brands, department grid, curated highlights.
-  - `Explore`: Multi-vertical catalog with live search, department filters, warranty badges, and stock counters.
-  - `Bag`: Quantity steppers, discount calculations, subtotal breakdown.
+  - Ivory canvas, forest green medallion with champagne gold monogram `O`, and smooth transition to main store.
+- [x] **Guest Mode & Multi-Step Auth (`StoreAuthStepsScreen`)**:
+  - Visual step progress indicator: Step 1 (Contact / Guest Option) -> Step 2 (Password & VIP Enrollment) -> Step 3 (Privilege Card Issued).
+  - Unauthenticated users can browse and checkout as Guests, with an option to join VIP for 100 welcome points.
+- [x] **5-Tab Customer Navigation**:
+  - `Home`: Editorial lookbook banner, premier brands, department showcase.
+  - `Explore`: Multi-vertical catalog with live search, department filters, warranty badges, and 1-tap cart button.
+  - `Cart`: Standardized cart steppers, summary card, and forest green checkout CTA.
   - `Orders`: Local SQLite archive of completed transactions with digital receipt viewer.
-  - `VIP Club`: Member digital privilege card, point redemption value, and account credentials.
+  - `VIP Club`: Guest mode overview / Deep forest green digital privilege card for members.
 - [x] **Automated Test Suite**: 100% test pass rate across all 21 unit, integration, and widget tests (`flutter test`).
+- [x] **Complete Screen Catalog**: 19-screen inventory, navigation routes, and Riverpod state management matrix documented in [`flutter-screens-catalog.md`](flutter-screens-catalog.md).
 
 ### Milestone 5: Dedicated In-Store Cashier POS (`apps/windows-pos`) (`✅ COMPLETED`)
 - [x] **Counter Register Authentication**: Cashier quick PIN sign-in linked to specific register device (`COUNTER-01`).
@@ -101,7 +111,7 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ### Milestone 6: Enterprise Rebranding & Commercial Packaging (`omniluxe-store`) (`✅ COMPLETED`)
 - [x] Unified platform identity standardized as **OmniLuxe Store** (`omniluxe-store`).
-- [x] Dark luxury theme consistency: Obsidian `#0A0E17`, Deep Slate `#111827`, Hairline `#223048`, Emerald `#10B981`, Champagne Gold `#D4AF37`.
+- [x] Clean light editorial design consistency across all customer-facing touchpoints (Web Storefront + Flutter Mobile).
 - [x] Comprehensive documentation structured milestone-wise without third-party competitor mentions.
 - [x] Verified full regression pass across all 28 Laravel backend tests and all 21 Flutter automated tests.
 
@@ -111,15 +121,17 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |
 | :--- | :--- | :--- | :--- |
-| **Web Store** | Laravel 11 Blade + Alpine.js | TailwindCSS (Dark Luxe) | Google Fonts Outfit & Inter |
-| **Mobile App** | Flutter 3.x (iOS & Android) | Pure Custom Material 3 Dark | Riverpod, Google Fonts, SQLite |
-| **Desktop POS** | Electron + React 18 + Vite | Vanilla Tailwind Dark Palette | Web Audio API, ESC/POS generator |
-| **Backend ERP** | Laravel 11 + Filament v3 | Filament Dark Custom Panel | Spatie Permission, Sanctum, MySQL |
+| **Web Store** | Laravel 11 Blade + Alpine.js | TailwindCSS (Editorial Light) | Google Fonts Outfit & Inter |
+| **Mobile App** | Flutter 3.x (iOS & Android) | Pure Custom Material 3 Light | Riverpod, Google Fonts, SQLite |
+| **Desktop POS** | Electron + React 18 + Vite | Vanilla Tailwind Light/Dark Palette | Web Audio API, ESC/POS generator |
+| **Backend ERP** | Laravel 11 + Filament v3 | Filament Custom Admin Panel | Spatie Permission, Sanctum, MySQL |
 
 ### Color Hierarchy
-- **Obsidian Black**: `#0A0E17` (Deep primary canvas)
-- **Slate Surface**: `#111827` (Card and header backgrounds)
-- **Hairline Border**: `#223048` (Refined metallic border accents)
-- **Emerald Accent**: `#10B981` (In-stock indicators, bag count, CTA buttons)
-- **Gold Luxury**: `#D4AF37` (VIP membership badges, warranty indicators)
-- **Cyan Tech**: `#06B6D4` (IMEI/Serial badges and technical specifications)
+- **Ivory Canvas**: `#FBFBF9` (Soft luxury background)
+- **Warm Cream**: `#F4F2EB` (Section and container backgrounds)
+- **Pure Paper**: `#FFFFFF` (Cards, dialogs, drawers)
+- **Forest Green**: `#233C32` (Signature luxury brand color & primary CTA)
+- **Deep Ink**: `#242B27` (Crisp typographic text)
+- **Hairline Border**: `#E3E5DF` (Refined subtle boundary lines)
+- **Sage Secondary**: `#7B846D` (Botanical secondary accents & subtitles)
+- **Champagne Gold**: `#C29B38` (VIP membership badges, loyalty point highlights)

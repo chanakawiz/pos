@@ -465,7 +465,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: const BoxDecoration(
-          color: AppColors.surface,
+          color: Colors.white,
           border: Border(top: BorderSide(color: AppColors.border, width: 1)),
         ),
         child: SafeArea(
@@ -490,7 +490,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: AppColors.forest,
                       ),
                     ),
                   ],
@@ -498,13 +498,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ),
               const SizedBox(width: 16),
 
-              // Add to Bag Button
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.card,
-                  foregroundColor: AppColors.textPrimary,
+              // Add to Cart Button
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.forest,
                   side: const BorderSide(color: AppColors.border),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -519,15 +518,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      backgroundColor: AppColors.surface,
+                      backgroundColor: AppColors.forest,
                       content: Row(
                         children: [
-                          const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                          const Icon(Icons.check_circle, color: Colors.white, size: 20),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Added to your Bag (${_selectedVariant ?? "Standard"})',
-                              style: GoogleFonts.inter(color: AppColors.textPrimary),
+                              'Added to your Cart (${_selectedVariant ?? "Standard"})',
+                              style: GoogleFonts.inter(color: Colors.white),
                             ),
                           ),
                         ],
@@ -536,16 +535,16 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                   );
                 },
-                icon: const Icon(Icons.shopping_bag_outlined, size: 18),
-                label: const Text('Add to Bag'),
+                icon: const Icon(Icons.shopping_cart_outlined, size: 18),
+                label: const Text('Add to Cart'),
               ),
               const SizedBox(width: 10),
 
               // Buy Now / Quick Checkout Button
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gold,
-                  foregroundColor: Colors.black,
+                  backgroundColor: AppColors.forest,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -559,7 +558,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             ? 'Variant: $_selectedVariant • ${widget.product.warrantyPeriod ?? ""}'
                             : widget.product.warrantyPeriod,
                       );
-                  Navigator.pop(context, true); // Pop back and switch to Bag tab
+                  Navigator.pop(context, true); // Pop back and switch to Cart tab
                 },
                 child: Text(
                   'Buy Now',

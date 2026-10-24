@@ -118,12 +118,14 @@ class CartNotifier extends StateNotifier<CartState> {
     }
   }
 
-  void updateQuantity(String productUuid, double newQty) {
+  void updateQuantity(String productUuid, double newQty, {String? serialNumber}) {
     if (newQty <= 0) {
-      removeItem(productUuid);
+      removeItem(productUuid, serialNumber: serialNumber);
       return;
     }
-    final index = state.items.indexWhere((i) => i.product.uuid == productUuid);
+    final index = state.items.indexWhere(
+      (i) => i.product.uuid == productUuid && (serialNumber == null || i.serialNumber == serialNumber),
+    );
     if (index >= 0) {
       final item = state.items[index];
       final updated = item.copyWith(quantity: newQty);
@@ -155,9 +157,11 @@ class CartNotifier extends StateNotifier<CartState> {
     }
   }
 
-  void removeItem(String productUuid) {
+  void removeItem(String productUuid, {String? serialNumber}) {
     state = state.copyWith(
-      items: state.items.where((i) => i.product.uuid != productUuid).toList(),
+      items: state.items
+          .where((i) => !(i.product.uuid == productUuid && (serialNumber == null || i.serialNumber == serialNumber)))
+          .toList(),
     );
   }
 

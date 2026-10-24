@@ -100,20 +100,12 @@ class _SplashScreenState extends State<SplashScreen>
                           height: 96,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFFFBF1C9),
-                                AppColors.gold,
-                                Color(0xFF997A15),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                            color: AppColors.forest,
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.gold.withOpacity(0.35),
-                                blurRadius: 28,
-                                spreadRadius: 4,
+                                color: AppColors.forest.withOpacity(0.18),
+                                blurRadius: 24,
+                                spreadRadius: 2,
                                 offset: const Offset(0, 8),
                               ),
                             ],
@@ -122,15 +114,19 @@ class _SplashScreenState extends State<SplashScreen>
                             child: Container(
                               width: 86,
                               height: 86,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.surface,
+                                color: AppColors.forest,
+                                border: Border.all(
+                                  color: AppColors.gold.withOpacity(0.6),
+                                  width: 1.5,
+                                ),
                               ),
                               child: Center(
                                 child: Text(
                                   'O',
                                   style: GoogleFonts.outfit(
-                                    fontSize: 48,
+                                    fontSize: 46,
                                     fontWeight: FontWeight.w900,
                                     color: AppColors.gold,
                                     letterSpacing: -1,
@@ -151,21 +147,21 @@ class _SplashScreenState extends State<SplashScreen>
                               style: GoogleFonts.outfit(
                                 fontSize: 26,
                                 fontWeight: FontWeight.w900,
-                                color: Colors.white,
+                                color: AppColors.forest,
                                 letterSpacing: 2,
                               ),
                             ),
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 2,
+                                horizontal: 8,
+                                vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.gold.withOpacity(0.18),
+                                color: AppColors.primaryLight,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: AppColors.gold.withOpacity(0.4),
+                                  color: AppColors.border,
                                 ),
                               ),
                               child: Text(
@@ -173,7 +169,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.gold,
+                                  color: AppColors.forest,
                                 ),
                               ),
                             ),
