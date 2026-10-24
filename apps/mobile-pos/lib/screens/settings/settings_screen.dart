@@ -300,12 +300,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.print, color: AppColors.secondary),
-                          SizedBox(width: 8),
-                          Text('ESC/POS Thermal Printer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        ],
+                      const Expanded(
+                        child: Row(
+                          children: [
+                            Icon(Icons.print, color: AppColors.secondary),
+                            SizedBox(width: 8),
+                            Flexible(
+                              child: Text('ESC/POS Thermal Printer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
                       ),
                       Switch(
                         value: _printerEnabled,
@@ -368,24 +372,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
 
                   // Paper Width Selector
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('Paper Roll Width:', style: TextStyle(color: AppColors.textSecondary)),
-                      const Spacer(),
-                      ChoiceChip(
-                        label: const Text('80mm (48 cols)'),
-                        selected: _paperWidth == 80,
-                        onSelected: (sel) {
-                          if (sel) setState(() => _paperWidth = 80);
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        label: const Text('58mm (32 cols)'),
-                        selected: _paperWidth == 58,
-                        onSelected: (sel) {
-                          if (sel) setState(() => _paperWidth = 58);
-                        },
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ChoiceChip(
+                              label: const Center(child: Text('80mm (48 cols)')),
+                              selected: _paperWidth == 80,
+                              onSelected: (sel) {
+                                if (sel) setState(() => _paperWidth = 80);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ChoiceChip(
+                              label: const Center(child: Text('58mm (32 cols)')),
+                              selected: _paperWidth == 58,
+                              onSelected: (sel) {
+                                if (sel) setState(() => _paperWidth = 58);
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

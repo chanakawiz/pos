@@ -126,18 +126,25 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               child: const Icon(Icons.point_of_sale, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  authState.user?.store?.name ?? 'SmartShop POS',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  authState.user?.name ?? 'Cashier',
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    authState.user?.store?.name ?? 'SmartShop POS',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    authState.user?.name ?? 'Cashier',
+                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -229,42 +236,66 @@ class _PosScreenState extends ConsumerState<PosScreen> {
             onPressed: _openBarcodeScanner,
           ),
 
-          // Sales & Transactions History
-          IconButton(
-            icon: const Icon(Icons.receipt_long, color: AppColors.textPrimary),
-            tooltip: 'Sales & Transactions',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (ctx) => const SalesHistoryScreen()),
-              );
+          // Popup Menu for Secondary Actions
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
+            tooltip: 'More Options',
+            onSelected: (val) {
+              switch (val) {
+                case 'history':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (ctx) => const SalesHistoryScreen()),
+                  );
+                  break;
+                case 'shift':
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => const CashSessionDialog(),
+                  );
+                  break;
+                case 'settings':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (ctx) => const SettingsScreen()),
+                  );
+                  break;
+              }
             },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: 'history',
+                child: Row(
+                  children: [
+                    Icon(Icons.receipt_long, size: 20, color: AppColors.textSecondary),
+                    SizedBox(width: 10),
+                    Text('Sales & History'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'shift',
+                child: Row(
+                  children: [
+                    Icon(Icons.calculate_outlined, size: 20, color: AppColors.textSecondary),
+                    SizedBox(width: 10),
+                    Text('Shift Audit & X-Report'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings, size: 20, color: AppColors.textSecondary),
+                    SizedBox(width: 10),
+                    Text('Terminal Settings'),
+                  ],
+                ),
+              ),
+            ],
           ),
-
-          // Register Cash Shift / X-Report
-          IconButton(
-            icon: const Icon(Icons.calculate_outlined, color: AppColors.textPrimary),
-            tooltip: 'Shift Audit & X-Report',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => const CashSessionDialog(),
-              );
-            },
-          ),
-
-          // Settings
-          IconButton(
-            icon: const Icon(Icons.settings, color: AppColors.textPrimary),
-            tooltip: 'Settings',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (ctx) => const SettingsScreen()),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: LayoutBuilder(

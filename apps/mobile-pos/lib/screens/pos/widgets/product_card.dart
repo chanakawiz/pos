@@ -175,18 +175,22 @@ class ProductCard extends ConsumerWidget {
                           ),
                         )
                       else if (product.categoryName != null)
-                        Text(
-                          product.categoryName!,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textMuted,
-                            fontWeight: FontWeight.w500,
+                        Expanded(
+                          child: Text(
+                            product.categoryName!,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         )
                       else
                         const SizedBox.shrink(),
+
+                      const SizedBox(width: 4),
 
                       // Stock status badge
                       Container(
