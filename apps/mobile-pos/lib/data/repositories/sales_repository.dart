@@ -11,4 +11,12 @@ class SalesRepository {
   Future<List<SaleModel>> getPendingSales() async {
     return await _dbHelper.getPendingSales();
   }
+
+  Future<List<SaleModel>> getRecentSales({int limit = 50, String? search}) async {
+    return await _dbHelper.getRecentSales(limit: limit, search: search);
+  }
+
+  Future<Map<String, dynamic>> getShiftSummary() async {
+    return await _dbHelper.getShiftSummary();
+  }
 }

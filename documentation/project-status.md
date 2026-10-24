@@ -85,18 +85,26 @@
 | **Mobile SQLite & Sync** | `✅ DONE` | Embedded `sqflite` database with atomic sales persistence, WAL durability, and Dio delta sync. |
 | **Smart Items & Warranty**| `✅ DONE` | Serial number / IMEI capture, warranty period badges, and bilingual Sinhala receipt preview. |
 | **ESC/POS Printing & Drawer**| `✅ DONE` | Raw TCP socket (port 9100), 80/58mm formatting, pin 2/5 drawer kick, and in-app simulator. |
+| **Sales History & Reprint** | `✅ DONE` | Recent sales list, invoice/customer search, sync status filters, and one-tap reprinting. |
+| **Cash Session & X-Report** | `✅ DONE` | Register shift summary, tender breakdown (Cash/Card/Bank), drawer kick, and ESC/POS X-Report. |
 
 ---
 
 ## 3. Test Suite Verification
 ```bash
-$ php artisan test
+$ php artisan test (backend/laravel-api)
   Tests:    28 passed (281 assertions on local MySQL; 239 on isolated SQLite)
   Duration: 0.89s
 ```
 ```bash
-$ npm run build (apps/windows-pos)
-  ✓ built in 215ms
+$ npm test && npm run build (apps/windows-pos)
+  Tests:    41 passed (0 failed)
+  ✓ built in 232ms
+```
+```bash
+$ flutter analyze && flutter test (apps/mobile-pos)
+  No issues found!
+  00:03 +18: All tests passed!
 ```
 
 

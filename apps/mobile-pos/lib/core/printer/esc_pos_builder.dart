@@ -147,6 +147,74 @@ class EscPosBuilder {
     return buffer.toBytes();
   }
 
+  /// Build ESC/POS bytes for an X-Report (Shift / Cash Session Audit)
+  Uint8List buildXReport({
+    required Map<String, dynamic> summary,
+    required String cashierName,
+    required String deviceUuid,
+    StoreModel? store,
+  }) {
+    final buffer = BytesBuilder();
+    final currencySymbol = store?.currencySymbol ?? 'Rs.';
+
+    void raw(List<int> bytes) => buffer.add(bytes);
+    void line(String str) {
+      buffer.add(latin1.encode(str));
+      buffer.addByte(0x0A);
+    }
+
+    raw(cmdInit);
+
+    // Header
+    raw(cmdAlignCenter);
+    raw(cmdDoubleHeightOn);
+    raw(cmdBoldOn);
+    line(store?.receiptHeader ?? 'SMARTSHOP POS');
+    line('X - R E P O R T');
+    raw(cmdNormal);
+    raw(cmdBoldOff);
+
+    line('MID-SHIFT CASH AUDIT');
+    if (store?.name != null) {
+      line(store!.name);
+    }
+
+    raw(cmdAlignLeft);
+    line('=' * columns);
+    line(_twoColumns('Generated:', DateTime.now().toString().substring(0, 19)));
+    line(_twoColumns('Cashier:', cashierName));
+    line(_twoColumns('Terminal:', deviceUuid.length > 12 ? deviceUuid.substring(0, 12) : deviceUuid));
+    line('-' * columns);
+
+    // Financial Overview
+    raw(cmdBoldOn);
+    line('FINANCIAL SUMMARY');
+    raw(cmdBoldOff);
+    line(_twoColumns('Total Transactions:', '${summary['totalSalesCount'] ?? 0}'));
+    line(_twoColumns('Gross Sales:', CurrencyFormatter.format((summary['grossTotal'] as num?)?.toDouble() ?? 0.0, symbol: currencySymbol)));
+    line(_twoColumns('Discounts Given:', '- ${CurrencyFormatter.format((summary['discountTotal'] as num?)?.toDouble() ?? 0.0, symbol: currencySymbol)}'));
+    line(_twoColumns('Tax Collected:', CurrencyFormatter.format((summary['taxTotal'] as num?)?.toDouble() ?? 0.0, symbol: currencySymbol)));
+
+    line('-' * columns);
+    raw(cmdBoldOn);
+    line('TENDER BREAKDOWN');
+    raw(cmdBoldOff);
+    line(_twoColumns('Cash in Drawer:', CurrencyFormatter.format((summary['cashTotal'] as num?)?.toDouble() ?? 0.0, symbol: currencySymbol)));
+    line(_twoColumns('Card Payments:', CurrencyFormatter.format((summary['cardTotal'] as num?)?.toDouble() ?? 0.0, symbol: currencySymbol)));
+    line(_twoColumns('Bank Transfers:', CurrencyFormatter.format((summary['bankTotal'] as num?)?.toDouble() ?? 0.0, symbol: currencySymbol)));
+
+    line('=' * columns);
+    raw(cmdAlignCenter);
+    line('*** END OF AUDIT REPORT ***');
+    buffer.add([0x0A, 0x0A, 0x0A]);
+
+    if (autoCut) {
+      raw(cmdCutPartial);
+    }
+
+    return buffer.toBytes();
+  }
+
   String _twoColumns(String left, String right) {
     final available = columns - left.length - right.length;
     if (available <= 0) {

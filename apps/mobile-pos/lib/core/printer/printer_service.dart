@@ -89,6 +89,25 @@ class PrinterService {
     return await _sendBytes(bytes);
   }
 
+  Future<bool> printXReport({
+    required Map<String, dynamic> summary,
+    required String cashierName,
+    required String deviceUuid,
+    StoreModel? store,
+  }) async {
+    if (!isEnabled) return false;
+
+    final builder = _createBuilder();
+    final bytes = builder.buildXReport(
+      summary: summary,
+      cashierName: cashierName,
+      deviceUuid: deviceUuid,
+      store: store,
+    );
+
+    return await _sendBytes(bytes);
+  }
+
   Future<bool> kickCashDrawer() async {
     if (!isEnabled || !drawerEnabled) return false;
 

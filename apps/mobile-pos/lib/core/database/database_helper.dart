@@ -291,6 +291,67 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
+  Future<List<SaleModel>> getRecentSales({int limit = 50, String? search}) async {
+    final db = await database;
+    String? whereClause;
+    List<dynamic>? whereArgs;
+
+    if (search != null && search.trim().isNotEmpty) {
+      whereClause = 'invoice_number LIKE ? OR customer_name LIKE ?';
+      final q = '%${search.trim()}%';
+      whereArgs = [q, q];
+    }
+
+    final result = await db.query(
+      'offline_sales',
+      where: whereClause,
+      whereArgs: whereArgs,
+      orderBy: 'created_at DESC',
+      limit: limit,
+    );
+    return result.map((m) => SaleModel.fromDbMap(m)).toList();
+  }
+
+  Future<Map<String, dynamic>> getShiftSummary() async {
+    final db = await database;
+    final sales = await db.query('offline_sales', orderBy: 'created_at DESC');
+
+    int count = sales.length;
+    double gross = 0.0;
+    double cash = 0.0;
+    double card = 0.0;
+    double bank = 0.0;
+    double tax = 0.0;
+    double discount = 0.0;
+
+    for (final row in sales) {
+      final sale = SaleModel.fromDbMap(row);
+      gross += sale.totalAmount;
+      tax += sale.taxAmount;
+      discount += sale.discountAmount;
+
+      for (final p in sale.payments) {
+        if (p.method == PaymentMethod.cash) {
+          cash += p.amount;
+        } else if (p.method == PaymentMethod.card) {
+          card += p.amount;
+        } else if (p.method == PaymentMethod.bankTransfer) {
+          bank += p.amount;
+        }
+      }
+    }
+
+    return {
+      'totalSalesCount': count,
+      'grossTotal': gross,
+      'cashTotal': cash,
+      'cardTotal': card,
+      'bankTotal': bank,
+      'taxTotal': tax,
+      'discountTotal': discount,
+    };
+  }
+
   // --- Sync Meta (Last Revision Version) ---
   Future<int> getLastSyncVersion() async {
     final db = await database;

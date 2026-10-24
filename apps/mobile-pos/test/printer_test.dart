@@ -123,5 +123,65 @@ void main() {
       expect(kickSuccess, true);
       expect(printer.mockDrawerKickCount, 1);
     });
+
+    test('buildXReport outputs shift summary with tenders and audit details', () {
+      final builder = EscPosBuilder(paperWidth: 80, autoCut: true);
+      final summary = {
+        'totalSalesCount': 14,
+        'grossTotal': 148500.0,
+        'cashTotal': 85000.0,
+        'cardTotal': 50000.0,
+        'bankTotal': 13500.0,
+        'taxTotal': 2400.0,
+        'discountTotal': 1500.0,
+      };
+
+      final bytes = builder.buildXReport(
+        summary: summary,
+        cashierName: 'Sarah Miller',
+        deviceUuid: 'terminal-ipad-01',
+        store: testStore,
+      );
+
+      final text = latin1.decode(bytes, allowInvalid: true);
+      expect(text, contains('X - R E P O R T'));
+      expect(text, contains('MID-SHIFT CASH AUDIT'));
+      expect(text, contains('Sarah Miller'));
+      expect(text, contains('14'));
+      expect(text, contains('148,500.00'));
+      expect(text, contains('Cash in Drawer:'));
+      expect(text, contains('85,000.00'));
+      expect(text, contains('Card Payments:'));
+      expect(text, contains('50,000.00'));
+      expect(text, contains('Bank Transfers:'));
+      expect(text, contains('13,500.00'));
+      expect(text, contains('*** END OF AUDIT REPORT ***'));
+    });
+
+    test('PrinterService prints X-Report in mock mode', () async {
+      final printer = PrinterService.instance;
+      printer.type = 'mock';
+      printer.mockPrintLogs.clear();
+
+      final summary = {
+        'totalSalesCount': 5,
+        'grossTotal': 45000.0,
+        'cashTotal': 35000.0,
+        'cardTotal': 10000.0,
+        'bankTotal': 0.0,
+        'taxTotal': 0.0,
+        'discountTotal': 0.0,
+      };
+
+      final result = await printer.printXReport(
+        summary: summary,
+        cashierName: 'Sarah Miller',
+        deviceUuid: 'terminal-01',
+        store: testStore,
+      );
+
+      expect(result, true);
+      expect(printer.mockPrintLogs.length, 1);
+    });
   });
 }

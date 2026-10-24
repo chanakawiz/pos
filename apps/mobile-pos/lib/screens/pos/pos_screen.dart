@@ -7,7 +7,9 @@ import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../providers/connectivity_provider.dart';
 import '../../providers/sync_provider.dart';
+import '../history/sales_history_screen.dart';
 import '../scanner/barcode_scanner_dialog.dart';
+import '../session/cash_session_dialog.dart';
 import '../settings/settings_screen.dart';
 import 'widgets/cart_panel.dart';
 import 'widgets/product_card.dart';
@@ -225,6 +227,30 @@ class _PosScreenState extends ConsumerState<PosScreen> {
             icon: const Icon(Icons.qr_code_scanner, color: AppColors.textPrimary),
             tooltip: 'Camera Barcode Scanner',
             onPressed: _openBarcodeScanner,
+          ),
+
+          // Sales & Transactions History
+          IconButton(
+            icon: const Icon(Icons.receipt_long, color: AppColors.textPrimary),
+            tooltip: 'Sales & Transactions',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (ctx) => const SalesHistoryScreen()),
+              );
+            },
+          ),
+
+          // Register Cash Shift / X-Report
+          IconButton(
+            icon: const Icon(Icons.calculate_outlined, color: AppColors.textPrimary),
+            tooltip: 'Shift Audit & X-Report',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => const CashSessionDialog(),
+              );
+            },
           ),
 
           // Settings

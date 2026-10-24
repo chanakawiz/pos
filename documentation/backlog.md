@@ -85,6 +85,8 @@
 | **MOB-005** | Mobile SQLite Local Storage | P0 | `✅ DONE` | Embedded `sqflite` WAL database for products, categories, customers, and atomic `offline_sales` queue. |
 | **MOB-006** | Dio Offline Sync Client | P0 | `✅ DONE` | Background sales push to `/api/v1/sync/push` and delta catalog pull from `/api/v1/sync/pull`. |
 | **MOB-007** | Network / WiFi Thermal Print & Cash Drawer | P1 | `✅ DONE` | ESC/POS binary engine, raw TCP socket (port 9100), 80mm/58mm column formatting, pin 2/5 drawer kick, and in-app simulator. |
+| **MOB-008** | Sales History & Receipt Reprint | P1 | `✅ DONE` | Recent transactions list with invoice/customer search, sync status filters (All/Synced/Pending), line items bottom sheet, and instant reprinting. |
+| **MOB-009** | Cash Register Shift Audit & X-Report | P1 | `✅ DONE` | Mid-shift cash audit dialog, cash-in-drawer tally, tender breakdowns (Cash/Card/Bank), manual drawer kick, and ESC/POS X-Report printing. |
 
 ---
 
@@ -127,3 +129,16 @@ Verification: 30 native Electron tests, the expanded cashier/customer GUI smoke 
 Implemented HRD-005 software with an explicitly configured main-process SerialPort reader, bounded CRLF framing, strict A&D balance/indicator parsers, fresh stable-reading capture, wrong-unit/type rejection, visible failures, and port lifecycle handling. kg/g catalog products open a capture dialog from clicks or barcode lookup; reweighing replaces the quantity. No scale is assumed or opened without configuration.
 
 Added the required three-decimal quantity migration, model/API/admin updates, fractional refund entry, and offline quantity validation. Applied the additive migration to local MySQL. Verification covers native serial/mocked-stream tests, fractional SQLite persistence/sync, backend sale/refund/idempotency/rollback tests on SQLite and MySQL, and the expanded GUI smoke flow. Physical scale/Windows peripheral acceptance remains open; see [weighing-scales.md](weighing-scales.md).
+
+
+## 2026-10-24 mobile-pos continuation
+
+Completed Phase 2 Mobile POS (`apps/mobile-pos`) scaffolding and implementation across MOB-001 through MOB-009:
+- Scaffolding & Design System (`MOB-001`): Flutter 3.27+, Material 3 dark retail tokens matching desktop theme, Riverpod 2.6 state management, and Dio 5.11 client.
+- Auth & Device Pairing (`MOB-002`): 3x4 numeric PIN pad, password auth, device UUID registration to `/api/v1/devices/register`.
+- Responsive Layouts (`MOB-003`, `MOB-004`): Adaptive 60/40 Landscape Split-Screen on tablets, and phone queue buster single-column view with live camera barcode scanning (`mobile_scanner`) and bottom cart sheet.
+- Local SQLite Storage & Sync (`MOB-005`, `MOB-006`): Embedded SQLite with WAL durability, offline checkout persistence, automatic sync worker on network reconnect, and versioned delta catalog pull.
+- ESC/POS Printing, Cash Drawer & X-Report (`MOB-007`, `MOB-009`): 80mm/58mm receipts with Sinhala subtitles, RJ11 drawer kick (pin 2 & 5), mid-shift cash session audit dialog, and X-Report generation.
+- Sales History & Reprinting (`MOB-008`): Transaction search, sync status filters (All/Synced/Pending), line items inspection, and one-tap reprinting.
+
+Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with 18 automated unit and widget tests covering catalog filtering, barcode lookup, offline queue, sync versioning, mock ESC/POS printing, X-Report generation, drawer kicks, sales history querying, and shift summaries.
