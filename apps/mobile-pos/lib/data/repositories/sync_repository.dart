@@ -13,9 +13,13 @@ class SyncRepository {
     final pendingSales = await _dbHelper.getPendingSales();
     if (pendingSales.isEmpty) return 0;
 
+    final deviceUuid = _apiClient.deviceUuid;
+    if (deviceUuid == null || deviceUuid.isEmpty) return 0;
+
     try {
       final payload = {
-        'sales': pendingSales.map((s) => s.toJson()).toList(),
+        'device_uuid': deviceUuid,
+        'transactions': pendingSales.map((s) => s.toJson()).toList(),
       };
 
       final response = await _apiClient.dio.post(
@@ -24,7 +28,13 @@ class SyncRepository {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final syncedUuids = pendingSales.map((s) => s.transactionUuid).toList();
+        final data = response.data;
+        List<String> syncedUuids = [];
+        if (data is Map<String, dynamic> && data['synced_uuids'] is List) {
+          syncedUuids = (data['synced_uuids'] as List).map((u) => u.toString()).toList();
+        } else {
+          syncedUuids = pendingSales.map((s) => s.transactionUuid).toList();
+        }
         await _dbHelper.markSalesSynced(syncedUuids);
         return syncedUuids.length;
       }
@@ -40,7 +50,10 @@ class SyncRepository {
       final currentVersion = await _dbHelper.getLastSyncVersion();
       final response = await _apiClient.dio.get(
         '/api/v1/sync/pull',
-        queryParameters: {'version': currentVersion},
+        queryParameters: {
+          'since_version': currentVersion,
+          if (_apiClient.deviceUuid != null) 'device_uuid': _apiClient.deviceUuid,
+        },
       );
 
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {

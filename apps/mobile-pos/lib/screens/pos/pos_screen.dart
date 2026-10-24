@@ -5,6 +5,7 @@ import '../../core/utils/currency_formatter.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
+import '../../providers/connectivity_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../scanner/barcode_scanner_dialog.dart';
 import '../settings/settings_screen.dart';
@@ -105,6 +106,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     final authState = ref.watch(authProvider);
     final syncState = ref.watch(syncProvider);
     final cartState = ref.watch(cartProvider);
+    final isOnline = ref.watch(connectivityProvider);
     final currencySymbol = authState.user?.store?.currencySymbol ?? 'Rs.';
 
     return Scaffold(
@@ -140,37 +142,60 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         actions: [
           // Sync status chip
           InkWell(
-            onTap: () => ref.read(syncProvider.notifier).syncNow(),
+            onTap: () {
+              if (isOnline) {
+                ref.read(syncProvider.notifier).syncNow();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Terminal is offline. Sales are safely saved to local SQLite.'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
             borderRadius: BorderRadius.circular(16),
             child: Container(
               margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: syncState.pendingSalesCount > 0
-                    ? AppColors.pending.withOpacity(0.15)
-                    : AppColors.synced.withOpacity(0.15),
+                color: !isOnline
+                    ? AppColors.danger.withOpacity(0.15)
+                    : (syncState.pendingSalesCount > 0
+                        ? AppColors.pending.withOpacity(0.15)
+                        : AppColors.synced.withOpacity(0.15)),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 children: [
                   Icon(
-                    Icons.cloud_done,
+                    !isOnline
+                        ? Icons.cloud_off
+                        : (syncState.pendingSalesCount > 0
+                            ? Icons.cloud_upload
+                            : Icons.cloud_done),
                     size: 14,
-                    color: syncState.pendingSalesCount > 0
-                        ? AppColors.pending
-                        : AppColors.synced,
+                    color: !isOnline
+                        ? AppColors.danger
+                        : (syncState.pendingSalesCount > 0
+                            ? AppColors.pending
+                            : AppColors.synced),
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    syncState.pendingSalesCount > 0
-                        ? '${syncState.pendingSalesCount} sync'
-                        : 'Live',
+                    !isOnline
+                        ? 'Offline (${syncState.pendingSalesCount})'
+                        : (syncState.pendingSalesCount > 0
+                            ? '${syncState.pendingSalesCount} sync'
+                            : 'Live'),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: syncState.pendingSalesCount > 0
-                          ? AppColors.pending
-                          : AppColors.synced,
+                      color: !isOnline
+                          ? AppColors.danger
+                          : (syncState.pendingSalesCount > 0
+                              ? AppColors.pending
+                              : AppColors.synced),
                     ),
                   ),
                 ],

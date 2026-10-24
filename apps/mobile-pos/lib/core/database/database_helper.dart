@@ -32,8 +32,12 @@ class DatabaseHelper {
     if (kIsWeb) {
       path = filePath;
     } else {
-      final documentsDirectory = await getApplicationDocumentsDirectory();
-      path = join(documentsDirectory.path, filePath);
+      try {
+        final documentsDirectory = await getApplicationDocumentsDirectory();
+        path = join(documentsDirectory.path, filePath);
+      } catch (_) {
+        path = inMemoryDatabasePath;
+      }
     }
 
     return await openDatabase(
