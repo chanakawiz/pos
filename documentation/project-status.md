@@ -1,9 +1,9 @@
 # SmartShop POS — Current Project Status
 
 > **Audit Date**: 2026-10-24
-> **Overall Health**: Healthy / Stable (28 backend tests, 41 native Electron tests, and 6 Flutter mobile POS tests passing)
+> **Overall Health**: Healthy / Stable (28 backend tests, 41 native Electron tests, and 14 Flutter mobile POS tests passing)
 > **Phase 1 Progress**: SQLite persistence complete; printer/drawer, customer-display, and weighing-scale software complete; physical validation remains
-> **Phase 2 Progress**: Flutter Mobile POS Core Architecture, SQLite Persistence, Adaptive Split-Screen & Queue Buster Complete (MOB-001 through MOB-006)
+> **Phase 2 Progress**: Flutter Mobile POS Complete — Architecture, SQLite Persistence, Split-Screen & Queue Buster, Network Auto-Sync, and ESC/POS Thermal Printing (MOB-001 through MOB-007)
 
 ---
 
@@ -84,6 +84,7 @@
 | **Phone Queue Buster** | `✅ DONE` | Single-column view with live camera barcode scanner (`mobile_scanner`) and floating cart sheet. |
 | **Mobile SQLite & Sync** | `✅ DONE` | Embedded `sqflite` database with atomic sales persistence, WAL durability, and Dio delta sync. |
 | **Smart Items & Warranty**| `✅ DONE` | Serial number / IMEI capture, warranty period badges, and bilingual Sinhala receipt preview. |
+| **ESC/POS Printing & Drawer**| `✅ DONE` | Raw TCP socket (port 9100), 80/58mm formatting, pin 2/5 drawer kick, and in-app simulator. |
 
 ---
 

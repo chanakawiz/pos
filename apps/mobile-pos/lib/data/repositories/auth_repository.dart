@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../core/network/api_client.dart';
 import '../models/user.dart';
@@ -43,7 +44,7 @@ class AuthRepository {
         data: {
           'pairing_code': pairingCode,
           'device_name': deviceName,
-          'device_type': 'mobile',
+          'device_type': Platform.isIOS ? 'ios' : 'android',
           'mac_address': 'MOBILE-${_apiClient.deviceUuid?.substring(0, 8)}',
           'app_version': '1.0.0',
         },

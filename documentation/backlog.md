@@ -84,7 +84,7 @@
 | **MOB-004** | Phone Portrait Queue-Busting UI | P1 | `✅ DONE` | Compact single-column view with live camera barcode scanner and floating cart bottom sheet. |
 | **MOB-005** | Mobile SQLite Local Storage | P0 | `✅ DONE` | Embedded `sqflite` WAL database for products, categories, customers, and atomic `offline_sales` queue. |
 | **MOB-006** | Dio Offline Sync Client | P0 | `✅ DONE` | Background sales push to `/api/v1/sync/push` and delta catalog pull from `/api/v1/sync/pull`. |
-| **MOB-007** | Bluetooth / WiFi Thermal Print | P1 | `⏳ PENDING` | Integration with physical mobile ESC/POS Bluetooth printers (Star Micronics / Epson). |
+| **MOB-007** | Network / WiFi Thermal Print & Cash Drawer | P1 | `✅ DONE` | ESC/POS binary engine, raw TCP socket (port 9100), 80mm/58mm column formatting, pin 2/5 drawer kick, and in-app simulator. |
 
 ---
 

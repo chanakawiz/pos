@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/printer/printer_service.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../data/models/sale.dart';
 import '../../../providers/auth_provider.dart';
@@ -27,13 +28,21 @@ class ReceiptScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.print),
             tooltip: 'Print Receipt',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Sent to thermal receipt printer...'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
+            onPressed: () async {
+              final success = await PrinterService.instance.printSaleReceipt(sale, store);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Receipt printed (${PrinterService.instance.type.toUpperCase()})'
+                          : 'Printer unreachable (${PrinterService.instance.host}:${PrinterService.instance.port})',
+                    ),
+                    backgroundColor: success ? AppColors.primary : AppColors.danger,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
             },
           ),
         ],

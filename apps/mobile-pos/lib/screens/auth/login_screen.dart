@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../providers/auth_provider.dart';
 import '../pos/pos_screen.dart';
+import 'pairing_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -237,8 +238,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       TextButton(
                         onPressed: _directDemoLogin,
                         child: const Text(
-                          'Quick Demo Access',
+                          'Quick Demo',
                           style: TextStyle(color: AppColors.primary),
+                        ),
+                      ),
+                      const Text('•', style: TextStyle(color: AppColors.textMuted)),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (ctx) => const PairingScreen()),
+                          );
+                        },
+                        child: const Text(
+                          'Pair Device',
+                          style: TextStyle(color: AppColors.secondary),
                         ),
                       ),
                     ],

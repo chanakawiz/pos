@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/printer/printer_service.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../data/models/sale.dart';
 import '../../../providers/auth_provider.dart';
@@ -136,6 +137,16 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog>
 
     // Commit atomically to local SQLite
     await salesRepo.createSale(sale);
+
+    // Kick cash drawer for cash payment if drawer is enabled
+    if (_selectedMethod == PaymentMethod.cash && PrinterService.instance.drawerEnabled) {
+      PrinterService.instance.kickCashDrawer();
+    }
+
+    // Auto-print receipt if enabled
+    if (PrinterService.instance.autoPrintOnCheckout) {
+      PrinterService.instance.printSaleReceipt(sale, authState.user?.store);
+    }
 
     // Trigger background sync in non-blocking manner
     ref.read(syncProvider.notifier).syncNow();
