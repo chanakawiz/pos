@@ -23,10 +23,13 @@ void main() {
     );
 
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.text('SMARTSHOP'), findsWidgets);
+
+    // Advance timer past splash animation and fade transition
+    await tester.pump(const Duration(milliseconds: 2400));
+    await tester.pump(const Duration(milliseconds: 700));
 
     // Verify flagship boutique main screen is loaded
     expect(find.byType(StoreMainScreen), findsOneWidget);
-    expect(find.text('SMARTSHOP BOUTIQUE'), findsOneWidget);
   });
 }

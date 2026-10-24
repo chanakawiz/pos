@@ -60,6 +60,20 @@ class AuthController extends Controller
         $tokenName = $request->device_uuid ? "device-{$request->device_uuid}" : 'pos-token';
         $token = $user->createToken($tokenName)->plainTextToken;
 
+        $customerData = null;
+        if ($user->role === 'customer') {
+            $customer = \App\Models\Customer::where('email', $user->email)->first();
+            if ($customer) {
+                $customerData = [
+                    'uuid' => $customer->uuid,
+                    'phone' => $customer->phone,
+                    'loyalty_points' => $customer->loyalty_points,
+                    'tier' => $customer->loyalty_points >= 250 ? 'Gold VIP' : 'Silver Member',
+                    'credit_limit' => $customer->credit_limit,
+                ];
+            }
+        }
+
         return response()->json([
             'status' => 'success',
             'token' => $token,
@@ -68,6 +82,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'customer' => $customerData,
                 'store' => $user->store ? [
                     'uuid' => $user->store->uuid,
                     'code' => $user->store->code,
@@ -80,6 +95,66 @@ class AuthController extends Controller
                 ] : null,
             ],
         ]);
+    }
+
+    /**
+     * Customer Self Registration for Mobile & Web.
+     */
+    public function register(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:120',
+            'email' => 'required|email|max:120|unique:users,email',
+            'phone' => 'required|string|max:30',
+            'password' => 'required|string|min:6',
+            'address' => 'nullable|string|max:255',
+        ]);
+
+        $user = User::create([
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'customer',
+            'is_active' => true,
+        ]);
+
+        $cleanPhone = preg_replace('/[^0-9+]/', '', $validated['phone']);
+        $customer = \App\Models\Customer::firstOrCreate(
+            ['phone' => $cleanPhone],
+            [
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'address' => $validated['address'] ?? null,
+                'loyalty_points' => 100, // 100 Welcome Points
+                'credit_limit' => 50000.00,
+                'balance' => 0.00,
+                'version' => 1,
+            ]
+        );
+
+        $token = $user->createToken('customer-mobile-token')->plainTextToken;
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Account created successfully! 100 welcome loyalty points awarded.',
+            'token' => $token,
+            'user' => [
+                'uuid' => $user->uuid,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'customer' => [
+                    'uuid' => $customer->uuid,
+                    'name' => $customer->name,
+                    'phone' => $customer->phone,
+                    'email' => $customer->email,
+                    'loyalty_points' => $customer->loyalty_points,
+                    'tier' => 'Gold VIP',
+                ],
+            ],
+        ], 201);
     }
 
     /**

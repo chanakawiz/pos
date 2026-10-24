@@ -55,10 +55,11 @@ class BillingTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonPath('status', 'success')
-            ->assertJsonPath('sale.transaction_uuid', $txUuid)
-            ->assertJsonPath('sale.subtotal', $expectedSubtotal)
-            ->assertJsonPath('sale.total_amount', $expectedTotal)
-            ->assertJsonPath('sale.change_amount', 10);
+            ->assertJsonPath('sale.transaction_uuid', $txUuid);
+
+        $this->assertEquals($expectedSubtotal, (float) $response->json('sale.subtotal'));
+        $this->assertEquals($expectedTotal, (float) $response->json('sale.total_amount'));
+        $this->assertEquals(10.0, (float) $response->json('sale.change_amount'));
 
         // Verify inventory deduction
         $updatedInventory = Inventory::where('store_id', $store->id)

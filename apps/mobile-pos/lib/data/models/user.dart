@@ -55,6 +55,10 @@ class UserModel {
   final String name;
   final String email;
   final String role;
+  final String? phone;
+  final int loyaltyPoints;
+  final String tier;
+  final double creditLimit;
   final StoreModel? store;
 
   const UserModel({
@@ -62,15 +66,24 @@ class UserModel {
     required this.name,
     required this.email,
     required this.role,
+    this.phone,
+    this.loyaltyPoints = 0,
+    this.tier = 'Gold Member',
+    this.creditLimit = 0.0,
     this.store,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final customer = json['customer'] as Map<String, dynamic>?;
     return UserModel(
       uuid: json['uuid']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
-      role: json['role']?.toString() ?? 'cashier',
+      role: json['role']?.toString() ?? 'customer',
+      phone: customer?['phone']?.toString() ?? json['phone']?.toString(),
+      loyaltyPoints: (customer?['loyalty_points'] ?? json['loyalty_points'] ?? 0) as int,
+      tier: customer?['tier']?.toString() ?? json['tier']?.toString() ?? 'Gold VIP',
+      creditLimit: double.tryParse((customer?['credit_limit'] ?? json['credit_limit'] ?? 0).toString()) ?? 0.0,
       store: json['store'] is Map<String, dynamic>
           ? StoreModel.fromJson(json['store'] as Map<String, dynamic>)
           : null,
@@ -83,7 +96,12 @@ class UserModel {
       'name': name,
       'email': email,
       'role': role,
+      'phone': phone,
+      'loyalty_points': loyaltyPoints,
+      'tier': tier,
+      'credit_limit': creditLimit,
       'store': store?.toJson(),
     };
   }
 }
+

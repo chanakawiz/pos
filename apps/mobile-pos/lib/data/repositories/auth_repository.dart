@@ -61,6 +61,35 @@ class AuthRepository {
     }
   }
 
+  Future<UserModel> register({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/api/v1/auth/register',
+        data: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      final token = data['token']?.toString();
+      await _apiClient.setAuthToken(token);
+
+      final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+      return user;
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] ?? e.message ?? 'Registration failed';
+      throw Exception(msg);
+    }
+  }
+
   Future<void> logout() async {
     try {
       await _apiClient.dio.post('/api/v1/auth/logout');
@@ -68,3 +97,4 @@ class AuthRepository {
     await _apiClient.setAuthToken(null);
   }
 }
+

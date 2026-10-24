@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     // Public routes
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/devices/register', [DeviceController::class, 'register']);
     Route::get('/sync/status', [SyncController::class, 'status']);
 

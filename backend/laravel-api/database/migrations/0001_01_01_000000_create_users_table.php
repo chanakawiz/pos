@@ -38,7 +38,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('pin_code_hash')->nullable();
             $table->string('password');
-            $table->enum('role', ['super_admin', 'admin', 'manager', 'cashier'])->default('cashier');
+            $table->string('role', 30)->default('customer');
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();

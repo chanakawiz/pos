@@ -469,7 +469,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-iphone-16pm',
         name: 'Apple iPhone 16 Pro Max 256GB (Space Black)',
-        sinhalaName: 'ඇපල් අයිෆෝන් 16 ප්‍රෝ මැක්ස් 256GB',
         sku: 'TECH-IPH-16PM',
         barcode: '445566',
         sellingPrice: 415000.0,
@@ -484,7 +483,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-iphone-15',
         name: 'Apple iPhone 15 Pro 128GB (Natural Titanium)',
-        sinhalaName: 'ඇපල් අයිෆෝන් 15 ප්‍රෝ 128GB',
         sku: 'TECH-IPH-15P',
         barcode: '195949038234',
         sellingPrice: 345000.0,
@@ -499,7 +497,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-samsung-s24u',
         name: 'Samsung Galaxy S24 Ultra 512GB (Titanium Gray)',
-        sinhalaName: 'සැම්සුන්ග් ගැලැක්සි S24 අල්ට්‍රා 512GB',
         sku: 'TECH-SAM-S24U',
         barcode: '556677',
         sellingPrice: 385000.0,
@@ -514,7 +511,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-airpods-pro-2',
         name: 'Apple AirPods Pro 2 (USB-C MagSafe)',
-        sinhalaName: 'එයාපොඩ්ස් ප්‍රෝ 2 USB-C',
         sku: 'TECH-APP-APP2',
         barcode: '667788',
         sellingPrice: 78500.0,
@@ -529,7 +525,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-watch-ultra-2',
         name: 'Apple Watch Ultra 2 (Titanium GPS + Cellular)',
-        sinhalaName: 'ඇපල් වොච් අල්ට්‍රා 2 ටයිටේනියම්',
         sku: 'TECH-APP-WCHULT2',
         barcode: '667799',
         sellingPrice: 275000.0,
@@ -544,7 +539,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-anker-65w',
         name: 'Anker Nano II 65W GaN Fast Charger',
-        sinhalaName: 'ඇන්කර් 65W GaN චාජරය',
         sku: 'TECH-ANK-65W',
         barcode: '990011',
         sellingPrice: 13500.0,
@@ -561,7 +555,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-linen-shirt',
         name: 'The Everyday Linen Shirt (Relaxed Fit)',
-        sinhalaName: 'සැහැල්ලු ලිනන් කමිසය',
         sku: 'APP-LIN-SHT01',
         barcode: '112233',
         sellingPrice: 6900.0,
@@ -575,7 +568,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-midi-dress',
         name: 'Sunday Midi Linen Dress (Warm Ivory)',
-        sinhalaName: 'සන්ඩේ ලිනන් මිඩි ඇඳුම',
         sku: 'APP-DRS-MID01',
         barcode: '887766',
         sellingPrice: 8900.0,
@@ -589,7 +581,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-wool-blazer',
         name: 'Italian Tailored Wool Blazer (Charcoal)',
-        sinhalaName: 'ඉතාලි විලාසිතාවේ බ්ලේසරය',
         sku: 'APP-BLZ-CHR01',
         barcode: '223344',
         sellingPrice: 24500.0,
@@ -603,7 +594,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-rl-polo',
         name: 'Ralph Lauren Custom Slim Fit Mesh Polo',
-        sinhalaName: 'රැල්ෆ් ලෝරන් කස්ටම් පොලෝ',
         sku: 'APP-RL-POLO01',
         barcode: '223355',
         sellingPrice: 28500.0,
@@ -617,7 +607,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-levis-501',
         name: 'Levi\'s 501 Original Fit Denim Jeans',
-        sinhalaName: 'ලෙවීස් 501 ඔරිජිනල් ඩෙනිම්',
         sku: 'APP-DNM-501',
         barcode: '334455',
         sellingPrice: 14500.0,
@@ -633,7 +622,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-nike-peg40',
         name: 'Nike Air Zoom Pegasus 40 Running Shoes',
-        sinhalaName: 'නයික් එයාර් සූම් පෙගසස් 40',
         sku: 'FTW-NIK-PEG40',
         barcode: '789012',
         sellingPrice: 38500.0,
@@ -648,7 +636,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-adidas-ub',
         name: 'Adidas Ultraboost Light Running Shoes',
-        sinhalaName: 'ඇඩිඩාස් අල්ට්‍රාබූස්ට් ලයිට්',
         sku: 'FTW-ADI-UB01',
         barcode: '890123',
         sellingPrice: 42000.0,
@@ -663,7 +650,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-clarks-oxford',
         name: 'Clarks Batcombe Lord Leather Oxford',
-        sinhalaName: 'ක්ලාක්ස් ලෙදර් ඔක්ස්ෆර්ඩ් සපත්තු',
         sku: 'FTW-CLK-OXF01',
         barcode: '123456',
         sellingPrice: 29500.0,
@@ -678,7 +664,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-puma-suede',
         name: 'Puma Suede Classic XXI Heritage Shoes',
-        sinhalaName: 'පූමා ස්වේඩ් ක්ලැසික් සපත්තු',
         sku: 'FTW-PUM-SUD01',
         barcode: '123457',
         sellingPrice: 26500.0,
@@ -695,7 +680,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-toyota-prado',
         name: 'Toyota Land Cruiser Prado 250 (2025 Hybrid)',
-        sinhalaName: 'ටොයෝටා ලෑන්ඩ් කෲසර් ප්‍රාඩෝ 250',
         sku: 'AUTO-TOY-PRADO250',
         barcode: '900001',
         sellingPrice: 48500000.0,
@@ -710,7 +694,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-defender-110',
         name: 'Land Rover Defender 110 X-Dynamic HSE',
-        sinhalaName: 'ලෑන්ඩ් රෝවර් ඩිෆෙන්ඩර් 110',
         sku: 'AUTO-LRV-DEF110',
         barcode: '900002',
         sellingPrice: 62000000.0,
@@ -725,7 +708,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-byd-seal',
         name: 'BYD Seal EV Performance AWD (82.5 kWh)',
-        sinhalaName: 'බී.වයි.ඩී සීල් සුපිරි විදුලි මෝටර් රථය',
         sku: 'AUTO-BYD-SEAL01',
         barcode: '900003',
         sellingPrice: 19800000.0,
@@ -740,7 +722,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-honda-civic',
         name: 'Honda Civic RS Turbo (Sport Edition)',
-        sinhalaName: 'හොන්ඩා සිවික් ආර්.එස් ටර්බෝ',
         sku: 'AUTO-HND-CIVICRS',
         barcode: '900004',
         sellingPrice: 16500000.0,
@@ -755,7 +736,6 @@ class DatabaseHelper {
       const ProductModel(
         uuid: 'prod-toyota-brakepads',
         name: 'Toyota Genuine Ceramic Brake Pad Set & Hybrid Filter',
-        sinhalaName: 'ටොයෝටා ඔරිජිනල් බ්‍රේක් පෑඩ් කට්ටලය',
         sku: 'AUTO-TOY-BRK01',
         barcode: '900005',
         sellingPrice: 35000.0,

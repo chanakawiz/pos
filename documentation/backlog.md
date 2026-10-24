@@ -148,6 +148,8 @@ Completed Phase 2 Mobile POS (`apps/mobile-pos`) scaffolding and implementation 
 - Interactive Shopping Bag (`MOB-005`): Dynamic item counter badge, quantity adjustment steppers, item deletion, subtotal calculation, and complimentary packaging.
 - Customer Checkout & Fulfillment (`MOB-006`): Recipient details (Name, Mobile for SMS e-receipt, Email), Express Delivery vs Flagship Click-and-Collect, Card vs COD tender, and atomic stock reservation.
 - Order Confirmation & E-Receipts Archive (`MOB-007`): Verified order confirmation badge, order number (`ORD-XXXX`), SMS dispatch notice, verifiable public link (`http://127.0.0.1:8000/receipt/{invoice}`), and local SQLite orders archive.
+- Animated Luxury Splash Screen (`MOB-008`): Pulsing gold monogram medallion, luxury tagline, and smooth transition to StoreMainScreen.
+- VIP Member Loyalty Card & Auth (`MOB-009`): Gold-trimmed digital membership card with 350 PTS, credit limit, Sign In & Sign Up tabbed view, and instant demo login.
 
 Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with 21 automated unit and widget tests covering catalog filtering, barcode lookup, offline queue, sync versioning, mock ESC/POS printing, X-Report generation, drawer kicks, sales history querying, and consumer store app launch.
 
@@ -161,11 +163,13 @@ Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with
 | :--- | :--- | :---: | :---: | :--- |
 | **WEB-001** | E-Commerce Storefront Architecture & Routing | P0 | `✅ DONE` | Public storefront layer connected to the central Laravel API and database (`/` & `/shop`). |
 | **WEB-002** | Multi-Vertical Customizable Themes | P0 | `✅ DONE` | Dynamic theme configuration for Designer Fashion, Tech/Smartphones (Specs & IMEI lookup), Footwear (Size matrix), and Automobili/Vehicles. |
-| **WEB-003** | Product Catalog, Filters & Lookbooks | P0 | `✅ DONE` | Category, brand, size, price, and stock filters with image galleries and bilingual naming. |
+| **WEB-003** | Product Catalog, Filters & Lookbooks | P0 | `✅ DONE` | Category, brand, size, price, and stock filters with image galleries and pristine international flagship names. |
 | **WEB-004** | Shopping Bag & Stock Reservation | P0 | `✅ DONE` | Persistent session bag, quantity controls, and atomic stock reservation preventing overselling. |
 | **WEB-005** | Checkout Engine & Payment Adapters | P0 | `✅ DONE` | Cash on Delivery (COD) and Card checkout integration with signed callback verification. |
 | **WEB-006** | Real-Time POS & Storefront Inventory Sync | P0 | `✅ DONE` | Instant two-way stock synchronization between in-store POS checkouts and web purchases. |
 | **WEB-007** | Public Digital SMS E-Receipt Page | P0 | `✅ DONE` | Verified digital tax invoice at `/receipt/{invoice}` with customer privacy phone masking. |
+| **WEB-008** | Customer Web Sign In & Sign Up | P0 | `✅ DONE` | Dedicated luxury `/login` and `/register` views with automatic 100 welcome bonus loyalty points. |
+| **WEB-009** | Customer Account & Order History Hub | P0 | `✅ DONE` | Dedicated `/account` dashboard with digital VIP membership card, loyalty points value, and digital receipt links. |
 
 ---
 

@@ -97,15 +97,10 @@
                                 @endif
                             </div>
 
-                            <!-- Product Title & Sinhala Subtitle -->
+                            <!-- Product Title -->
                             <h3 class="font-display font-bold text-white text-sm leading-snug group-hover:text-emeraldAccent transition-colors">
                                 {{ $product->name }}
                             </h3>
-                            @if($product->sinhala_name)
-                                <div class="text-[11px] text-slate-400 mt-0.5">
-                                    {{ $product->sinhala_name }}
-                                </div>
-                            @endif
 
                             <!-- Badges row: Serial/IMEI, Warranty -->
                             <div class="flex flex-wrap items-center gap-1.5 mt-3">

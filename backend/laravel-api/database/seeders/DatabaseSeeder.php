@@ -42,12 +42,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 3. Devices
-        $winDevice = Device::firstOrCreate(
-            ['pairing_code' => 'POS-WIN-01'],
+        // 3. Counter Devices for Cashiers (In-Store Desktop POS Terminals)
+        $counter01 = Device::firstOrCreate(
+            ['pairing_code' => 'COUNTER-01'],
             [
                 'store_id' => $store->id,
-                'device_name' => 'Lane 01 - Windows POS',
+                'device_name' => 'Counter Lane 01 - Flagship POS',
                 'device_type' => 'windows',
                 'mac_address' => '00:1B:44:11:3A:B7',
                 'app_version' => '1.0.0',
@@ -55,19 +55,22 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $mobileDevice = Device::firstOrCreate(
-            ['pairing_code' => 'POS-IOS-01'],
+        $counter02 = Device::firstOrCreate(
+            ['pairing_code' => 'COUNTER-02'],
             [
                 'store_id' => $store->id,
-                'device_name' => 'Mobile 01 - iPhone 16 Pro',
-                'device_type' => 'ios',
-                'mac_address' => 'F0:18:98:23:44:CD',
+                'device_name' => 'Counter Lane 02 - Express POS',
+                'device_type' => 'windows',
+                'mac_address' => '00:1B:44:11:3A:C8',
                 'app_version' => '1.0.0',
                 'is_active' => true,
             ]
         );
 
-        // 4. Users (Admin, Manager, Cashier)
+        // 4. Users (Admin ERP, Managers, Counter Cashiers, and Online Customers)
+        $customerRole = Role::firstOrCreate(['name' => 'customer']);
+
+        // Admin User for /admin
         $admin = User::firstOrCreate(
             ['email' => 'admin@smartshop.com'],
             [
@@ -80,11 +83,12 @@ class DatabaseSeeder extends Seeder
         );
         $admin->syncRoles([$superAdminRole]);
 
+        // Manager User for /admin
         $manager = User::firstOrCreate(
             ['email' => 'manager@smartshop.com'],
             [
                 'store_id' => $store->id,
-                'name' => 'Alex Vance (Store Manager)',
+                'name' => 'Alex Vance (Flagship Manager)',
                 'password' => Hash::make('password'),
                 'role' => 'manager',
                 'is_active' => true,
@@ -92,11 +96,12 @@ class DatabaseSeeder extends Seeder
         );
         $manager->syncRoles([$managerRole]);
 
+        // Cashier User for In-Store Counter Terminals
         $cashier = User::firstOrCreate(
             ['email' => 'cashier1@smartshop.com'],
             [
                 'store_id' => $store->id,
-                'name' => 'Sarah Connor (Lane 1 Cashier)',
+                'name' => 'Sarah Connor (Counter 1 Cashier)',
                 'pin_code_hash' => Hash::make('1234'),
                 'password' => Hash::make('password'),
                 'role' => 'cashier',
@@ -104,6 +109,34 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $cashier->syncRoles([$cashierRole]);
+
+        // Online Registered Customer (Web App & Mobile App)
+        $onlineCustomer = User::firstOrCreate(
+            ['email' => 'customer@lifestyle.test'],
+            [
+                'store_id' => $store->id,
+                'name' => 'Dulantha Perera',
+                'password' => Hash::make('password'),
+                'role' => 'customer',
+                'is_active' => true,
+            ]
+        );
+        $onlineCustomer->syncRoles([$customerRole]);
+
+        // Seed Customer record matching this user
+        Customer::firstOrCreate(
+            ['phone' => '0771234567'],
+            [
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'name' => 'Dulantha Perera',
+                'email' => 'customer@lifestyle.test',
+                'address' => '48 Horton Place, Colombo 07',
+                'loyalty_points' => 350,
+                'credit_limit' => 500000.00,
+                'balance' => 0.00,
+                'version' => 1,
+            ]
+        );
 
         // 5. High-End Flagship Retail Vertical Categories
         $categories = [
@@ -516,7 +549,7 @@ class DatabaseSeeder extends Seeder
                 ['sku' => $item['sku']],
                 [
                     'name' => $item['name'],
-                    'sinhala_name' => $item['sinhala_name'] ?? null,
+                    'sinhala_name' => null,
                     'barcode' => $item['barcode'],
                     'category_id' => $catModels[$item['category']]->id,
                     'brand_id' => $brandModels[$item['brand']]->id,

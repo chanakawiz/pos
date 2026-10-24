@@ -7,6 +7,7 @@ import '../../providers/catalog_provider.dart';
 import 'store_cart_screen.dart';
 import 'store_catalog_screen.dart';
 import 'store_home_screen.dart';
+import 'store_member_screen.dart';
 import 'store_orders_screen.dart';
 
 class StoreMainScreen extends ConsumerStatefulWidget {
@@ -44,6 +45,7 @@ class _StoreMainScreenState extends ConsumerState<StoreMainScreen> {
         onBrowseCatalog: () => setState(() => _currentIndex = 1),
       ),
       const StoreOrdersScreen(),
+      const StoreMemberScreen(),
     ];
 
     return Scaffold(
@@ -110,6 +112,11 @@ class _StoreMainScreenState extends ConsumerState<StoreMainScreen> {
                 icon: const Icon(Icons.receipt_long_outlined, color: AppColors.textSecondary),
                 selectedIcon: const Icon(Icons.receipt_long, color: AppColors.gold),
                 label: 'Orders',
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.card_membership_outlined, color: AppColors.textSecondary),
+                selectedIcon: const Icon(Icons.card_membership, color: AppColors.gold),
+                label: 'VIP Club',
               ),
             ],
           ),

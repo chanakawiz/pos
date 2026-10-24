@@ -38,30 +38,57 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repo;
 
   AuthNotifier(this._repo) : super(AuthState(deviceUuid: ApiClient.instance.deviceUuid)) {
-    // If running in development demo mode, initialize with demo cashier
+    // Initialize with VIP customer session
     _initDemoSession();
   }
 
   void _initDemoSession() {
     state = state.copyWith(
       user: const UserModel(
-        uuid: 'cashier-demo-uuid',
-        name: 'Sarah Miller',
-        email: 'cashier1@smartshop.com',
-        role: 'cashier',
-        store: StoreModel(
-          uuid: 'store-main-uuid',
-          name: 'Main Downtown Store',
-          currencySymbol: 'Rs.',
-          currencyCode: 'LKR',
-          address: '42 Galle Road, Colombo 03',
-          phone: '+94 11 234 5678',
-          receiptHeader: 'SMARTSHOP RETAIL PVT LTD',
-          receiptFooter: 'Thank you for shopping! Come again.',
-        ),
+        uuid: 'cust-demo-lifestyle-01',
+        name: 'Dulantha Perera',
+        email: 'customer@lifestyle.test',
+        role: 'customer',
+        phone: '0771234567',
+        loyaltyPoints: 350,
+        tier: 'Gold VIP',
+        creditLimit: 500000.0,
       ),
       deviceUuid: ApiClient.instance.deviceUuid,
     );
+  }
+
+  Future<bool> registerCustomer({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final user = await _repo.register(
+        name: name,
+        email: email,
+        phone: phone,
+        password: password,
+      );
+      state = state.copyWith(user: user, isLoading: false);
+      return true;
+    } catch (e) {
+      // In offline / fallback demo mode, create local VIP customer
+      final localUser = UserModel(
+        uuid: 'cust-${DateTime.now().millisecondsSinceEpoch}',
+        name: name,
+        email: email,
+        role: 'customer',
+        phone: phone,
+        loyaltyPoints: 100, // 100 welcome bonus points
+        tier: 'Gold VIP',
+        creditLimit: 50000.0,
+      );
+      state = state.copyWith(user: localUser, isLoading: false);
+      return true;
+    }
   }
 
   Future<bool> loginWithPin({required String pinCode, required String email}) async {

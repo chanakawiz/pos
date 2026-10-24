@@ -5,6 +5,7 @@ import 'core/network/api_client.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/splash/splash_screen.dart';
 import 'screens/store/store_main_screen.dart';
 
 void main() async {
@@ -30,7 +31,7 @@ class SmartShopMobilePosApp extends ConsumerWidget {
       title: 'SmartShop Flagship Store',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const StoreMainScreen(),
+      home: const SplashScreen(),
     );
   }
 }

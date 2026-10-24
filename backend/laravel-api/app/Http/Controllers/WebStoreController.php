@@ -229,4 +229,148 @@ class WebStoreController extends Controller
 
         return view('store.receipt', compact('sale', 'maskedPhone'));
     }
+
+    /**
+     * Customer Sign In View.
+     */
+    public function showLogin()
+    {
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            return redirect()->route('store.account');
+        }
+        $store = Store::first();
+        return view('store.auth.login', compact('store'));
+    }
+
+    /**
+     * Handle Customer Sign In.
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        // Attempt login via email
+        $user = \App\Models\User::where('email', $credentials['email'])->first();
+
+        // If not found by email, check customer phone
+        if (!$user) {
+            $cleanPhone = preg_replace('/[^0-9+]/', '', $credentials['email']);
+            $customer = Customer::where('phone', $cleanPhone)->first();
+            if ($customer && $customer->email) {
+                $user = \App\Models\User::where('email', $customer->email)->first();
+            }
+        }
+
+        if ($user && \Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
+            \Illuminate\Support\Facades\Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+            return redirect()->intended(route('store.account'))
+                ->with('success', 'Welcome back, ' . $user->name . '!');
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
+    /**
+     * Customer Sign Up View.
+     */
+    public function showRegister()
+    {
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            return redirect()->route('store.account');
+        }
+        $store = Store::first();
+        return view('store.auth.register', compact('store'));
+    }
+
+    /**
+     * Handle Customer Sign Up.
+     */
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:120',
+            'email' => 'required|email|max:120|unique:users,email',
+            'phone' => 'required|string|max:30',
+            'password' => 'required|string|min:6|confirmed',
+            'address' => 'nullable|string|max:255',
+        ]);
+
+        $user = \App\Models\User::create([
+            'uuid' => (string) Str::uuid(),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+            'role' => 'customer',
+            'is_active' => true,
+        ]);
+
+        // Create or link Customer model with welcome loyalty points
+        $cleanPhone = preg_replace('/[^0-9+]/', '', $validated['phone']);
+        Customer::firstOrCreate(
+            ['phone' => $cleanPhone],
+            [
+                'uuid' => (string) Str::uuid(),
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'address' => $validated['address'] ?? null,
+                'loyalty_points' => 100, // 100 Welcome Points
+                'credit_limit' => 50000.00,
+                'balance' => 0.00,
+                'version' => 1,
+            ]
+        );
+
+        \Illuminate\Support\Facades\Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('store.account')
+            ->with('success', 'Account created successfully! 100 Welcome Loyalty Points added to your card.');
+    }
+
+    /**
+     * Customer Logout.
+     */
+    public function logout(Request $request)
+    {
+        \Illuminate\Support\Facades\Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('store.index')->with('success', 'You have been signed out.');
+    }
+
+    /**
+     * Customer Account & Membership Dashboard.
+     */
+    public function account()
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if (!$user) {
+            return redirect()->route('store.login');
+        }
+
+        $customer = Customer::where('email', $user->email)
+            ->orWhere('name', $user->name)
+            ->first();
+
+        $store = Store::first();
+
+        // Get past orders for this customer
+        $orders = collect();
+        if ($customer) {
+            $orders = Sale::with(['items', 'payments'])
+                ->where('customer_id', $customer->id)
+                ->latest()
+                ->take(15)
+                ->get();
+        }
+
+        return view('store.account', compact('user', 'customer', 'store', 'orders'));
+    }
 }

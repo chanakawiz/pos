@@ -97,13 +97,27 @@
             </form>
 
             <!-- Actions & Cart Drawer Trigger -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5">
                 <a href="{{ route('store.index') }}" class="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-lg bg-cardDark border border-hairline text-slate-300 hover:text-white hover:border-slate-600 transition-colors">
                     Catalog
                 </a>
 
-                <a href="/admin" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-cardDark border border-hairline text-amber-400 hover:text-white hover:border-amber-400/50 transition-colors" title="Open Admin Control Room">
-                    <span>⚡</span> Admin ERP
+                @auth
+                    <a href="{{ route('store.account') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slateDark border border-goldLuxury/50 text-xs font-semibold text-goldLuxury hover:bg-cardDark transition-colors shadow-sm" title="My VIP Account & Orders">
+                        <span class="w-2 h-2 rounded-full bg-goldLuxury"></span>
+                        <span>{{ Str::limit(auth()->user()->name, 12) }}</span>
+                    </a>
+                @else
+                    <a href="{{ route('store.login') }}" class="text-xs font-semibold px-2.5 py-1.5 text-slate-300 hover:text-white transition-colors">
+                        Sign In
+                    </a>
+                    <a href="{{ route('store.register') }}" class="hidden sm:inline-flex text-xs font-bold px-3 py-1.5 rounded-lg bg-goldLuxury/15 border border-goldLuxury/40 text-goldLuxury hover:bg-goldLuxury/25 transition-colors">
+                        Join VIP (+100 Pts)
+                    </a>
+                @endauth
+
+                <a href="/admin" target="_blank" class="hidden md:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-cardDark border border-hairline text-amber-400 hover:text-white hover:border-amber-400/50 transition-colors" title="Open Admin Control Room">
+                    <span>⚡</span> ERP
                 </a>
 
                 <button onclick="toggleCartDrawer()" class="relative flex items-center gap-2 px-3.5 py-2 rounded-xl bg-cardDark hover:bg-cardHover border border-hairline text-slate-200 transition-all">
@@ -181,15 +195,18 @@
                         @csrf
                         <input type="hidden" name="cart_items" id="cartItemsInput" value="[]">
 
+                        @php
+                            $authedCustomer = auth()->check() ? \App\Models\Customer::where('email', auth()->user()->email)->first() : null;
+                        @endphp
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Your Full Name</label>
-                            <input type="text" name="customer_name" required placeholder="e.g. Kasun Fernando"
+                            <input type="text" name="customer_name" required value="{{ auth()->check() ? auth()->user()->name : '' }}" placeholder="e.g. Kasun Fernando"
                                 class="w-full bg-slateDark border border-hairline rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emeraldAccent focus:outline-none">
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Mobile Number (For SMS Bill)</label>
-                            <input type="tel" name="customer_phone" required placeholder="e.g. 0771234567"
+                            <input type="tel" name="customer_phone" required value="{{ $authedCustomer->phone ?? '' }}" placeholder="e.g. 0771234567"
                                 class="w-full bg-slateDark border border-hairline rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emeraldAccent focus:outline-none">
                             <span class="text-[10px] text-emerald-400/90 mt-0.5 block">🔒 SMS e-receipt link sent instantly upon order.</span>
                         </div>
@@ -197,7 +214,7 @@
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Shipping Address</label>
                             <textarea name="shipping_address" rows="2" required placeholder="Delivery address, City..."
-                                class="w-full bg-slateDark border border-hairline rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emeraldAccent focus:outline-none"></textarea>
+                                class="w-full bg-slateDark border border-hairline rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emeraldAccent focus:outline-none">{{ $authedCustomer->address ?? '' }}</textarea>
                         </div>
 
                         <div>
