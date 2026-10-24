@@ -90,6 +90,22 @@
 | **Cash Session & X-Report** | `✅ DONE` | Register shift summary, tender breakdown (Cash/Card/Bank), drawer kick, and ESC/POS X-Report. |
 | **Multi-Lane Held Bills**   | `✅ DONE` | Cloud hold & recall (`/api/v1/held-bills`) with SQLite offline fallback for queue-busting. |
 | **Customer CRM & Quick Add**| `✅ DONE` | In-cart quick customer creation modal with phone/email and instant cart selection. |
+| **Dark Luxury UI Polish**   | `✅ DONE` | Refined obsidian dark palette (`#0A0E17`), hairline luxury borders (`#223048`), micro-typography, and overflow-free responsive layout inspired by `store_web`. |
+
+### 2.5 Customizable E-Commerce Web Storefront (`apps/web-store`)
+| Module | Status | Notes |
+| :--- | :---: | :--- |
+| **Omnichannel Web Architecture** | `⏳ PLANNED` | Public customer-facing e-commerce layer sharing master Laravel database and inventory. |
+| **Multi-Store Customization** | `⏳ PLANNED` | Themes adaptable for Clothing (Studio Ceylon lookbook), Footwear (Size matrix), and Mobile/Tech (Specs & IMEI lookup). |
+| **Shopping Bag & Checkout**  | `⏳ PLANNED` | Session bag, PayHere hosted payment gateway, Cash on Delivery, and instant stock reservation. |
+
+### 2.6 Customer Protection, Privacy & SMS Gateway
+| Feature | Status | Notes |
+| :--- | :---: | :--- |
+| **Customer Phone Masking**   | `✅ DONE` | Front-facing privacy masking (`077 **** 567`) in cart & queues to prevent shoulder-surfing. |
+| **SMS Service Driver Engine**| `✅ DONE` | Pluggable `SmsService` driver supporting bill summary generation and digital receipt links. |
+| **Checkout SMS Bill Dispatch**| `✅ DONE` | Automatic SMS bill trigger in `PaymentDialog` with customer mobile input. |
+| **Production SMS Gateways**  | `⏳ READY FOR API KEYS` | Driver hooks configured for Notify.lk, Twilio, Dialog, and Mobitel carrier integration. |
 
 ---
 

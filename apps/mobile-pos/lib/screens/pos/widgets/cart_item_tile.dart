@@ -21,11 +21,11 @@ class CartItemTile extends ConsumerWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.card.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border.withOpacity(0.6)),
+        color: AppColors.card.withOpacity(0.65),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,6 +44,7 @@ class CartItemTile extends ConsumerWidget {
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
+                        letterSpacing: -0.2,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -54,48 +55,52 @@ class CartItemTile extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Text(
                         item.product.sinhalaName!,
-                        style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary.withOpacity(0.8)),
                       ),
                     ],
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.close, size: 16, color: AppColors.textMuted),
-                onPressed: () => cartNotifier.removeItem(item.product.uuid),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => cartNotifier.removeItem(item.product.uuid),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.close, size: 16, color: AppColors.textMuted),
+                ),
               ),
             ],
           ),
 
           // Serial / IMEI badge if present
           if (item.serialNumber != null && item.serialNumber!.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: AppColors.secondary.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.secondary.withOpacity(0.3), width: 0.5),
               ),
               child: Text(
                 'SN: ${item.serialNumber}',
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontFamily: 'monospace',
                   color: AppColors.secondary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ],
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
           // Quantity controls & Total price
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Quantity buttons
+              // Quantity stepper
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
@@ -105,28 +110,31 @@ class CartItemTile extends ConsumerWidget {
                 child: Row(
                   children: [
                     InkWell(
+                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
                       onTap: () => cartNotifier.decrementQuantity(item.product.uuid),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: Icon(Icons.remove, size: 14, color: AppColors.textPrimary),
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        child: Icon(Icons.remove, size: 14, color: AppColors.textSecondary),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    Container(
+                      constraints: const BoxConstraints(minWidth: 28),
+                      alignment: Alignment.center,
                       child: Text(
                         CurrencyFormatter.formatQuantity(item.quantity),
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
                     ),
                     InkWell(
+                      borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
                       onTap: () => cartNotifier.incrementQuantity(item.product.uuid),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: Icon(Icons.add, size: 14, color: AppColors.textPrimary),
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        child: Icon(Icons.add, size: 14, color: AppColors.primary),
                       ),
                     ),
                   ],
@@ -140,9 +148,10 @@ class CartItemTile extends ConsumerWidget {
                   Text(
                     CurrencyFormatter.format(item.total, symbol: currencySymbol),
                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.primary,
+                      letterSpacing: -0.2,
                     ),
                   ),
                   if (item.quantity > 1)

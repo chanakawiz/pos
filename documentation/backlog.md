@@ -144,4 +144,32 @@ Completed Phase 2 Mobile POS (`apps/mobile-pos`) scaffolding and implementation 
 - ESC/POS Printing, Cash Drawer & X-Report (`MOB-007`, `MOB-009`): 80mm/58mm receipts with Sinhala subtitles, RJ11 drawer kick (pin 2 & 5), mid-shift cash session audit dialog, and X-Report generation.
 - Sales History & Reprinting (`MOB-008`): Transaction search, sync status filters (All/Synced/Pending), line items inspection, and one-tap reprinting.
 
-Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with 18 automated unit and widget tests covering catalog filtering, barcode lookup, offline queue, sync versioning, mock ESC/POS printing, X-Report generation, drawer kicks, sales history querying, and shift summaries.
+Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with 20 automated unit and widget tests covering catalog filtering, barcode lookup, offline queue, sync versioning, mock ESC/POS printing, X-Report generation, drawer kicks, sales history querying, and shift summaries.
+
+---
+
+## Epic 5: Customizable E-Commerce Web Storefront (`apps/web-store`)
+
+> **Design Reference**: Inspired by the clean, luxury editorial aesthetic of `store_web` on Desktop (kept strictly separate and unmodified).
+
+| Task ID | Task Title | Priority | Status | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| **WEB-001** | E-Commerce Storefront Architecture & Routing | P0 | `⏳ PENDING` | Public storefront layer connected to the central Laravel API and database. |
+| **WEB-002** | Multi-Vertical Customizable Themes | P0 | `⏳ PENDING` | Dynamic theme configuration for Clothing (Studio Ceylon editorial), Tech/Mobile (Specs & IMEI lookup), and Shoes (Size matrix). |
+| **WEB-003** | Product Catalog, Filters & Lookbooks | P0 | `⏳ PENDING` | Category, brand, size, price, and stock filters with image galleries and bilingual naming. |
+| **WEB-004** | Shopping Bag & Stock Reservation | P0 | `⏳ PENDING` | Persistent session bag, quantity controls, and atomic stock reservation preventing overselling. |
+| **WEB-005** | Checkout Engine & Payment Adapters | P0 | `⏳ PENDING` | Cash on Delivery (COD) and PayHere card checkout integration with signed callback verification. |
+| **WEB-006** | Real-Time POS & Storefront Inventory Sync | P0 | `⏳ PENDING` | Instant two-way stock synchronization between in-store POS checkouts and web purchases. |
+
+---
+
+## Epic 6: Customer Protection, Privacy & SMS E-Receipts Gateway
+
+| Task ID | Task Title | Priority | Status | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| **SEC-001** | Screen-Level Customer Privacy Masking | P0 | `✅ DONE` | Mask customer phone numbers (e.g. `077 **** 567`) in checkout and queue displays to prevent shoulder-surfing. |
+| **SEC-002** | SMS E-Receipt Service Architecture | P0 | `✅ DONE` | `SmsService` driver architecture supporting digital bill generation, thank-you messages, and receipt links. |
+| **SEC-003** | Checkout SMS Bill Toggle & Mobile Capture | P0 | `✅ DONE` | Toggle switch in POS `PaymentDialog` with customer mobile input and automatic e-receipt dispatch. |
+| **SEC-004** | SMS Gateway Provider Integrations | P1 | `⏳ PENDING` | Live API driver connectors for Notify.lk, Twilio, Dialog, and Mobitel (gateway credentials can be configured per merchant). |
+| **SEC-005** | Customer Data Protection & GDPR Compliance | P1 | `⏳ PENDING` | Cryptographic data hashing for customer ledgers and export/erase compliance tools in Filament admin. |
+

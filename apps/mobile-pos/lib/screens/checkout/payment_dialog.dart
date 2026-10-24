@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/printer/printer_service.dart';
+import '../../../core/sms/sms_service.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../data/models/sale.dart';
 import '../../../providers/auth_provider.dart';
@@ -24,10 +25,12 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog>
   late TabController _tabController;
   final TextEditingController _cashReceivedController = TextEditingController();
   final TextEditingController _refNumberController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
   PaymentMethod _selectedMethod = PaymentMethod.cash;
   double _cashReceived = 0.0;
   bool _isProcessing = false;
+  bool _sendSmsReceipt = true;
 
   @override
   void initState() {
@@ -46,10 +49,14 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog>
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final total = ref.read(cartProvider).grandTotal;
+      final cartState = ref.read(cartProvider);
+      final total = cartState.grandTotal;
       setState(() {
         _cashReceived = total;
         _cashReceivedController.text = total.toStringAsFixed(2);
+        if (cartState.customer?.phone != null) {
+          _phoneController.text = cartState.customer!.phone!;
+        }
       });
     });
   }
@@ -59,6 +66,7 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog>
     _tabController.dispose();
     _cashReceivedController.dispose();
     _refNumberController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -146,6 +154,19 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog>
     // Auto-print receipt if enabled
     if (PrinterService.instance.autoPrintOnCheckout) {
       PrinterService.instance.printSaleReceipt(sale, authState.user?.store);
+    }
+
+    // Dispatch SMS Digital Receipt to Customer if enabled
+    final targetPhone = _phoneController.text.trim();
+    if (_sendSmsReceipt && targetPhone.isNotEmpty) {
+      SmsService.instance.sendBillSms(
+        phoneNumber: targetPhone,
+        customerName: cartState.customer?.name ?? 'Valued Customer',
+        invoiceNumber: invoiceNumber,
+        totalAmount: total,
+        currencySymbol: authState.user?.store?.currencySymbol ?? 'Rs.',
+        storeName: authState.user?.store?.name,
+      );
     }
 
     // Trigger background sync in non-blocking manner
@@ -354,6 +375,64 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog>
                       style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                     ),
                   ],
+
+                  const SizedBox(height: 16),
+
+                  // SMS Digital E-Receipt & Privacy Protection Box
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.card.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.sms_outlined,
+                                  size: 18,
+                                  color: _sendSmsReceipt ? AppColors.secondary : AppColors.textMuted,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Send SMS Bill / E-Receipt',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Switch(
+                              value: _sendSmsReceipt,
+                              onChanged: (val) => setState(() => _sendSmsReceipt = val),
+                            ),
+                          ],
+                        ),
+                        if (_sendSmsReceipt) ...[
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                            decoration: const InputDecoration(
+                              labelText: 'Customer Mobile (SMS)',
+                              hintText: '077 123 4567',
+                              prefixIcon: Icon(Icons.phone_iphone, size: 18, color: AppColors.textMuted),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

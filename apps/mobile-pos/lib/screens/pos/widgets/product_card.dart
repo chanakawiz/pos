@@ -125,17 +125,24 @@ class ProductCard extends ConsumerWidget {
 
     return InkWell(
       onTap: () => _handleTap(context, ref),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Ink(
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.card.withOpacity(0.55),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: product.isLowStock
                 ? AppColors.danger.withOpacity(0.5)
                 : AppColors.border,
             width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -153,21 +160,23 @@ class ProductCard extends ConsumerWidget {
                       // Category / Serial Badge
                       if (product.requiresSerial)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                           decoration: BoxDecoration(
-                            color: AppColors.secondary.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(4),
+                            color: AppColors.secondary.withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(color: AppColors.secondary.withOpacity(0.25), width: 0.5),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.smartphone, size: 11, color: AppColors.secondary),
+                              Icon(Icons.qr_code_2, size: 11, color: AppColors.secondary),
                               SizedBox(width: 3),
                               Text(
-                                'IMEI/SN',
+                                'IMEI / SN',
                                 style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.06,
                                   color: AppColors.secondary,
                                 ),
                               ),
@@ -177,11 +186,12 @@ class ProductCard extends ConsumerWidget {
                       else if (product.categoryName != null)
                         Expanded(
                           child: Text(
-                            product.categoryName!,
+                            product.categoryName!.toUpperCase(),
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 9.5,
                               color: AppColors.textMuted,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.08,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -197,35 +207,42 @@ class ProductCard extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: product.isLowStock
-                              ? AppColors.danger.withOpacity(0.15)
+                              ? AppColors.danger.withOpacity(0.14)
                               : AppColors.surface,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: product.isLowStock
+                                ? AppColors.danger.withOpacity(0.3)
+                                : AppColors.borderSubtle,
+                            width: 0.5,
+                          ),
                         ),
                         child: Text(
                           product.stockQuantity > 0
-                              ? '${CurrencyFormatter.formatQuantity(product.stockQuantity)} left'
+                              ? '${CurrencyFormatter.formatQuantity(product.stockQuantity)} in stock'
                               : 'Out of Stock',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: product.isLowStock
                                 ? AppColors.danger
-                                : AppColors.textMuted,
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
 
                   // Product Name
                   Text(
                     product.name,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                       height: 1.25,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -235,30 +252,46 @@ class ProductCard extends ConsumerWidget {
                   if (catalogState.isBilingual &&
                       product.sinhalaName != null &&
                       product.sinhalaName!.isNotEmpty) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       product.sinhalaName!,
                       style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary.withOpacity(0.85),
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary.withOpacity(0.75),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
 
-                  // Warranty badge
+                  // Warranty badge (clean gold pill)
                   if (product.warrantyPeriod != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      '🛡️ ${product.warrantyPeriod}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.accent.withOpacity(0.3), width: 0.5),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.verified_outlined, size: 10, color: AppColors.accent),
+                          Flexible(
+                            child: Text(
+                              product.warrantyPeriod!,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ],
@@ -274,21 +307,23 @@ class ProductCard extends ConsumerWidget {
                       CurrencyFormatter.format(product.sellingPrice, symbol: currencySymbol),
                       style: const TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.primary,
+                        letterSpacing: -0.3,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 30,
+                    height: 30,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.15),
+                      color: AppColors.primary.withOpacity(0.18),
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.primary.withOpacity(0.35), width: 0.8),
                     ),
-                    child: const Icon(Icons.add, size: 18, color: AppColors.primary),
+                    child: const Icon(Icons.add, size: 17, color: AppColors.primary),
                   ),
                 ],
               ),
