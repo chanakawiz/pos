@@ -11,6 +11,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockMovement;
 use App\Models\Store;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -86,143 +87,71 @@ class WebStoreController extends Controller
             return back()->with('error', 'Your shopping cart is empty.');
         }
 
-        $store = Store::first();
-        $storeId = $store ? $store->id : 1;
+        $store = Store::first() ?? Store::firstOrCreate(['code' => 'STORE-001'], ['name' => 'OmniLuxe Flagship', 'currency_symbol' => 'Rs.']);
         $currentUser = \Illuminate\Support\Facades\Auth::user();
 
-        $sale = DB::transaction(function () use ($validated, $cartItems, $store, $storeId, $currentUser) {
-            // Find or create customer (with privacy consideration)
-            $phoneClean = preg_replace('/[^0-9+]/', '', $validated['customer_phone']);
-            $customer = Customer::firstOrCreate(
-                ['phone' => $phoneClean],
-                [
-                    'uuid' => (string) Str::uuid(),
-                    'user_id' => $currentUser?->id,
-                    'name' => $validated['customer_name'],
-                    'email' => $validated['customer_email'] ?? $currentUser?->email,
-                    'address' => $validated['shipping_address'],
-                    'loyalty_points' => 0,
-                    'store_credit' => 0.00,
-                ]
-            );
-
-            if ($currentUser && ! $customer->user_id) {
-                $customer->update(['user_id' => $currentUser->id]);
-            }
-
-            $subtotal = 0.0;
-            $itemsToCreate = [];
-
-            foreach ($cartItems as $cItem) {
-                $product = Product::findOrFail($cItem['product_id']);
-                $qty = max(1, (int) $cItem['quantity']);
-                $lineTotal = $product->selling_price * $qty;
-                $subtotal += $lineTotal;
-
-                $itemsToCreate[] = [
-                    'product' => $product,
-                    'quantity' => $qty,
-                    'unit_price' => $product->selling_price,
-                    'subtotal' => $lineTotal,
-                ];
-
-                // Atomically decrement inventory
-                $inv = Inventory::where('product_id', $product->id)
-                    ->where('store_id', $storeId)
-                    ->lockForUpdate()
-                    ->first();
-
-                $oldQty = $inv ? $inv->quantity_on_hand : 0;
-                $newQty = max(0, $oldQty - $qty);
-
-                if ($inv) {
-                    $inv->update(['quantity_on_hand' => $newQty]);
-                } else {
-                    Inventory::create([
-                        'store_id' => $storeId,
-                        'product_id' => $product->id,
-                        'quantity_on_hand' => $newQty,
-                        'reorder_point' => 5,
-                    ]);
-                }
-
-                // Log Stock Movement
-                StockMovement::create([
-                    'store_id' => $storeId,
-                    'product_id' => $product->id,
-                    'type' => 'sale',
-                    'quantity' => -$qty,
-                    'quantity_before' => $oldQty,
-                    'quantity_after' => $newQty,
-                    'reference_type' => 'web_order',
-                    'reference_id' => null,
-                    'notes' => 'E-Commerce Web Store order for ' . $validated['customer_name'],
-                ]);
-            }
-
-            $timestamp = now();
-            $invoiceNumber = 'WEB-' . $timestamp->format('Ymd') . '-' . rand(1000, 9999);
-
-            $sale = Sale::create([
+        // Find or create customer
+        $phoneClean = preg_replace('/[^0-9+]/', '', $validated['customer_phone']);
+        $customer = Customer::firstOrCreate(
+            ['phone' => $phoneClean],
+            [
                 'uuid' => (string) Str::uuid(),
-                'store_id' => $storeId,
-                'user_id' => null, // Online guest/self-checkout
-                'customer_id' => $customer->id,
-                'invoice_number' => $invoiceNumber,
-                'subtotal' => $subtotal,
+                'user_id' => $currentUser?->id,
+                'name' => $validated['customer_name'],
+                'email' => $validated['customer_email'] ?? $currentUser?->email,
+                'address' => $validated['shipping_address'],
+                'loyalty_points' => 0,
+                'store_credit' => 0.00,
+            ]
+        );
+
+        if ($currentUser && ! $customer->user_id) {
+            $customer->update(['user_id' => $currentUser->id]);
+        }
+
+        $saleItems = [];
+        $subtotal = 0.0;
+        foreach ($cartItems as $cItem) {
+            $product = Product::findOrFail($cItem['product_id']);
+            $qty = max(1, (int) $cItem['quantity']);
+            $unitPrice = (float) $product->selling_price;
+            $lineSubtotal = round($qty * $unitPrice, 2);
+            $subtotal += $lineSubtotal;
+
+            $saleItems[] = [
+                'product_id' => $product->id,
+                'quantity' => $qty,
+                'unit_price' => $unitPrice,
                 'discount_amount' => 0.00,
-                'tax_amount' => 0.00,
-                'total_amount' => $subtotal,
-                'paid_amount' => $validated['payment_method'] === 'cod' ? 0.00 : $subtotal,
-                'change_amount' => 0.00,
-                'status' => 'completed',
-                'payment_status' => $validated['payment_method'] === 'cod' ? 'pending' : 'paid',
-                'sold_at' => $timestamp,
-                'notes' => 'Web Store Order | Ship to: ' . $validated['shipping_address'],
-            ]);
+                'warranty_notes' => $product->warranty_period ? "Warranty: {$product->warranty_period}" : null,
+            ];
+        }
 
-            foreach ($itemsToCreate as $itemData) {
-                SaleItem::create([
-                    'sale_id' => $sale->id,
-                    'product_id' => $itemData['product']->id,
-                    'product_name' => $itemData['product']->name,
-                    'quantity' => $itemData['quantity'],
-                    'unit_price' => $itemData['unit_price'],
-                    'discount_amount' => 0.00,
-                    'tax_amount' => 0.00,
-                    'subtotal' => $itemData['subtotal'],
-                    'warranty_expires_at' => $itemData['product']->warranty_period
-                        ? now()->addMonths(12)
-                        : null,
-                ]);
-            }
+        $paymentMethod = match ($validated['payment_method']) {
+            'card' => 'card',
+            'bank_transfer' => 'bank_transfer',
+            default => 'cash',
+        };
 
-            Payment::create([
-                'sale_id' => $sale->id,
-                'payment_method' => $validated['payment_method'],
-                'amount' => $subtotal,
-                'reference_number' => 'WEB-' . strtoupper(Str::random(8)),
-                'status' => $validated['payment_method'] === 'cod' ? 'pending' : 'completed',
-            ]);
+        $adminUser = User::where('role', 'super_admin')->first() ?? User::first();
 
-            // Loyalty points (1 point per Rs. 10 spent)
-            $earnedPoints = (int) floor($subtotal / 10);
-            if ($earnedPoints > 0) {
-                $customer->increment('loyalty_points', $earnedPoints);
-                app(\App\Services\CustomerNotifier::class)->loyaltyCredited($customer, $earnedPoints, $sale->invoice_number);
-            }
+        $salePayload = [
+            'transaction_uuid' => (string) Str::uuid(),
+            'customer_id' => $customer->id,
+            'discount_amount' => 0.00,
+            'source' => 'online',
+            'notes' => 'Web Store Order | Ship to: ' . $validated['shipping_address'] . ' (' . $validated['customer_name'] . ')',
+            'items' => $saleItems,
+            'payments' => [
+                [
+                    'payment_method' => $paymentMethod,
+                    'amount' => $subtotal,
+                ],
+            ],
+        ];
 
-            // Real-Time Reverb WebSocket private customer notification + FCM push
-            app(\App\Services\CustomerNotifier::class)->orderConfirmed($sale);
-
-            // Real-Time stock availability broadcast across Reverb catalog
-            $productIds = collect($cartItems)->pluck('product_id')->filter()->all();
-            if ($store) {
-                app(\App\Services\InventoryBroadcaster::class)->changed($store, $productIds, 'web');
-            }
-
-            return $sale;
-        });
+        $billingService = app(\App\Services\BillingService::class);
+        $sale = $billingService->processSale($salePayload, $store, $adminUser);
 
         return redirect()->route('store.receipt', ['invoice' => $sale->invoice_number])
             ->with('success', 'Order placed successfully! SMS receipt dispatched to customer.');
