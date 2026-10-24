@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/notification_provider.dart';
+import '../../services/notification_service.dart';
 
 class StoreNotificationsScreen extends ConsumerStatefulWidget {
   const StoreNotificationsScreen({super.key});
@@ -14,6 +15,14 @@ class StoreNotificationsScreen extends ConsumerStatefulWidget {
 
 class _StoreNotificationsScreenState extends ConsumerState<StoreNotificationsScreen> {
   String _selectedFilter = 'all'; // 'all', 'order', 'vip', 'promo'
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService().fetchNotificationsFromBackend(ref);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +50,14 @@ class _StoreNotificationsScreenState extends ConsumerState<StoreNotificationsScr
         actions: [
           if (unreadCount > 0)
             TextButton(
-              onPressed: () => ref.read(notificationProvider.notifier).markAllAsRead(),
+              onPressed: () {
+                ref.read(notificationProvider.notifier).markAllAsRead();
+                for (final n in notifications) {
+                  if (!n.isRead) {
+                    NotificationService().markAsReadOnBackend(n.id);
+                  }
+                }
+              },
               child: Text(
                 'Mark All Read',
                 style: GoogleFonts.inter(
@@ -207,6 +223,7 @@ class _StoreNotificationsScreenState extends ConsumerState<StoreNotificationsScr
       onTap: () {
         if (!item.isRead) {
           ref.read(notificationProvider.notifier).markAsRead(item.id);
+          NotificationService().markAsReadOnBackend(item.id);
         }
       },
       borderRadius: BorderRadius.circular(16),

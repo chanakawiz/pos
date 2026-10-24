@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { usePosStore } from '../stores/usePosStore';
-import { Printer, Check, X, ArrowRight, Barcode as BarcodeIcon, Globe } from 'lucide-react';
+import { Printer, Check, X, ArrowRight, Barcode as BarcodeIcon } from 'lucide-react';
 
 type ReceiptLanguage = 'bilingual' | 'si' | 'en';
 
 export const ReceiptModal: React.FC = () => {
-  const { closeModal, lastCompletedSale, language, setLanguage } = usePosStore();
-  const [lang, setLang] = useState<ReceiptLanguage>(language);
+  const { closeModal, lastCompletedSale, language } = usePosStore();
+  const lang = (language as ReceiptLanguage) || 'en';
   const [isPrinting, setIsPrinting] = useState(false);
   const [printFeedback, setPrintFeedback] = useState<string | null>(null);
   const printLock = useRef(false);

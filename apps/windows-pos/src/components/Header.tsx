@@ -10,7 +10,7 @@ export function Header() {
   useEffect(() => { const timer = setInterval(() => setTime(new Date()), 30000); return () => clearInterval(timer); }, []);
   return (
     <header className="station-header">
-      <div className="station-brand"><Diamond aria-hidden="true" /><div><strong>SmartShop<span> Retail</span></strong><small>{user?.store?.name || 'Retail station'}</small></div></div>
+      <div className="station-brand"><Diamond aria-hidden="true" /><div><strong>OmniLuxe<span> Store</span></strong><small>{user?.store?.name || 'Retail station'}</small></div></div>
       <nav className="station-nav" aria-label="Register navigation">
         <button type="button" className={!activeModal || ['payment', 'receipt', 'weighing', 'customer'].includes(activeModal) ? 'is-active' : ''} onClick={closeModal}><ShoppingBag />Sell</button>
         <button type="button" className={activeModal === 'hold' ? 'is-active' : ''} onClick={() => openModal('hold')}><PauseCircle />Held bills</button>

@@ -14,7 +14,7 @@ export function startCustomerDisplay(): () => void {
     const { token, user } = useAuthStore.getState();
     const cart = useCartStore.getState();
     const state: CustomerDisplayState = token && user ? {
-      storeName: user.store?.name || 'SmartShop POS',
+      storeName: user.store?.name || 'OmniLuxe POS',
       currencySymbol: user.store?.currency_symbol || '',
       language: usePosStore.getState().language,
       items: cart.items.map((item) => ({ name: item.product.name, sinhalaName: item.product.sinhala_name || '',
