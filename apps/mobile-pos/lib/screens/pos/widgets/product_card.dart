@@ -269,6 +269,7 @@ class ProductCard extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      constraints: const BoxConstraints(maxWidth: 120),
                       decoration: BoxDecoration(
                         color: AppColors.accent.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(4),
@@ -278,6 +279,7 @@ class ProductCard extends ConsumerWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(Icons.verified_outlined, size: 10, color: AppColors.accent),
+                          const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               product.warrantyPeriod!,

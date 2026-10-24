@@ -5,14 +5,14 @@ import 'core/network/api_client.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/pos/pos_screen.dart';
+import 'screens/store/store_main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize API client & SQLite persistence
   await ApiClient.instance.init();
-  await DatabaseHelper.instance.seedDemoCatalogIfEmpty();
+  await DatabaseHelper.instance.seedDemoCatalogIfEmpty(forceRefresh: true);
 
   runApp(
     const ProviderScope(
@@ -26,13 +26,11 @@ class SmartShopMobilePosApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-
     return MaterialApp(
-      title: 'SmartShop Mobile POS',
+      title: 'SmartShop Flagship Store',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: authState.isAuthenticated ? const PosScreen() : const LoginScreen(),
+      home: const StoreMainScreen(),
     );
   }
 }

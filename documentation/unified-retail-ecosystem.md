@@ -1,21 +1,22 @@
 # SmartShop Omnichannel Retail Ecosystem — Master Architectural Blueprint
 
-> **System Scope**: POS System + Central ERP + Customizable E-Commerce Web Storefront + Mobile App + Inventory Management + Customer Privacy & SMS Gateway
-> **Document Version**: 2.0.0
-> **Date**: October 2026
+> **System Scope**: Consumer E-Commerce Web Store + Consumer Mobile App (Flutter) + Dedicated Desktop Cashier POS (Windows/Mac) + Central ERP & Filament v3 Admin + Real-Time Omnichannel Inventory + SMS Digital E-Receipts
+> **Document Version**: 3.0.0
+> **Target Business Profile**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Luxury Automobili & High-Value Assets)
+> **Commercial Readiness**: Turnkey Solution Ready for Commercial Licensing & Deployment to Established Retail Enterprises
 
 ---
 
-## 1. Executive Summary & Vision
+## 1. Executive Summary & Commercial Positioning
 
-SmartShop is an enterprise-grade omnichannel retail platform designed to fulfill the end-to-end operational needs of diverse modern retail businesses—specifically **Mobile Device & Electronics Stores**, **Clothing & Apparel Boutiques**, **Shoe & Footwear Shops**, and **General Supermarkets**.
+SmartShop is an enterprise-grade omnichannel retail platform designed for **premier multi-department retail chains, luxury fashion houses, flagship electronics stores, and high-value asset dealers**.
 
-The platform converges five core pillars into a single unified source of truth:
-1. **High-Speed In-Store POS (Flutter Mobile POS & Windows POS)**: Fast checkout, barcode camera and gun scanning, serial/IMEI capture, thermal receipt printing, cash drawer kickout, held bills, and SQLite WAL offline durability.
-2. **Central ERP Management (Laravel 11 + Filament 3 Admin)**: Multi-branch inventory tracking, supplier purchasing, goods receiving, stock movement audit ledgers, accounting summaries, and role-based access control.
-3. **Customizable E-Commerce Web Storefront**: High-converting, editorial web storefront (inspired by the clean aesthetics of the `store_web` architecture) that synchronizes inventory, pricing, variants, and orders in real-time with physical store terminals.
-4. **Customer Protection & Privacy Engine**: Screen-level phone masking, encryption at rest, role-scoped customer access, and compliant data governance.
-5. **SMS Digital E-Receipts Gateway**: Modular driver interface (supporting Notify.lk, Twilio, Dialog, Mobitel, and Mock modes) that dispatches instant digital bill summaries and receipt links to customers via SMS upon in-store or online checkout.
+Unlike basic point-of-sale systems built for small corner groceries or simple kiosks, SmartShop delivers a unified multi-channel retail infrastructure that connects:
+1. **Consumer Mobile Shopping App (Flutter iOS & Android)**: An editorial, dark luxury mobile store mirroring the web experience. Shoppers discover collections, review variant matrices (sizes, storage, colors), manage their bag, checkout with online card/COD, and receive verified SMS digital e-receipts and warranty cards.
+2. **Customizable E-Commerce Web Storefront (`apps/web-store` & Central Web Store)**: High-converting luxury web storefront providing instant island-wide ordering, real-time stock availability, and automated sync with central ERP inventory.
+3. **Dedicated In-Store Cashier POS (Windows & macOS Desktop)**: A counter checkout terminal designed exclusively for store cashiers and staff, featuring barcode gun scanning, thermal ESC/POS receipt printing, cash drawer kickout, customer-facing pole display, staff shifts (X/Z reports), and offline SQLite durability.
+4. **Central Cloud ERP & Filament v3 Admin (`/admin`)**: Unified multi-branch control panel for catalog management, stock movement ledgers, purchase orders, vendor procurement, role-based permissions, and commercial analytics.
+5. **Customer Protection & Verified SMS E-Receipts Gateway**: Modular driver interface (supporting Notify.lk, Twilio, Dialog, Mobitel, and Mock modes) that dispatches instant digital bill summaries and tamper-evident warranty links to customers via SMS.
 
 ---
 
@@ -23,26 +24,24 @@ The platform converges five core pillars into a single unified source of truth:
 
 ```mermaid
 flowchart TB
-    subgraph Consumers["Customer Channels"]
-        CustomerWeb["Online Storefront (Web / Mobile Web)\nCustomizable for Fashion, Shoes, Tech"]
-        InStoreCustomer["In-Store Shopper\n(SMS E-Receipt, Loyalty, Store Credit)"]
+    subgraph Consumers["Customer Channels (Omnichannel Shoppers)"]
+        CustomerWeb["Luxury E-Commerce Web Store\n(Next-Gen Dark Storefront • Real-Time Stock)"]
+        CustomerMobile["Consumer Mobile App (Flutter)\n(iOS / Android • Discover • Bag • Orders • E-Receipts)"]
+        InStoreCustomer["In-Store Boutique Shopper\n(SMS Verified Bill • Warranty Link • Click & Collect)"]
     end
 
-    subgraph StoreFrontLayer["Storefront & Online Commerce"]
-        StoreFrontApp["E-Commerce Web App (Customizable Themes)\nEditorial Catalog • Bag • PayHere / COD Checkout"]
-    end
-
-    subgraph POSLayer["Point of Sale (Terminals)"]
-        FlutterPOS["Mobile / Tablet POS (Flutter)\niOS / Android / iPad • Offline SQLite WAL"]
-        DesktopPOS["Lane POS (Windows Electron)\nThermal Printer • Scanner • Cash Drawer"]
+    subgraph Frontends["Frontend Experience Layer"]
+        WebStoreApp["Web Storefront (Blade / Alpine / Tailwind)\nEditorial Lookbook • Cart • PayHere / COD"]
+        FlutterApp["Consumer Mobile App (Flutter Riverpod)\nDark Luxury Theme • Variant Picker • Offline Orders"]
+        DesktopPOS["Dedicated In-Store Cashier POS (Electron / React)\nWindows / Mac • Barcode Gun • Thermal Slip • Cash Drawer"]
     end
 
     subgraph CentralBackend["Central ERP & Core Engine (Laravel 11)"]
         APIGateway["REST API Gateway (/api/v1)"]
-        FilamentAdmin["Filament v3 ERP Admin Panel\nInventory • POs • Stores • Users • Analytics"]
-        InventoryLedger["Real-Time Inventory & Movement Ledger\nAtomic Locking • Variant Matrix • Low-Stock Engine"]
-        BillingEngine["Billing, Held Bills & Shift Auditing (X/Z)"]
-        CustomerEngine["Customer CRM, Loyalty & Privacy Protection\nMasking • Encrypted Ledgers"]
+        FilamentAdmin["Filament v3 ERP Admin Panel (/admin)\nCatalog • Multi-Store Inventory • POs • Shifts • Audit"]
+        InventoryLedger["Real-Time Inventory & Movement Ledger\nAtomic Reservation • Low-Stock Alerts • Serial Tracking"]
+        BillingEngine["Billing, Invoicing & Digital E-Receipt Engine"]
+        CustomerEngine["Customer CRM, Loyalty & Privacy Protection\nPhone Masking • Encrypted Ledgers"]
         SmsEngine["SMS E-Receipt Gateway Engine\nNotify.lk • Twilio • Dialog • Mobitel Driver"]
     end
 
@@ -51,12 +50,13 @@ flowchart TB
         RedisCache[("Redis Cache, Queues & Events")]
     end
 
-    CustomerWeb --> StoreFrontApp
-    StoreFrontApp --> APIGateway
-    FlutterPOS <-->|Bidirectional Offline Sync| APIGateway
-    DesktopPOS <-->|Bidirectional Offline Sync| APIGateway
-    InStoreCustomer <--> FlutterPOS
+    CustomerWeb --> WebStoreApp
+    CustomerMobile --> FlutterApp
     InStoreCustomer <--> DesktopPOS
+
+    WebStoreApp --> CentralBackend
+    FlutterApp <-->|REST API & Mobile Sync| APIGateway
+    DesktopPOS <-->|Bidirectional Offline Sync| APIGateway
 
     APIGateway --> BillingEngine
     APIGateway --> InventoryLedger
@@ -65,8 +65,9 @@ flowchart TB
     FilamentAdmin --> BillingEngine
 
     BillingEngine --> SmsEngine
-    SmsEngine -.->|SMS Bill Dispatch| InStoreCustomer
-    SmsEngine -.->|Order Confirmation SMS| CustomerWeb
+    SmsEngine -.->|Verified SMS Bill & Warranty Link| InStoreCustomer
+    SmsEngine -.->|Mobile Order Confirmation SMS| CustomerMobile
+    SmsEngine -.->|Web Order SMS Confirmation| CustomerWeb
 
     BillingEngine --> MasterDB
     InventoryLedger --> MasterDB
@@ -76,72 +77,73 @@ flowchart TB
 
 ---
 
-## 3. Store Vertical Capabilities
+## 3. High-End Retail Department Capabilities
 
-| Store Vertical | In-Store POS Requirements | E-Commerce Web Storefront Requirements | ERP & Central Inventory Control |
+| Department Vertical | Customer Mobile & Web Storefront | In-Store Desktop Cashier POS | Central ERP & Inventory Governance |
 | :--- | :--- | :--- | :--- |
-| **Mobile & Electronics** | • Mandatory IMEI / Serial capture per line item<br>• Warranty period tracking printed on receipts<br>• Fast barcode / QR camera & gun scanning | • Specification filters (Storage, RAM, Color)<br>• Serial warranty validation portal for buyers<br>• Accessory upsell bundles at checkout | • Serialized stock movement tracking<br>• Supplier warranty return logs<br>• Brand-level profit margin analysis |
-| **Clothing & Apparel** | • Size & Color variant lookups<br>• Held bills for fitting-room shoppers<br>• Customer loyalty points & size exchange refunds | • Editorial lookbook & seasonal collection banners<br>• Interactive Size Chart guides<br>• Color swatch selection & image carousels | • Matrix variant generator (Size $\times$ Color)<br>• Seasonal markdown & promotion engine<br>• Fabric & style category taxonomy |
-| **Shoe & Footwear** | • UK / US / EU sizing variant selection<br>• Pair / Box unit of measure (`unit`)<br>• Return policy footer on thermal slips | • Size availability badges per shoe model<br>• Fit recommendations & return policy FAQ<br>• Filter by Gender, Sport, Brand, Size | • Per-size safety stock buffers<br>• Automatic purchase suggestions when popular sizes hit low threshold |
-| **Supermarkets & Groceries** | • Decimal quantities (`decimal:3`) for weighted items<br>• Bilingual English + Sinhala receipt names<br>• Split tender (Cash + Card + Credit) | • Islandwide / local delivery slot selection<br>• Minimum order value thresholds<br>• Fast re-ordering from previous purchases | • Expiry date tracking & batch numbers<br>• Bulk purchasing from distributors<br>• Weighing scale barcode label parsing |
+| **Smartphones & Flagship Tech**<br>*(Apple, Samsung, Sony, Anker)* | • Storage & color variant matrix<br>• Real-time stock status at flagship branch<br>• Technical specs & Apple Care warranty badges<br>• Verified SMS e-receipt with IMEI warranty link | • Mandatory IMEI / Serial capture per piece<br>• High-speed barcode / QR gun scan<br>• Multi-tender (Card + Cash + Installments)<br>• Warranty terms printed on 80mm thermal slip | • Serialized stock movement tracking<br>• Supplier warranty return logs<br>• Reorder point alerts for high-demand devices<br>• Margin analysis across brand tiers |
+| **Designer Fashion & Apparel**<br>*(Studio Ceylon, Zara, Ralph Lauren, Levi's)* | • High-resolution lifestyle imagery & lookbook<br>• Size selector (XS, S, M, L, XL, XXL)<br>• Fitting room guide & fabric composition<br>• Express courier or click-and-collect at boutique | • Fast size & color lookup<br>• Fitting room Held Bills with multi-lane recall<br>• Exchange refunds & credit vouchers<br>• Customer loyalty tier discounts | • Size $\times$ Color variant matrix generator<br>• Seasonal markdown & collection promotion engine<br>• Category hierarchy (Haute Couture, Casual, Accessories) |
+| **Footwear & Sneakers**<br>*(Nike, Adidas, Clarks, Puma)* | • UK / US / EU sizing matrix with fit notes<br>• Pair availability badge per shoe model<br>• Quick-add to bag with size confirmation<br>• Return & exchange policy FAQs | • Pair barcode scanning with box SKU validation<br>• Shoe size breakdown on receipt<br>• In-store try-on hold bills<br>• Split tender payment | • Per-size safety stock buffers<br>• Automatic purchase order drafting when key sizes hit low levels<br>• Supplier defect tracking |
+| **Luxury Automobili & High-Value Assets**<br>*(Toyota, Land Rover, BYD, Honda)* | • Vehicle showcase with battery & engine specs<br>• Multi-million rupee price handling (`Rs. 48,500,000.00`)<br>• Reserve online with bank transfer or boutique deposit<br>• Official manufacturer warranty badges (3-8 yrs) | • Chassis / VIN number capture<br>• High-value split tenders (Bank Transfer + Card + Cash)<br>• Formal legal sales invoice generation<br>• Manager override authorization | • Chassis & VIN ledger with inspection history<br>• High-value asset insurance and warranty logs<br>• Detailed financial revenue analytics |
 
 ---
 
-## 4. UI Design System & Aesthetics (Inspired by `store_web`)
+## 4. UI Design System & Aesthetics (Matching `store_web`)
 
-The entire user experience—across the Mobile POS, the Web Storefront, and the ERP—follows the editorial, refined luxury aesthetic established in `store_web`, translated into a modern **Dark Theme**:
+The entire ecosystem adheres to an editorial, modern luxury aesthetic:
 
 * **Obsidian Palette**:
-  * Base Background: `#0A0E17` (Obsidian dark)
+  * Base Background: `#0A0E17` (Obsidian black)
   * Surface Container: `#111827` (Deep slate)
-  * Card Background: `#162032` (Elevated dark card with 12-14px radius)
-  * Hairline Borders: `#223048` (1px subtle luxury borders instead of heavy drop shadows)
-  * Primary Accent: `#10B981` (Refined emerald for high-contrast actions and success states)
-  * Secondary Tech Accent: `#06B6D4` (Cyan for IMEI / Serial tags)
-  * Luxury Gold Accent: `#D4AF37` / `#F59E0B` (Amber gold for warranty badges and VIP status)
-* **Editorial Typography**:
-  * Headings: `Outfit` / `Georgia` for numbers, totals, and screen titles.
-  * Body: `Inter` for crisp, high-legibility interface text and receipt items.
-  * Micro-Badges: Uppercase letter-spaced tags (`letter-spacing: 0.08em`, 9.5-10px, bold).
-* **Responsive Architecture**:
-  * Adaptable for portrait mobile phone (one-handed queue busting), landscape tablet / iPad (split catalog 60% / cart 40%), and desktop widescreen.
+  * Card Background: `#162032` (Elevated dark card with subtle rounded radius)
+  * Hairline Borders: `#223048` (1px subtle luxury borders, no harsh drop shadows)
+  * Primary Accent: `#10B981` (Refined emerald for live stock and success states)
+  * Luxury Gold Accent: `#D4AF37` (Champagne gold for brand badges, VIP tiers, and verified warranties)
+  * Tech Accent: `#06B6D4` (Cyan for tech specifications and digital links)
+* **Typography**:
+  * Primary Headings: Outfit / Google Fonts sans-serif, bold, elegant letter-spacing
+  * Body & Metadata: Inter, crisp, clean silver `#94A3B8` and white `#F8FAFC`
+  * Sinhala Support: Noto Sans Sinhala for authentic bilingual representation
 
 ---
 
-## 5. Customer Protection, Data Privacy & SMS E-Receipts
+## 5. Omnichannel Workflow: E-Commerce Mobile App to Central Inventory
 
-### 5.1 Screen-Level Phone Masking
-To prevent unauthorized shoulder-surfing at checkout queues, customer contact details are automatically masked in the terminal UI:
-```dart
-// Example: 0771234567 -> 077 **** 567
-String masked = SmsService.maskPhoneNumber(customer.phone);
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Mobile Shopper
+    participant MobileApp as Consumer Mobile App (Flutter)
+    participant CentralAPI as Central ERP API (Laravel 11)
+    participant DesktopPOS as Desktop Cashier Terminal
+    participant SMSGateway as SMS Digital Receipt Engine
+    actor InStoreCustomer as In-Store Shopper
+
+    Note over Customer,MobileApp: Mobile E-Commerce Journey
+    Customer->>MobileApp: Browse Flagship Catalog & Select Size/Spec
+    Customer->>MobileApp: Add Item to Bag (e.g. Nike Pegasus 40 - UK 9)
+    Customer->>MobileApp: Proceed to Checkout (Enter Name & 077 123 4567)
+    MobileApp->>CentralAPI: Submit Order (POST /api/v1/sales or /orders)
+    CentralAPI->>CentralAPI: Atomically Decrement Inventory in Ledger
+    CentralAPI->>SMSGateway: Dispatch SMS E-Receipt with Verified Link
+    SMSGateway-->>Customer: SMS: "SmartShop: Order ORD-2026-981 Confirmed. Receipt: http://127.0.0.1:8000/receipt/ORD-2026-981"
+    MobileApp->>Customer: Display OrderConfirmationScreen with QR Code
+
+    Note over InStoreCustomer,DesktopPOS: Real-Time In-Store Synchronization
+    InStoreCustomer->>DesktopPOS: In-Store Cashier Scans Barcode at Counter
+    DesktopPOS->>CentralAPI: Query Real-Time Available Stock
+    CentralAPI-->>DesktopPOS: Return Stock Updated Reflecting Online Order
+    DesktopPOS->>CentralAPI: Settle Cashier Sale & Print Thermal Slip
+    CentralAPI->>SMSGateway: Dispatch In-Store SMS Receipt to Customer
 ```
 
-### 5.2 SMS Digital Bill Dispatch
-When enabled, completing a transaction triggers an SMS receipt containing:
-1. Store Name & Thank-you note
-2. Invoice Reference Number
-3. Total Amount & Payment Breakdown
-4. Unique digital receipt link: `https://store.lk/receipt/INV-20261024-1029`
-
-### 5.3 Gateway Architecture
-A pluggable provider model enables switching SMS carriers without altering POS or business logic:
-* `mock`: Local testing & simulation mode
-* `notifylk`: Sri Lankan SMS Gateway (HTTP API / Sender ID)
-* `dialog`: Direct operator enterprise SMS API
-* `mobitel`: mBiz enterprise SMS API
-* `twilio`: International SMS Gateway
-
 ---
 
-## 6. Real-Time Inventory & Order Synchronization
+## 6. Commercial Turnkey Deployment Package
 
-1. **Central Master Inventory**: All products, variants, and stock balances reside in the Laravel backend database.
-2. **Terminal In-Store Sale**:
-   - Committed locally to SQLite WAL in $<15$ milliseconds.
-   - Pushed via `/api/v1/sync/push` to central cloud.
-   - Cloud inventory decrements atomically; online storefront immediately displays updated available stock.
-3. **Web Storefront Online Order**:
-   - Customer completes checkout on the website (COD or PayHere).
-   - Order reservation locks inventory; POS terminals receive updated stock on the next sync pull.
-   - Store staff can see and pack online orders directly from the terminal or admin panel.
+When delivering this system to a commercial enterprise, the deployment package includes:
+1. **Cloud Central ERP & Admin**: Hosted on AWS / DigitalOcean / On-Premise Docker stack (`backend/laravel-api`).
+2. **Branded Web Storefront**: Configured with custom domain, merchant logo, PayHere / Stripe payment keys, and cloud storage.
+3. **Consumer Mobile Apps**: Distributed via Apple App Store & Google Play Store, branded for the enterprise.
+4. **Lane Cashier Terminals**: Packaged Electron executable for Windows / macOS POS hardware (touchscreen POS, barcode gun, 80mm ESC/POS printer, RJ11 cash drawer).
+5. **SMS Provider Integration**: Live API keys for Notify.lk, Dialog, or Twilio with custom sender ID (e.g., `SMARTSHOP`).

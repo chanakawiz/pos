@@ -1,18 +1,28 @@
-# SmartShop POS — System Architecture Specification
+# SmartShop Enterprise Omnichannel Platform — System Architecture Specification
 
 ## 1. Architectural Overview
 
-SmartShop POS is architected as an **offline-first, distributed retail system** with centralized cloud management. The system is designed to provide high reliability, ensuring that store checkout lanes never stop operating even during prolonged internet outages, while maintaining complete data integrity and inventory accuracy at the central backend.
+SmartShop is an **enterprise-grade, distributed retail & e-commerce platform** engineered for high-end multi-department retail enterprises. The platform is designed around four primary components:
+
+1. **Consumer Mobile Shopping App (Flutter iOS/Android)**: Editorial lifestyle mobile store with catalog discovery, department filters, variant selectors, interactive bag, online card/COD checkout, and verified digital SMS receipts.
+2. **Dedicated In-Store Cashier POS (Electron Windows/Mac)**: High-speed counter checkout terminal for retail cashiers, supporting barcode guns, thermal receipt printers, cash drawers, staff shifts (X/Z reports), and offline SQLite WAL durability.
+3. **Customizable E-Commerce Web Storefront (`apps/web-store`)**: Public e-commerce website with real-time stock availability, luxury dark branding, and online card payments.
+4. **Central Cloud ERP & Core Engine (Laravel 11 + Filament v3)**: Unified cloud administrative system managing inventory ledgers, purchase orders, multi-branch operations, customer privacy, and the SMS notification engine.
 
 ```mermaid
 flowchart TD
-    subgraph StoreLevel["Store / Branch Environment"]
-        subgraph Terminal1["Lane 1: Windows Desktop POS"]
+    subgraph ConsumerLayer["Consumer Channels"]
+        CustomerWeb["E-Commerce Web Storefront\n(apps/web-store • Port 8010 / Port 8000)"]
+        CustomerMobile["Consumer Mobile App\n(apps/mobile-pos • Flutter iOS/Android)"]
+    end
+
+    subgraph StoreTerminalLayer["In-Store Staff Terminal Layer"]
+        subgraph Terminal1["Lane 1: Windows / macOS Desktop POS (apps/windows-pos)"]
             W1_UI["React 18 + Tailwind POS UI"]
             W1_State["Zustand Store (Cart, Cashier, Sync)"]
             W1_Bridge["Preload IPC Bridge (Context Isolation)"]
             W1_Main["Electron Main Process"]
-            W1_DB[("Local SQLite Database")]
+            W1_DB[("Local SQLite Database (better-sqlite3)")]
             W1_Sync["Background Sync Worker"]
             W1_UI --> W1_State
             W1_State --> W1_Bridge
@@ -21,19 +31,9 @@ flowchart TD
             W1_Main --> W1_Sync
         end
 
-        subgraph Terminal2["Mobile POS: iPad / iPhone"]
-            F1_UI["Flutter Material 3 UI"]
-            F1_State["Riverpod State Controller"]
-            F1_DB[("Mobile SQLite (sqflite)")]
-            F1_Sync["Dio Sync Engine"]
-            F1_UI --> F1_State
-            F1_State --> F1_DB
-            F1_State --> F1_Sync
-        end
-
-        subgraph Hardware["Peripherals"]
-            ThermalPrinter["Thermal Receipt Printer (80mm/58mm)"]
-            BarcodeScanner["Barcode / 2D Scanner (HID/Serial)"]
+        subgraph Hardware["Counter Peripherals"]
+            ThermalPrinter["Thermal Receipt Printer (80mm/58mm ESC/POS)"]
+            BarcodeScanner["Barcode / 2D Scanner (HID/Serial Gun)"]
             CashDrawer["Cash Drawer (RJ11 Kickout)"]
             W1_Main -.-> ThermalPrinter
             W1_Main -.-> CashDrawer
@@ -41,74 +41,74 @@ flowchart TD
         end
     end
 
-    subgraph CloudLevel["Central Cloud / Data Center"]
-        subgraph LaravelApp["Laravel 11 Enterprise Backend"]
+    subgraph CloudLevel["Central Cloud / Data Center (backend/laravel-api)"]
+        subgraph LaravelApp["Laravel 11 Enterprise Core Engine"]
             API_Gateway["REST API Gateway (/api/v1)"]
             Auth_Guard["Sanctum Auth & Device Verification"]
-            Sync_Service["Idempotent Sync Service"]
-            Billing_Service["Billing & Payment Engine"]
-            Inventory_Service["Stock Movement & Locking Engine"]
-            Filament_Admin["Filament 3 Admin Dashboard"]
+            Sync_Service["Idempotent Bidirectional Sync Engine"]
+            Billing_Service["Billing & Invoicing Engine"]
+            Inventory_Service["Stock Movement & Locking Ledger"]
+            Filament_Admin["Filament 3 ERP Dashboard (/admin)"]
+            Sms_Gateway["SMS E-Receipt Engine (Notify.lk / Twilio)"]
         end
 
         subgraph Databases["Data Persistence & Queues"]
             MySQL_Master[("MySQL 8+ Primary Database")]
-            Redis_Broker[("Redis Cache, Queues & Reverb")]
+            Redis_Broker[("Redis Cache & Background Queues")]
         end
 
         API_Gateway --> Auth_Guard
         Auth_Guard --> Sync_Service
-        Auth_Guard --> Billing_Service
-        Billing_Service --> Inventory_Service
-        Filament_Admin --> MySQL_Master
-        Sync_Service --> MySQL_Master
-        Billing_Service --> MySQL_Master
+        Sync_Service --> Inventory_Service
+        Sync_Service --> Billing_Service
+        Billing_Service --> Sms_Gateway
+        Filament_Admin --> Inventory_Service
+        Filament_Admin --> Billing_Service
+
         Inventory_Service --> MySQL_Master
-        Sync_Service --> Redis_Broker
+        Billing_Service --> MySQL_Master
+        LaravelApp --> Redis_Broker
     end
 
-    W1_Sync <===>|"HTTPS / JSON (Token + Device UUID)"| API_Gateway
-    F1_Sync <===>|"HTTPS / JSON (Token + Device UUID)"| API_Gateway
+    CustomerWeb --> LaravelApp
+    CustomerMobile <-->|REST API & Local SQLite| API_Gateway
+    W1_Sync <-->|Bidirectional Offline Sync| API_Gateway
 ```
 
 ---
 
-## 2. Component Design & Responsibilities
+## 2. Component Directory Structure
 
-### 2.1 Windows Desktop POS Application
-- **Runtime**: Electron with Vite, React 18, and TypeScript.
-- **Security Boundary**:
-  - `contextIsolation: true`
-  - `nodeIntegration: false`
-  - All hardware access (printers, cash drawers, SQLite database) is encapsulated in Electron's Main process and exposed to the Renderer process strictly via typed `contextBridge.exposeInMainWorld('posApi', {...})`.
-- **Local Persistence**: Embedded SQLite (`better-sqlite3`) in the Main process. Stores cached catalogs, offline transactions, and local sync queue.
-- **State Management**: Zustand stores decoupled into `useCartStore`, `useAuthStore`, `useCatalogStore`, and `useSyncStore`.
-
-### 2.2 Mobile POS (iPad / iPhone)
-- **Runtime**: Flutter 3.x with Dart.
-- **UI Framework**: Material 3 responsive layout adapting seamlessly between tablet landscape split-view and mobile portrait view.
-- **Local Persistence**: `sqflite` for offline catalog and transaction queuing.
-- **API Client**: `dio` with interceptors for automatic Bearer token injection, device UUID headers, and network retry handling.
-
-### 2.3 Shared Backend & Admin System
-- **Framework**: Laravel 11 on PHP 8.3+ / 8.4+.
-- **Authentication**: Laravel Sanctum supporting both user sessions and cryptographically tied device tokens.
-- **Authorization**: Spatie Laravel Permission with 4 core roles:
-  - `Super Admin`: Full system access across all stores and configurations.
-  - `Admin`: Regional or store-group management.
-  - `Manager`: Store-specific management, inventory receiving, adjustments, refunds.
-  - `Cashier`: Billing, register open/close, and customer lookups.
-- **Admin Panel**: Filament v3 with reactive forms, data tables, metrics widgets, and CSV/PDF export.
+```text
+pos/
+├── apps/
+│   ├── mobile-pos/        # Consumer Mobile App (Flutter iOS/Android)
+│   │   ├── lib/
+│   │   │   ├── screens/store/  # Consumer Home, Catalog, Bag, Checkout, Orders
+│   │   │   ├── providers/      # Riverpod Cart, Catalog, Auth
+│   │   │   ├── data/           # Repositories & Models
+│   │   │   └── core/           # DatabaseHelper (SQLite), AppColors, AppTheme
+│   │   └── test/               # Automated unit & widget tests (21/21 passing)
+│   ├── web-store/         # Public E-Commerce Web Storefront (Laravel / Blade)
+│   │   └── resources/views/store/ # Home, Shop, Product, Cart, Checkout
+│   └── windows-pos/       # Dedicated Desktop Cashier POS (Electron / React)
+│       └── src/                # Cart, Barcode gun, Thermal printer, Cashier shifts
+├── backend/
+│   └── laravel-api/       # Central Cloud ERP & API Engine (Laravel 11)
+│       ├── app/Filament/       # Filament v3 ERP Admin Resources
+│       ├── app/Http/Controllers/
+│       │   ├── Api/V1/         # POS REST API & Sync endpoints
+│       │   └── WebStoreController.php # Integrated Storefront & Public E-Receipts
+│       ├── database/seeders/   # Multi-Vertical Lifestyle & Department Seeders
+│       └── routes/             # web.php (Storefront & /receipt), api.php
+└── documentation/         # System specifications, architecture, and guides
+```
 
 ---
 
-## 3. Reliability & Non-Functional Requirements
+## 3. Real-Time Inventory & Concurrency Management
 
-1. **Sub-second Checkout**:
-   - Product scanning and cart addition occurs in `< 10ms` in local memory and SQLite.
-   - Offline checkout completes in `< 100ms` with local receipt generation.
-2. **Zero Data Loss Guarantee**:
-   - Every transaction written to local SQLite before triggering receipt printing.
-   - Idempotent API guards prevent duplicate sales on server reconnection.
-3. **Audit Compliance**:
-   - Every stock level change generates an immutable `StockMovement` row with movement type, delta, before/after values, and originating transaction UUID.
+- **Atomic Stock Reservation**: Online orders placed via the consumer mobile app or web storefront decrement central inventory immediately.
+- **In-Store Over-the-Counter Priority**: Counter cashiers on Desktop POS query real-time stock balances; if offline, local SQLite stock counts are decremented and reconciled upon reconnection with revision versioning.
+- **Serial & VIN Tracking**: Tech items (IMEI/Serial) and high-value vehicles (VIN/Chassis) capture unique identifiers at point of sale, preventing duplicate warranty registrations.
+- **Public Verified E-Receipts**: All sales generate a cryptographic or unique reference (`/receipt/{invoice}`) accessible publicly with customer phone privacy masking.

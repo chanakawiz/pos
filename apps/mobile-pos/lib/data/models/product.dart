@@ -49,6 +49,27 @@ class ProductModel {
 
   bool get isLowStock => stockQuantity <= minStockLevel;
 
+  String get brandName {
+    final lower = name.toLowerCase();
+    if (lower.startsWith('apple')) return 'Apple';
+    if (lower.startsWith('samsung')) return 'Samsung';
+    if (lower.startsWith('sony')) return 'Sony';
+    if (lower.startsWith('anker')) return 'Anker';
+    if (lower.startsWith('nike')) return 'Nike';
+    if (lower.startsWith('adidas')) return 'Adidas';
+    if (lower.startsWith('clarks')) return 'Clarks';
+    if (lower.startsWith('puma')) return 'Puma';
+    if (lower.startsWith('toyota')) return 'Toyota';
+    if (lower.startsWith('land rover')) return 'Land Rover';
+    if (lower.startsWith('byd')) return 'BYD';
+    if (lower.startsWith('honda')) return 'Honda';
+    if (lower.startsWith('ralph lauren')) return 'Ralph Lauren';
+    if (lower.startsWith('zara') || lower.contains('italian tailored')) return 'Zara';
+    if (lower.startsWith('levi')) return "Levi's";
+    if (lower.contains('linen') || lower.contains('dress')) return 'Studio Ceylon';
+    return 'SmartShop Brand';
+  }
+
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     String? catUuid;
     String? catName;

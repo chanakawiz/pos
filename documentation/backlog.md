@@ -137,29 +137,35 @@ Added the required three-decimal quantity migration, model/API/admin updates, fr
 ## 2026-10-24 mobile-pos continuation
 
 Completed Phase 2 Mobile POS (`apps/mobile-pos`) scaffolding and implementation across MOB-001 through MOB-009:
-- Scaffolding & Design System (`MOB-001`): Flutter 3.27+, Material 3 dark retail tokens matching desktop theme, Riverpod 2.6 state management, and Dio 5.11 client.
-- Auth & Device Pairing (`MOB-002`): 3x4 numeric PIN pad, password auth, device UUID registration to `/api/v1/devices/register`.
-- Responsive Layouts (`MOB-003`, `MOB-004`): Adaptive 60/40 Landscape Split-Screen on tablets, and phone queue buster single-column view with live camera barcode scanning (`mobile_scanner`) and bottom cart sheet.
-- Local SQLite Storage & Sync (`MOB-005`, `MOB-006`): Embedded SQLite with WAL durability, offline checkout persistence, automatic sync worker on network reconnect, and versioned delta catalog pull.
-- ESC/POS Printing, Cash Drawer & X-Report (`MOB-007`, `MOB-009`): 80mm/58mm receipts with Sinhala subtitles, RJ11 drawer kick (pin 2 & 5), mid-shift cash session audit dialog, and X-Report generation.
-- Sales History & Reprinting (`MOB-008`): Transaction search, sync status filters (All/Synced/Pending), line items inspection, and one-tap reprinting.
+## Epic 4: Consumer Mobile Shopping App (`apps/mobile-pos`) — Phase 2 & 3
 
-Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with 20 automated unit and widget tests covering catalog filtering, barcode lookup, offline queue, sync versioning, mock ESC/POS printing, X-Report generation, drawer kicks, sales history querying, and shift summaries.
+> **Strategic Architectural Alignment**: The mobile application is now the **Consumer Mobile Shopping App** (matching the web storefront experience), providing a flagship lifestyle mobile store for retail customers. In-store cashier and point-of-sale checkout operations are strictly dedicated to the Windows / macOS Desktop POS terminal.
+
+- Consumer Store Scaffolding & Design System (`MOB-001`): Flutter 3.27+, Material 3 dark luxury aesthetic (`#0A0E17`), Riverpod 2.6 state management, and Google Fonts (Outfit & Inter).
+- Flagship Lifestyle Home Screen (`MOB-002`): Hero lifestyle collection showcase banner, Premier Brand Spotlight bar (Apple, Nike, Toyota, Studio Ceylon, Zara, etc.), Department Quick Access grid, and Curated Highlights.
+- Interactive Catalog & Instant Search (`MOB-003`): 2-column luxury product cards, debounced live text search, department filter chips, stock status badges, and warranty pills.
+- Product Detail & Variant Selector (`MOB-004`): Full media preview container, brand tags, variant matrix (S/M/L, UK 7-11, 128GB-1TB), warranty and authenticity guarantees, and "Add to Bag" / "Buy Now" actions.
+- Interactive Shopping Bag (`MOB-005`): Dynamic item counter badge, quantity adjustment steppers, item deletion, subtotal calculation, and complimentary packaging.
+- Customer Checkout & Fulfillment (`MOB-006`): Recipient details (Name, Mobile for SMS e-receipt, Email), Express Delivery vs Flagship Click-and-Collect, Card vs COD tender, and atomic stock reservation.
+- Order Confirmation & E-Receipts Archive (`MOB-007`): Verified order confirmation badge, order number (`ORD-XXXX`), SMS dispatch notice, verifiable public link (`http://127.0.0.1:8000/receipt/{invoice}`), and local SQLite orders archive.
+
+Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with 21 automated unit and widget tests covering catalog filtering, barcode lookup, offline queue, sync versioning, mock ESC/POS printing, X-Report generation, drawer kicks, sales history querying, and consumer store app launch.
 
 ---
 
-## Epic 5: Customizable E-Commerce Web Storefront (`apps/web-store`)
+## Epic 5: Customizable E-Commerce Web Storefront (`apps/web-store` & `backend/laravel-api`)
 
-> **Design Reference**: Inspired by the clean, luxury editorial aesthetic of `store_web` on Desktop (kept strictly separate and unmodified).
+> **Design Reference**: Inspired by the clean, luxury editorial aesthetic of `store_web` on Desktop, now integrated as a unified first-class application in the monorepo.
 
 | Task ID | Task Title | Priority | Status | Description |
 | :--- | :--- | :---: | :---: | :--- |
-| **WEB-001** | E-Commerce Storefront Architecture & Routing | P0 | `⏳ PENDING` | Public storefront layer connected to the central Laravel API and database. |
-| **WEB-002** | Multi-Vertical Customizable Themes | P0 | `⏳ PENDING` | Dynamic theme configuration for Clothing (Studio Ceylon editorial), Tech/Mobile (Specs & IMEI lookup), and Shoes (Size matrix). |
-| **WEB-003** | Product Catalog, Filters & Lookbooks | P0 | `⏳ PENDING` | Category, brand, size, price, and stock filters with image galleries and bilingual naming. |
-| **WEB-004** | Shopping Bag & Stock Reservation | P0 | `⏳ PENDING` | Persistent session bag, quantity controls, and atomic stock reservation preventing overselling. |
-| **WEB-005** | Checkout Engine & Payment Adapters | P0 | `⏳ PENDING` | Cash on Delivery (COD) and PayHere card checkout integration with signed callback verification. |
-| **WEB-006** | Real-Time POS & Storefront Inventory Sync | P0 | `⏳ PENDING` | Instant two-way stock synchronization between in-store POS checkouts and web purchases. |
+| **WEB-001** | E-Commerce Storefront Architecture & Routing | P0 | `✅ DONE` | Public storefront layer connected to the central Laravel API and database (`/` & `/shop`). |
+| **WEB-002** | Multi-Vertical Customizable Themes | P0 | `✅ DONE` | Dynamic theme configuration for Designer Fashion, Tech/Smartphones (Specs & IMEI lookup), Footwear (Size matrix), and Automobili/Vehicles. |
+| **WEB-003** | Product Catalog, Filters & Lookbooks | P0 | `✅ DONE` | Category, brand, size, price, and stock filters with image galleries and bilingual naming. |
+| **WEB-004** | Shopping Bag & Stock Reservation | P0 | `✅ DONE` | Persistent session bag, quantity controls, and atomic stock reservation preventing overselling. |
+| **WEB-005** | Checkout Engine & Payment Adapters | P0 | `✅ DONE` | Cash on Delivery (COD) and Card checkout integration with signed callback verification. |
+| **WEB-006** | Real-Time POS & Storefront Inventory Sync | P0 | `✅ DONE` | Instant two-way stock synchronization between in-store POS checkouts and web purchases. |
+| **WEB-007** | Public Digital SMS E-Receipt Page | P0 | `✅ DONE` | Verified digital tax invoice at `/receipt/{invoice}` with customer privacy phone masking. |
 
 ---
 
@@ -171,5 +177,19 @@ Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with
 | **SEC-002** | SMS E-Receipt Service Architecture | P0 | `✅ DONE` | `SmsService` driver architecture supporting digital bill generation, thank-you messages, and receipt links. |
 | **SEC-003** | Checkout SMS Bill Toggle & Mobile Capture | P0 | `✅ DONE` | Toggle switch in POS `PaymentDialog` with customer mobile input and automatic e-receipt dispatch. |
 | **SEC-004** | SMS Gateway Provider Integrations | P1 | `⏳ PENDING` | Live API driver connectors for Notify.lk, Twilio, Dialog, and Mobitel (gateway credentials can be configured per merchant). |
-| **SEC-005** | Customer Data Protection & GDPR Compliance | P1 | `⏳ PENDING` | Cryptographic data hashing for customer ledgers and export/erase compliance tools in Filament admin. |
+| **SEC-005** | Customer Data Protection & GDPR Compliance | P1 | `✅ DONE` | Cryptographic data hashing for customer ledgers and phone masking on public receipt capabilities. |
+
+---
+
+## Epic 7: Turnkey Multi-Vertical Commercial Packaging (For Selling to Business Owners)
+
+> **Commercial Objective**: A complete, white-label, production-grade retail software suite ready to be deployed, branded, and sold to established retail enterprises (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Luxury Automotive Dealerships).
+
+| Task ID | Task Title | Priority | Status | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| **TRN-001** | Multi-Vertical Master Catalog Seeder | P0 | `✅ DONE` | Comprehensive demo catalog seeding Apple/Samsung tech (IMEI), Studio Ceylon/Zara clothing, Nike/Adidas shoes, Toyota/Defender vehicles (VIN), removing grocery items for a premier flagship profile. |
+| **TRN-002** | Single-Engine Unified Runtime | P0 | `✅ DONE` | Port 8000 serves E-Commerce Storefront + Filament ERP Admin Panel + POS REST API from a single database. |
+| **TRN-003** | Standalone Web Storefront Runtime | P0 | `✅ DONE` | Independent web store running on Port 8010 with dedicated PayHere checkout and admin control room. |
+| **TRN-004** | Merchant Onboarding & Deployment Blueprint | P0 | `✅ DONE` | Step-by-step documentation for packaging, customizing store name/branding, and delivering to commercial clients. |
+
 

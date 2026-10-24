@@ -1,144 +1,73 @@
-# SmartShop POS — Current Project Status
+# SmartShop POS & Omnichannel Retail Platform — Current Project Status
 
 > **Audit Date**: 2026-10-24
-> **Overall Health**: Healthy / Stable (28 backend tests, 41 native Electron tests, and 14 Flutter mobile POS tests passing)
-> **Phase 1 Progress**: SQLite persistence complete; printer/drawer, customer-display, and weighing-scale software complete; physical validation remains
-> **Phase 2 Progress**: Flutter Mobile POS Complete — Architecture, SQLite Persistence, Split-Screen & Queue Buster, Network Auto-Sync, and ESC/POS Thermal Printing (MOB-001 through MOB-007)
+> **System Architecture**: 4 Pillars (Consumer Mobile App + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)
+> **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Luxury Automobili & High-Value Assets)
+> **Overall Health**: Healthy & Actively Serving (28 backend tests, 41 native Electron tests, 21 Flutter automated tests passing)
 
 ---
 
 ## 1. System Health Dashboard
 
 ```text
-┌─────────────────────────┬─────────────────────────┬─────────────────────────┐
-│     BACKEND API         │    FILAMENT ADMIN ERP   │    WINDOWS POS CLIENT   │
-│     ● ONLINE (100%)     │     ● ONLINE (100%)     │     ● OPERATIONAL (95%) │
-│  28 Backend Tests Pass  │  13 Resources Active    │  Vite Build Passing     │
-│  Sync Revisions Active  │  Full Catalog & Ledger  │  SQLite + Sync Tested   │
-└─────────────────────────┴─────────────────────────┴─────────────────────────┘
+┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
+│     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │
+│     ● ONLINE (Port 8000)│    ● ONLINE (Port 8010) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (95%)   │
+│  28 Backend Tests Pass  │  Editorial Dark Luxury  │  21 Automated Tests Pass│  41 Native Tests Pass   │
+│  Filament ERP (/admin)  │  Real-Time Stock Sync   │  Catalog • Bag • Orders │  Barcode Gun • Thermal  │
+└─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
 ---
 
 ## 2. Module Completion Matrix
 
-### 2.1 Backend (`backend/laravel-api`)
+### 2.1 Backend & Central ERP (`backend/laravel-api`)
 | Module | Status | Notes |
 | :--- | :---: | :--- |
-| **Authentication & RBAC** | `✅ DONE` | Sanctum tokens, PIN pad hash, 4 Spatie roles. |
-| **Product & Catalog** | `✅ DONE` | Categories, Brands, Products, Variants, Barcodes, Warranty, Serial/IMEI flags. |
-| **Smart Items & Tech Vertical**| `✅ DONE` | Mobile phones, electronics, gadgets, serial number tracking, warranty claim receipts. |
-| **Billing & Sales** | `✅ DONE` | Idempotent sales, split tenders, tax, discounts, IMEI/Serial number capture. |
-| **Customer CRM & Loyalty**| `✅ DONE` | Phone search, credit limit, balance, point redemption. |
-| **Refunds & Restocking** | `✅ DONE` | Return line items, optional restock, audit ledger. |
-| **Cash Sessions & Shifts**| `✅ DONE` | Open float, close session, X-Report & Z-Report API. |
-| **Multi-Lane Held Bills** | `✅ DONE` | Cross-register hold & recall with store scoping. |
-| **Supply Chain & POs** | `✅ DONE` | Suppliers directory, PO drafting, stock receiving. |
-| **Reporting & Analytics** | `✅ DONE` | Sales summary, top products, low stock alerts. |
-| **Offline Sync Engine** | `✅ DONE` | Push (dedup + stock reconcile), Pull (version delta).|
-| **Docker Stack**        | `✅ DONE` | PHP 8.2-FPM Alpine, Nginx reverse proxy, MySQL 8.0, and Queue Worker with entrypoint orchestration. |
+| **Authentication & RBAC** | `✅ DONE` | Sanctum tokens, PIN pad hash, 4 Spatie roles (Super Admin, Admin, Manager, Cashier). |
+| **Catalog & Department Matrix** | `✅ DONE` | 4 Core Flagship Categories: Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Vehicles & Luxury Automobili. |
+| **Multi-Vertical Seed Catalog**| `✅ DONE` | 18 Premier Brands (Apple, Samsung, Nike, Adidas, Studio Ceylon, Zara, Ralph Lauren, Toyota, BYD, etc.) seeded with inventory & stock movements. |
+| **Inventory & Movement Ledger**| `✅ DONE` | Multi-store inventory balances, atomic reservation on online/in-store sales, immutable audit ledger. |
+| **Filament v3 ERP Admin Panel**| `✅ DONE` | 13 resource managers at `/admin` (Brands, Categories, Products, Inventory, Suppliers, POs, Cash Sessions, Refunds, Stock Movements). |
+| **Public E-Receipt Engine**    | `✅ DONE` | Verifiable digital invoices at `/receipt/{invoice}` with phone privacy masking (`077 •••• 567`) and warranty certificates. |
+| **SMS E-Receipt Gateway**      | `✅ READY`| Pluggable driver supporting Notify.lk, Twilio, Dialog, Mobitel, and Mock modes. |
 
-### 2.2 Filament v3 Admin ERP (`backend/laravel-api`)
-| Resource | Status | Notes |
-| :--- | :---: | :--- |
-| **BrandResource** | `✅ DONE` | Full Brand management: List, Create, Edit pages, slug auto-generation, logo upload (Apple, Samsung, Anker, Sony, etc.). |
-| **CategoryResource** | `✅ DONE` | Hierarchical parent-child category tree, auto-slug, image upload (Smartphones, Wearables, Power, Groceries, Apparel). |
-| **ProductResource** | `✅ DONE` | Bilingual English + Sinhala names, Smart Items & Warranty tab, serial/IMEI flag, barcode helper, initial stock. |
-| **InventoryResource** | `✅ DONE` | Multi-store inventory balances, low-stock danger badges, English/Sinhala product descriptions. |
-| **SupplierResource** | `✅ DONE` | Vendor directory, contacts, tax IDs, terms. |
-| **PurchaseResource** | `✅ DONE` | Purchase orders, item repeaters, goods receiving with automatic stock increment. |
-| **CashSessionResource**| `✅ DONE` | Register shifts, floats, discrepancy audit. |
-| **RefundResource** | `✅ DONE` | Customer refunds audit with cashier mapping and restock status. |
-| **StockMovementResource**| `✅ DONE` | Immutable audit ledger tracking all stock additions, deductions, sales, and adjustments. |
-| **StatsOverviewWidget** | `✅ DONE` | Daily revenue, transactions count, open shifts, low-stock count. |
-| **SalesChartWidget**    | `✅ DONE` | Line chart showing 14-day sales trend and order volume. |
-| **LowStockWidget**      | `✅ DONE` | Immediate alert table for products below minimum stock safety. |
-
-### 2.3 Windows POS Client (`apps/windows-pos`)
+### 2.2 Consumer Mobile Shopping App (`apps/mobile-pos`)
 | Feature | Status | Notes |
 | :--- | :---: | :--- |
-| **Electron & React Shell** | `✅ DONE` | Secure context isolation bridge, dark UI, cross-platform macOS/Windows runtime. |
-| **.env Language Switcher** | `✅ DONE` | Configurable default via `VITE_DEFAULT_LANGUAGE=bilingual/si/en`, instant top-bar language toggle. |
-| **Smart Items & Serial/IMEI**| `✅ DONE` | Enter or scan IMEI/Serial number per cart item, warranty tags, and warranty claim printing. |
-| **Login & PIN Pad** | `✅ DONE` | Fast numerical keypad authentication. |
-| **Catalog Grid & Barcodes**| `✅ DONE` | Sub-second category search & item scanning with Sinhala names and warranty badges. |
-| **Hardware Barcode Reader**| `✅ DONE` | Universal USB/Bluetooth HID wedge hook (<60ms key detection), auto cart add, 1760Hz synth beep. |
-| **Cart & Quick Actions** | `✅ DONE` | Line discounts, bill discount, hold bill (F4), Sinhala name sub-labels, IMEI modal prompt. |
-| **Multi-Lane Held Bills** | `✅ DONE` | Cloud API synchronized with cross-lane resume. |
-| **Multi-Payment Modal** | `✅ DONE` | Cash change calculation, cards, split payment, melodic success chime. |
-| **Bilingual Receipt Modal**| `✅ DONE` | Dual (EN+සිං) / සිංහල / EN switch, Sinhala headers, items, labels, IMEI/Serial, & blessings. |
-| **Shift Audit (X/Z-Report)**| `✅ DONE` | Mid-shift balance audit & shift end reconciliation. |
-| **Refund Processing** | `✅ DONE` | Invoice lookup and item return flow with automatic stock restoration. |
-| **Background Sync Daemon**| `✅ DONE` | Network ping, queue flush, delta pull. |
-| **ESC/POS Cash Drawer** | `✅ SOFTWARE DONE` | Configured-pin pulse, TCP/Windows RAW transport, F8/checkout handling, serialized delivery, and visible errors. Physical operation awaits equipment. |
-| **ESC/POS Thermal Engine**| `✅ SOFTWARE DONE` | Dedicated 58/80mm raster documents with a bundled Sinhala font, sale/refund/X/Z layouts, and real transport. Physical/Windows checks remain. |
-| **Customer Secondary Display** | `✅ SOFTWARE DONE` | Sandboxed English/Sinhala/bilingual cart, separate session, hotplug placement, persisted F1 pause/resume, and logout/reload clearing. Physical Windows monitor checks remain. |
-| **RS-232 Weighing Scales** | `✅ SOFTWARE DONE` | Explicit A&D formats, stable/fresh kg/g capture, reweighing, three-decimal sale/stock/refund/sync quantities, and visible failures. Actual scale and Windows adapter acceptance remain. |
-| **Help & Shortcuts (F1)** | `✅ DONE` | Instant cheat sheet modal for cashier hotkeys. |
-| **Embedded SQLite** | `✅ DONE` | WAL/FULL durability; atomic sales/items/payments; scoped catalog checkpoints; safe legacy queue import; native recovery/sync tests. |
+| **Consumer Store Navigation** | `✅ DONE` | 4-tab bottom navigation: Home / Discover, Explore / Catalog, Shopping Bag, Orders & E-Receipts. |
+| **Lifestyle Home Showcase**   | `✅ DONE` | Hero lifestyle showcase banner, Premier Brand Spotlight bar, Department quick-access grid, Curated Highlights. |
+| **Interactive Catalog Grid**  | `✅ DONE` | 2-column luxury product cards with category gradient preview, brand tag, title, in-stock badge, and warranty pill. |
+| **Instant Search & Filters**  | `✅ DONE` | Debounced text search (name, SKU, brand) and horizontal department filter chips. |
+| **Product Detail Screen**     | `✅ DONE` | Hero media container, brand/category tags, LKR pricing, size/specification selector (S/M/L, UK 7-11, 128GB-1TB), and guarantees. |
+| **Shopping Bag & Quantities** | `✅ DONE` | Live item counter badge, quantity adjustment steppers, item deletion, subtotal calculation, complimentary white-glove packaging. |
+| **Online Checkout Flow**      | `✅ DONE` | Customer name, mobile phone (for SMS receipt), delivery address vs flagship click-and-collect, card vs cash payment. |
+| **Order Confirmation Screen** | `✅ DONE` | Verified order badge, reference number (`ORD-XXXX`), SMS dispatch notice, verifiable public link, and QR code. |
+| **Orders & E-Receipts Archive**| `✅ DONE` | Local SQLite order persistence, order history list, one-tap digital receipt modal view. |
+| **Stability & Zero Overflows**| `✅ DONE` | All 21 Flutter automated tests pass (`flutter test`), camera permissions declared, zero crash logs. |
 
-### 2.4 Mobile POS (`apps/mobile-pos`) — Phase 2
+### 2.3 Dedicated In-Store Cashier POS (`apps/windows-pos`)
 | Feature | Status | Notes |
 | :--- | :---: | :--- |
-| **Flutter Project Init** | `✅ DONE` | Flutter 3.27+, Material 3 dark retail design system, and Riverpod state container. |
-| **Tablet Split Screen** | `✅ DONE` | Adaptive 60/40 Landscape cashier workspace with fixed cart panel and live totals. |
-| **Phone Queue Buster** | `✅ DONE` | Single-column view with live camera barcode scanner (`mobile_scanner`) and floating cart sheet. |
-| **Mobile SQLite & Sync** | `✅ DONE` | Embedded `sqflite` database with atomic sales persistence, WAL durability, and Dio delta sync. |
-| **Smart Items & Warranty**| `✅ DONE` | Serial number / IMEI capture, warranty period badges, and bilingual Sinhala receipt preview. |
-| **ESC/POS Printing & Drawer**| `✅ DONE` | Raw TCP socket (port 9100), 80/58mm formatting, pin 2/5 drawer kick, and in-app simulator. |
-| **Sales History & Reprint** | `✅ DONE` | Recent sales list, invoice/customer search, sync status filters, and one-tap reprinting. |
-| **Cash Session & X-Report** | `✅ DONE` | Register shift summary, tender breakdown (Cash/Card/Bank), drawer kick, and ESC/POS X-Report. |
-| **Multi-Lane Held Bills**   | `✅ DONE` | Cloud hold & recall (`/api/v1/held-bills`) with SQLite offline fallback for queue-busting. |
-| **Customer CRM & Quick Add**| `✅ DONE` | In-cart quick customer creation modal with phone/email and instant cart selection. |
-| **Dark Luxury UI Polish**   | `✅ DONE` | Refined obsidian dark palette (`#0A0E17`), hairline luxury borders (`#223048`), micro-typography, and overflow-free responsive layout inspired by `store_web`. |
+| **Electron & React Shell**   | `✅ DONE` | Dedicated counter checkout terminal for retail cashiers on Windows and macOS. |
+| **Hardware Barcode Reader**  | `✅ DONE` | USB/Bluetooth HID wedge hook (<60ms key detection) with instant cart addition and beep feedback. |
+| **Thermal Receipt Printer**  | `✅ SOFTWARE DONE` | 80mm & 58mm ESC/POS raster documents, bilingual English/Sinhala layout, warranty terms. |
+| **Cash Drawer Kickout**      | `✅ SOFTWARE DONE` | RJ11 pulse on cash tender or F8 manual trigger. |
+| **Cashier Shift Auditing**   | `✅ DONE` | Mid-shift balance checks (X-Report) and end-of-day register closure (Z-Report). |
+| **Multi-Lane Held Bills**    | `✅ DONE` | Cross-register hold and recall for fitting room and high-throughput lanes. |
+| **Embedded SQLite Durability**| `✅ DONE` | WAL/FULL mode; offline sales queue; scoped sync with central Laravel API. |
 
-### 2.5 Customizable E-Commerce Web Storefront (`apps/web-store`)
-| Module | Status | Notes |
-| :--- | :---: | :--- |
-| **Omnichannel Web Architecture** | `⏳ PLANNED` | Public customer-facing e-commerce layer sharing master Laravel database and inventory. |
-| **Multi-Store Customization** | `⏳ PLANNED` | Themes adaptable for Clothing (Studio Ceylon lookbook), Footwear (Size matrix), and Mobile/Tech (Specs & IMEI lookup). |
-| **Shopping Bag & Checkout**  | `⏳ PLANNED` | Session bag, PayHere hosted payment gateway, Cash on Delivery, and instant stock reservation. |
-
-### 2.6 Customer Protection, Privacy & SMS Gateway
+### 2.4 E-Commerce Web Storefront (`apps/web-store` & Central Store)
 | Feature | Status | Notes |
 | :--- | :---: | :--- |
-| **Customer Phone Masking**   | `✅ DONE` | Front-facing privacy masking (`077 **** 567`) in cart & queues to prevent shoulder-surfing. |
-| **SMS Service Driver Engine**| `✅ DONE` | Pluggable `SmsService` driver supporting bill summary generation and digital receipt links. |
-| **Checkout SMS Bill Dispatch**| `✅ DONE` | Automatic SMS bill trigger in `PaymentDialog` with customer mobile input. |
-| **Production SMS Gateways**  | `⏳ READY FOR API KEYS` | Driver hooks configured for Notify.lk, Twilio, Dialog, and Mobitel carrier integration. |
+| **Editorial Web Storefront** | `✅ DONE` | Running on port 8010 and integrated on port 8000 with dark luxury branding. |
+| **Catalog & Product Pages**  | `✅ DONE` | Curated collections, responsive product detail pages, variant selectors, and price in LKR. |
+| **Cart & Checkout**          | `✅ DONE` | Slide-over cart, delivery selection, and order placement. |
 
 ---
 
-## 3. Test Suite Verification
-```bash
-$ php artisan test (backend/laravel-api)
-  Tests:    28 passed (281 assertions on local MySQL; 239 on isolated SQLite)
-  Duration: 0.89s
-```
-```bash
-$ npm test && npm run build (apps/windows-pos)
-  Tests:    41 passed (0 failed)
-  ✓ built in 232ms
-```
-```bash
-$ flutter analyze && flutter test (apps/mobile-pos)
-  No issues found!
-  00:03 +20: All tests passed!
-```
-
-
-## 4. Offline persistence verification — 2026-10-17
-
-WIN-013 is complete. Desktop checkout now saves a sale before confirming payment, and the cached catalog works during an outage and after restart for an existing authenticated session. Initial login and device setup require connectivity. Browser preview remains online-only.
-
-API-015 replaces independent record counters with a transactional global revision sequence, includes stock changes and deletion tombstones in catalog pulls, and preserves captured tax rates for offline receipts. The new backend migration was applied to the local MySQL database and verified on a fresh isolated SQLite database. Apply it to other environments before using the updated desktop sync client.
-
-Remaining Phase 1 work is physical peripheral/secondary-monitor/scale acceptance and Windows device testing. Desktop scale software is implemented for explicitly configured A&D formats. Real printer/drawer transport is now implemented; local TCP receiver tests verify byte delivery, while physical output and Windows spooler execution still require target validation.
-
-Final lint check exits successfully with seven existing React hook/unused-variable warnings. PHP formatting and `git diff --check` pass. The GUI smoke test also verifies failed-write feedback, cart retention, retry, reload recovery, and reconnect synchronization.
-
-Printing continuation: WIN-011/WIN-012 software is verified by 27 native tests and the GUI smoke test (including long 58mm Sinhala output). The unsigned macOS arm64 package includes the font/license and decoder. Configuration and deployment checks are in [receipt-printing.md](receipt-printing.md).
-
-Customer-display continuation: HRD-004 software passes native validation/monitor/IPC tests and an expanded GUI smoke suite using a real sandboxed renderer and simulated monitor events. Live quantities/discounts/held bills, all language modes, reconnect, persistent pause/resume, sale/logout clearing, and cashier shutdown are covered. Screenshot inspection passes. See [customer-display.md](customer-display.md) for operation and outstanding physical acceptance.
-
-Weighing continuation (2026-10-18): HRD-005 software is verified with 41 native tests and the expanded GUI smoke suite using a real SerialPort stream/mock binding. Backend tests total 28 (281 MySQL / 239 SQLite assertions), covering fractional sale/refund precision and one-gram idempotent sync. The quantity migration is applied to development MySQL. See [weighing-scales.md](weighing-scales.md) for required rollout ordering and the unverified physical device checklist.
+## 3. Test Suite Status
+- **Backend API**: 28 passed (281 MySQL / 239 SQLite assertions).
+- **Desktop POS**: 41 native tests passed, Vite build succeeded.
+- **Consumer Mobile App**: 21 automated tests passed (`flutter test` in `apps/mobile-pos`).

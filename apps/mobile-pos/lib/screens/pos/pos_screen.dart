@@ -518,7 +518,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                         crossAxisCount: isTablet ? 3 : 2,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: isTablet ? 1.05 : 0.88,
+                        childAspectRatio: isTablet ? 1.05 : 0.75,
                       ),
                       itemCount: catalogState.products.length,
                       itemBuilder: (ctx, i) => ProductCard(product: catalogState.products[i]),

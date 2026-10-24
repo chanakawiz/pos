@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>SmartShop POS requires camera access to scan product barcodes and QR codes for fast checkout.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>SmartShop POS does not record audio.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SmartShop POS requires photo library access to attach receipts or product images.</string>
 </dict>
 </plist>
