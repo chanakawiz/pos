@@ -38,7 +38,6 @@ class SmartItemsSeeder extends Seeder
         $smartProducts = [
             [
                 'name' => 'iPhone 15 Pro 128GB Titanium',
-                'sinhala_name' => 'අයිෆෝන් 15 ප්‍රෝ 128GB ටයිටේනියම්',
                 'sku' => 'MOB-IPH-15P',
                 'barcode' => '195949038210',
                 'category_id' => $smartphonesCat->id,
@@ -54,7 +53,6 @@ class SmartItemsSeeder extends Seeder
             ],
             [
                 'name' => 'Samsung Galaxy S24 Ultra 256GB',
-                'sinhala_name' => 'සැම්සුන්ග් ගැලැක්සි S24 අල්ට්‍රා 256GB',
                 'sku' => 'MOB-SAM-S24U',
                 'barcode' => '880609530123',
                 'category_id' => $smartphonesCat->id,
@@ -70,7 +68,6 @@ class SmartItemsSeeder extends Seeder
             ],
             [
                 'name' => 'Apple AirPods Pro 2 (USB-C)',
-                'sinhala_name' => 'ඇපල් එයාර්පොඩ්ස් ප්‍රෝ 2 (USB-C)',
                 'sku' => 'AUD-APP-PRO2',
                 'barcode' => '195949052568',
                 'category_id' => $wearablesCat->id,
@@ -86,7 +83,6 @@ class SmartItemsSeeder extends Seeder
             ],
             [
                 'name' => 'Apple Watch Series 9 GPS 45mm',
-                'sinhala_name' => 'ඇපල් වොච් සීරීස් 9 GPS 45mm',
                 'sku' => 'SMT-WAT-AW9',
                 'barcode' => '195949041289',
                 'category_id' => $wearablesCat->id,
@@ -102,7 +98,6 @@ class SmartItemsSeeder extends Seeder
             ],
             [
                 'name' => 'Anker 65W GaN Fast Charger (3-Port)',
-                'sinhala_name' => 'ඇන්කර් 65W වේගවත් චාජර් (පෝර්ට් 3)',
                 'sku' => 'PWR-ANK-65W',
                 'barcode' => '848061061234',
                 'category_id' => $accessoriesCat->id,
@@ -118,7 +113,6 @@ class SmartItemsSeeder extends Seeder
             ],
             [
                 'name' => 'Xiaomi Smart Band 8 Active Black',
-                'sinhala_name' => 'ෂියෝමි ස්මාර්ට් බෑන්ඩ් 8 ඇක්ටිව්',
                 'sku' => 'SMT-XIA-BND8',
                 'barcode' => '694181273456',
                 'category_id' => $wearablesCat->id,

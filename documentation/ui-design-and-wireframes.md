@@ -136,39 +136,40 @@
 
 ---
 
-### 2.5 Bilingual Thermal Receipt Wireframe (Sinhala & English)
+### 2.5 Flagship Thermal Receipt Wireframe
 ```text
 ┌────────────────────────────────────────────────────────┐
-│ [ Language: ● Dual (EN+සිං)  ○ සිංහල  ○ English ] [✕]  │
+│ [ OmniLuxe Store Receipt Modal ]                   [✕] │
 ├────────────────────────────────────────────────────────┤
 │  ┌──────────────────────────────────────────────────┐  │
-│  │             ස්මාර්ට්ෂොප් වෙළඳසැල                 │  │
-│  │                 SMARTSHOP POS                    │  │
+│  │                 OMNILUXE STORE                   │  │
+│  │           Colombo 03 Flagship Store              │  │
 │  │        No. 124, Galle Road, Colombo 03           │  │
-│  │                Tel: +94 11 234 5678              │  │
-│  │             Tax ID: VAT-9982412-000              │  │
+│  │            Tel: +94 11 234 5678                  │  │
+│  │           Tax ID: VAT-9982412-000                │  │
 │  │ ------------------------------------------------ │  │
-│  │ Invoice / බිල්පත් අංකය:           INV-20260927-01 │  │
-│  │ Date / දිනය:                  2026-09-27 15:30:12 │  │
-│  │ Cashier / අයකැමි:                 Sarah Connor    │  │
+│  │ Invoice:                         INV-20261024-01 │  │
+│  │ Date:                        2026-10-24 17:30:12 │  │
+│  │ Cashier:                             Sarah (1234)│  │
+│  │ Customer:                 Dulantha (VIP Gold)    │  │
 │  │ ------------------------------------------------ │  │
-│  │ Item / භාණ්ඩය               Qty/ප්‍රම.   Total/එකතුව │  │
+│  │ Item                              Qty      Total │  │
 │  │ ------------------------------------------------ │  │
-│  │ Nescafe Gold Blend 200g        1x          11.99 │  │
-│  │  නෙස්කැෆේ ගෝල්ඩ් බ්ලෙන්ඩ්                        │  │
-│  │ Coca-Cola Can 330ml            2x           3.00 │  │
-│  │  කොකා-කෝලා ක්ලැසික්                               │  │
-│  │ Anchor NZ Butter 250g          1x           4.80 │  │
-│  │  ඇන්කර් නවසීලන්ත බටර්                            │  │
+│  │ iPhone 15 Pro 128GB Titanium       1x     999.00 │  │
+│  │  SN: 358291038472910                             │  │
+│  │  Warranty: 1 Year Apple Care                     │  │
+│  │ Nike Air Zoom Pegasus 40           1x     139.00 │  │
+│  │  Size: UK 9 / Color: Obsidian                    │  │
 │  │ ------------------------------------------------ │  │
-│  │ Subtotal / උප එකතුව:                     $ 19.79 │  │
-│  │ Tax / බදු (5%):                          $  0.99 │  │
-│  │ TOTAL / මුළු මුදල:                       $ 20.78 │  │
-│  │ Paid / ගෙවූ මුදල (Cash):                 $ 25.00 │  │
-│  │ Change / ඉතිරි මුදල:                     $  4.22 │  │
+│  │ Subtotal:                               $1,138.00│  │
+│  │ VIP Member Discount:                    -$  50.00│  │
+│  │ Tax (VAT):                              $   65.28│  │
+│  │ TOTAL:                                  $1,153.28│  │
+│  │ Paid (Visa Card):                       $1,153.28│  │
+│  │ Change:                                 $    0.00│  │
 │  │ ------------------------------------------------ │  │
-│  │              ස්තූතියි! නැවත එන්න.                │  │
-│  │        Thank you! Please visit again.            │  │
+│  │    Thank you for shopping at OmniLuxe Store!     │  │
+│  │      Official Luxury Retail & ERP Network        │  │
 │  │             ||| |||| |||||| |||||||              │  │
 │  └──────────────────────────────────────────────────┘  │
 ├────────────────────────────────────────────────────────┤
@@ -199,43 +200,64 @@
 
 ---
 
-## 3. Mobile POS (Flutter — Phase 2 Wireframes)
+## 3. OmniLuxe Store Consumer Mobile App (Flutter)
 
-### 3.1 Tablet Landscape Split-Screen (iPad / Galaxy Tab)
+### 3.1 Mobile Portrait — Flagship Home & Department Showcase
 ```text
-┌──────────────────────────────────────┬─────────────────────────────────┐
-│ [≡] SmartShop Mobile POS  [● Online] │ Cart (2)               Total: $ │
-├──────────────────────────────────────┼─────────────────────────────────┤
-│ [ All ] [ Drinks ] [ Food ] [ Clean ]│ 1. Whole Milk 1L                │
-│                                      │    1 x $3.20             $ 3.20 │
-│ ┌──────────────┐ ┌──────────────┐    │                                 │
-│ │ Whole Milk   │ │ Soda Can     │    │ 2. Sourdough Bread              │
-│ │ $3.20        │ │ $1.50        │    │    1 x $4.00             $ 4.00 │
-│ └──────────────┘ └──────────────┘    ├─────────────────────────────────┤
-│ ┌──────────────┐ ┌──────────────┐    │ Subtotal:                $ 7.20 │
-│ │ Sourdough    │ │ Cheddar      │    │ Tax (5%):                $ 0.36 │
-│ │ $4.00        │ │ $5.50        │    │ Total:                   $ 7.56 │
-│ └──────────────┘ └──────────────┘    │ [ Charge $7.56 ]                │
-└──────────────────────────────────────┴─────────────────────────────────┘
+┌──────────────────────────────────────┐
+│ 17:30                     ● 5G [ 98%]│
+│                                      │
+│ OMNILUXE STORE                  [ 🛍️]│
+│ Colombo 03 Flagship • Cloud Synced   │
+├──────────────────────────────────────┤
+│ ┌──────────────────────────────────┐ │
+│ │ FLAGSHIP SHOWCASE 2026           │ │
+│ │ Curated Luxury & Department      │ │
+│ │ Collections                      │ │
+│ │ Tech • Haute Couture • Footwear  │ │
+│ └──────────────────────────────────┘ │
+│                                      │
+│ PREMIER BRANDS                       │
+│ ( Apple ) ( Nike ) ( Toyota ) ( Zara)│
+│                                      │
+│ SHOP BY DEPARTMENT                   │
+│ ┌────────────────┐ ┌───────────────┐ │
+│ │ 📱 Smartphones │ │ 👗 Designer   │ │
+│ │ Apple, Samsung │ │ Studio Ceylon │ │
+│ └────────────────┘ └───────────────┘ │
+│ ┌────────────────┐ ┌───────────────┐ │
+│ │ 👟 Footwear    │ │ 🚘 Automobili │ │
+│ │ Nike, Adidas   │ │ Toyota, BYD   │ │
+│ └────────────────┘ └───────────────┘ │
+├──────────────────────────────────────┤
+│ [🏠 Home] [🧭 Explore] [🛍️ Bag]      │
+│ [📜 Orders]           [👑 VIP Club]  │
+└──────────────────────────────────────┘
 ```
 
-### 3.2 Mobile Phone Portrait (Queue-Buster)
+### 3.2 Mobile Portrait — VIP Club Digital Privilege Card
 ```text
-┌──────────────────────────────┐
-│ [≡] SmartShop Mobile    [ 📷]│
-├──────────────────────────────┤
-│ [🔍 Scan barcode or search ] │
-│                              │
-│ ┌──────────────────────────┐ │
-│ │ [Image] Organic Milk     │ │
-│ │ $3.20        [ + Add ]   │ │
-│ └──────────────────────────┘ │
-│ ┌──────────────────────────┐ │
-│ │ [Image] Apple Gala 1kg   │ │
-│ │ $4.50        [ + Add ]   │ │
-│ └──────────────────────────┘ │
-├──────────────────────────────┤
-│ 🛍️ 2 Items in Cart  •  $7.70 │
-│ [ View Cart & Checkout (▲) ] │
-└──────────────────────────────┘
+┌──────────────────────────────────────┐
+│ 17:30                     ● 5G [ 98%]│
+│                                      │
+│ OMNILUXE VIP                     [ ⚙️]│
+├──────────────────────────────────────┤
+│ ┌──────────────────────────────────┐ │
+│ │  (O) OMNILUXE PRIVILEGE          │ │
+│ │                                  │ │
+│ │  CARDHOLDER: Dulantha Perera     │ │
+│ │  MEMBER ID:  VIP-9824-771        │ │
+│ │                                  │ │
+│ │  350 POINTS       [ GOLD VIP ]   │ │
+│ │  Store Credit Limit: Rs. 500,000 │ │
+│ └──────────────────────────────────┘ │
+│                                      │
+│ PRIVILEGE REWARDS                    │
+│ • Redeem 350 pts for Rs. 3,500 off   │
+│ • Complimentary Flagship Concierge   │
+│ • Priority Allocation on New Drops   │
+├──────────────────────────────────────┤
+│ [🏠 Home] [🧭 Explore] [🛍️ Bag]      │
+│ [📜 Orders]           [👑 VIP Club]  │
+└──────────────────────────────────────┘
 ```

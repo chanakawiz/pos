@@ -13,7 +13,7 @@ void main() {
     final testProduct = const ProductModel(
       uuid: 'prod-iphone-15',
       name: 'Apple iPhone 15 128GB',
-      sinhalaName: 'ඇපල් අයිෆෝන් 15',
+      sinhalaName: null,
       sku: 'APL-IP15',
       sellingPrice: 285000.0,
       costPrice: 250000.0,

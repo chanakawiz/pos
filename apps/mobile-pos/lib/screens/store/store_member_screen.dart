@@ -82,7 +82,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
         title: Row(
           children: [
             Text(
-              'VIP CLUB',
+              'OMNILUXE VIP',
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -188,7 +188,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        'S',
+                        'O',
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
@@ -199,7 +199,7 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'LUXE PRIVILEGE',
+                    'OMNILUXE PRIVILEGE',
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,

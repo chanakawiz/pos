@@ -278,19 +278,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                   ),
 
-                  // Sinhala Subtitle
-                  if (widget.product.sinhalaName != null &&
-                      widget.product.sinhalaName!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.product.sinhalaName!,
-                      style: GoogleFonts.notoSansSinhala(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-
                   const SizedBox(height: 16),
 
                   // Price & SKU

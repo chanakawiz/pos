@@ -212,7 +212,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
             ),
           ),
 
-          // Bilingual Toggle
+          // Subtitle Toggle
           TextButton(
             onPressed: () => ref.read(catalogProvider.notifier).toggleBilingual(),
             style: TextButton.styleFrom(
@@ -220,7 +220,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               minimumSize: const Size(40, 36),
             ),
             child: Text(
-              catalogState.isBilingual ? 'සිං/EN' : 'EN',
+              catalogState.isBilingual ? 'SUB/ON' : 'SUB',
               style: const TextStyle(
                 color: AppColors.secondary,
                 fontWeight: FontWeight.bold,

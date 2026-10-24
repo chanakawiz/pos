@@ -1,6 +1,6 @@
 @extends('store.layout')
 
-@section('title', 'Sign Up — SmartShop Luxe VIP Member')
+@section('title', 'Sign Up — OmniLuxe Store VIP Member')
 
 @section('content')
 <div class="max-w-lg mx-auto px-4 py-12 sm:py-20">
@@ -81,7 +81,7 @@
             </div>
 
             <button type="submit" class="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-goldLuxury via-amber-400 to-emeraldAccent hover:from-amber-300 hover:to-emerald-300 text-black font-extrabold text-sm font-display tracking-wide shadow-lg shadow-goldLuxury/20 hover:scale-[1.01] active:scale-[0.99] transition-all">
-                Join SmartShop Luxe VIP (+100 Points)
+                Join OmniLuxe Store VIP (+100 Points)
             </button>
         </form>
 

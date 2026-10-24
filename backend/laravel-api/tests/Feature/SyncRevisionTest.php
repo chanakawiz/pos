@@ -29,7 +29,7 @@ class SyncRevisionTest extends TestCase
         $checkpoint = $service->pullDelta($store)['current_version'];
 
         $product = Product::firstOrFail();
-        $product->update(['selling_price' => 123.45, 'sinhala_name' => 'කිරි', 'requires_serial' => true, 'warranty_period' => '12 months']);
+        $product->update(['selling_price' => 123.45, 'sinhala_name' => 'OmniLuxe Edition', 'requires_serial' => true, 'warranty_period' => '12 months']);
         $newCustomer = Customer::create(['name' => 'New sync customer']);
         $delta = $service->pullDelta($store, $checkpoint);
         $record = collect($delta['products'])->firstWhere('uuid', $product->uuid);
@@ -37,7 +37,7 @@ class SyncRevisionTest extends TestCase
         $this->assertGreaterThan($checkpoint, $record['version']);
         $this->assertSame($product->id, $record['id']);
         $this->assertSame(123.45, $record['selling_price']);
-        $this->assertSame('කිරි', $record['sinhala_name']);
+        $this->assertSame('OmniLuxe Edition', $record['sinhala_name']);
         $this->assertTrue($record['requires_serial']);
         $this->assertSame('12 months', $record['warranty_period']);
         $this->assertSame($product->category->uuid, $record['category']['uuid']);

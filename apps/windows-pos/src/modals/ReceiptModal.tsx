@@ -38,7 +38,7 @@ export const ReceiptModal: React.FC = () => {
         return;
       }
       const result = await window.posApi.printReceipt({ kind: 'sale', sale: lastCompletedSale, language: lang,
-        storeNameSi: import.meta.env.VITE_STORE_NAME_SI || 'ස්මාර්ට්ෂොප් වෙළඳසැල' });
+        storeNameSi: import.meta.env.VITE_STORE_NAME_SI || 'OMNILUXE STORE' });
       setPrintFeedback(result.message);
     } catch {
       setPrintFeedback('Printing was not confirmed. Check the printer before trying again.');
@@ -48,27 +48,26 @@ export const ReceiptModal: React.FC = () => {
     }
   };
 
-  const storeNameEnv = import.meta.env.VITE_STORE_NAME || 'SMARTSHOP POS';
-  const storeNameSiEnv = import.meta.env.VITE_STORE_NAME_SI || 'ස්මාර්ට්ෂොප් වෙළඳසැල';
+  const storeNameEnv = import.meta.env.VITE_STORE_NAME || 'OMNILUXE STORE';
 
-  // Bilingual translation dictionary
+  // Standard flagship receipt dictionary
   const t = {
-    invoice: lang === 'si' ? 'බිල්පත් අංකය' : lang === 'bilingual' ? 'Invoice / බිල්පත් අංකය' : 'Invoice #',
-    date: lang === 'si' ? 'දිනය' : lang === 'bilingual' ? 'Date / දිනය' : 'Date',
-    cashier: lang === 'si' ? 'අයකැමි' : lang === 'bilingual' ? 'Cashier / අයකැමි' : 'Cashier',
-    item: lang === 'si' ? 'භාණ්ඩය' : lang === 'bilingual' ? 'Item / භාණ්ඩය' : 'Item',
-    qty: lang === 'si' ? 'ප්‍රමාණය' : lang === 'bilingual' ? 'Qty / ප්‍රම.' : 'Qty',
-    totalCol: lang === 'si' ? 'එකතුව' : lang === 'bilingual' ? 'Total / එකතුව' : 'Total',
-    subtotal: lang === 'si' ? 'උප එකතුව' : lang === 'bilingual' ? 'Subtotal / උප එකතුව' : 'Subtotal',
-    tax: lang === 'si' ? 'වැට් බදු' : lang === 'bilingual' ? 'Tax / බදු' : 'Tax',
-    discount: lang === 'si' ? 'වට්ටම්' : lang === 'bilingual' ? 'Discount / වට්ටම්' : 'Discount',
-    grandTotal: lang === 'si' ? 'මුළු එකතුව' : lang === 'bilingual' ? 'TOTAL / මුළු මුදල' : 'TOTAL',
-    paid: lang === 'si' ? 'ගෙවූ මුදල' : lang === 'bilingual' ? `Paid / ගෙවූ (${paymentMethod})` : `Paid (${paymentMethod})`,
-    change: lang === 'si' ? 'ඉතිරි මුදල' : lang === 'bilingual' ? 'Change / ඉතිරි' : 'Change Given',
-    storeNameSi: storeNameSiEnv,
+    invoice: 'Invoice #',
+    date: 'Date',
+    cashier: 'Cashier',
+    item: 'Item',
+    qty: 'Qty',
+    totalCol: 'Total',
+    subtotal: 'Subtotal',
+    tax: 'Tax (VAT)',
+    discount: 'VIP Discount',
+    grandTotal: 'TOTAL',
+    paid: `Paid (${paymentMethod})`,
+    change: 'Change Given',
+    storeNameSi: '',
     storeNameEn: storeNameEnv,
-    footerSi: 'ස්තූතියි! නැවත එන්න.',
-    footerEn: 'Thank you! Please visit again.',
+    footerSi: '',
+    footerEn: 'Thank you for shopping at OmniLuxe Store.',
   };
 
   return (
@@ -81,33 +80,10 @@ export const ReceiptModal: React.FC = () => {
             <span className="font-bold text-sm text-white">Payment Finalized</span>
           </div>
 
-          {/* Language Selector */}
-          <div className="flex items-center gap-1 bg-slate-800/80 p-0.5 rounded-xl border border-slate-700/60">
-            <Globe className="w-3.5 h-3.5 text-slate-400 ml-1.5" />
-            <button
-              onClick={() => { setLang('bilingual'); setLanguage('bilingual'); }}
-              className={`px-2 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                lang === 'bilingual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Dual (EN+සිං)
-            </button>
-            <button
-              onClick={() => { setLang('si'); setLanguage('si'); }}
-              className={`px-2 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                lang === 'si' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              සිංහල
-            </button>
-            <button
-              onClick={() => { setLang('en'); setLanguage('en'); }}
-              className={`px-2 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                lang === 'en' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              EN
-            </button>
+          {/* Receipt Status Badge */}
+          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-xl border border-slate-700/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-[11px] font-bold text-slate-300">OmniLuxe Receipt</span>
           </div>
 
           <button

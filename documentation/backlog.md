@@ -60,7 +60,7 @@
 | **WIN-003** | High-Speed Catalog & Cart Engine | P0 | `✅ DONE` | Sub-second item addition, quantity updates, line discounts, and bill discount. |
 | **WIN-004** | Customer CRM & Loyalty Modal | P1 | `✅ DONE` | Instant customer lookup by phone, rapid customer creation, and loyalty redemption. |
 | **WIN-005** | Multi-Payment Checkout Modal | P0 | `✅ DONE` | Cash with change calculator, Card, Bank transfer, split tenders, and receipt print. |
-| **WIN-006** | Bilingual Sinhala & English Thermal Receipt | P0 | `✅ DONE` | Interactive switch (Dual EN+සිං / සිංහල / EN), Sinhala headers, items, labels & ESC/POS buffer. |
+| **WIN-006** | OmniLuxe Store High-Speed Thermal Receipt | P0 | `✅ DONE` | Clean thermal layout with flagship branding, serialized warranty lines, and ESC/POS buffer. |
 | **WIN-007** | Shift Cash Session & X-Report | P1 | `✅ DONE` | Opening float input, mid-shift live balance view, X-Report print, and shift closing. |
 | **WIN-008** | Multi-Lane Cloud Held Bills | P1 | `✅ DONE` | F4 key hold to cloud, shared cross-lane bill list, one-click resume and discard. |
 | **WIN-009** | Refund Processing Modal | P1 | `✅ DONE` | Invoice lookup, item selection, return quantities, restock toggle, and refund trigger. |

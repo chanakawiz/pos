@@ -21,9 +21,9 @@ export function CategoryBar({ categories, selectedCategoryUuid, onSelectCategory
         {categories.map((category) => <button type="button" key={category.uuid} aria-pressed={selectedCategoryUuid === category.uuid} className={selectedCategoryUuid === category.uuid ? 'is-active' : ''} onClick={() => onSelectCategory(category.uuid)}><Boxes /><span>{category.name}</span>{selectedCategoryUuid === category.uuid && <Check />}</button>)}
       </nav>
       <div className="sidebar-bottom">
-        <span className="eyebrow">DISPLAY LANGUAGE</span>
-        <div className="language-switch" aria-label="Display language">{([
-          ['en', 'EN', 'Language: English'], ['si', 'සිං', 'Language: Sinhala (සිංහල)'], ['bilingual', 'Dual', 'Language: Dual (EN+සිං)'],
+        <span className="eyebrow">DISPLAY MODE</span>
+        <div className="language-switch" aria-label="Display mode">{([
+          ['en', 'EN', 'Standard English'], ['bilingual', 'Dual', 'English + Subtitle'],
         ] as const).map(([value, label, title]) => <button type="button" key={value} title={title} aria-pressed={language === value} className={language === value ? 'is-active' : ''} onClick={() => setLanguage(value)}>{label}</button>)}</div>
         <button type="button" className="sidebar-help" onClick={() => openModal('help')}><HelpCircle /><span>Help (F1)</span><kbd>F1</kbd></button>
         <p className="sidebar-footnote">A little more order.<br />A better day in store.</p>

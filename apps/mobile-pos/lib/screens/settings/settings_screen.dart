@@ -495,8 +495,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 12),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Bilingual Sinhala Names (සිංහල)'),
-                    subtitle: const Text('Show Sinhala product names on grid & receipts'),
+                    title: const Text('Secondary Model Subtitles'),
+                    subtitle: const Text('Show detailed product subtitles on catalog & receipts'),
                     value: catalogState.isBilingual,
                     onChanged: (_) => ref.read(catalogProvider.notifier).toggleBilingual(),
                   ),

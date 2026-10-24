@@ -128,7 +128,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               child: Center(
                                 child: Text(
-                                  'S',
+                                  'O',
                                   style: GoogleFonts.outfit(
                                     fontSize: 48,
                                     fontWeight: FontWeight.w900,
@@ -147,7 +147,7 @@ class _SplashScreenState extends State<SplashScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'SMARTSHOP',
+                              'OMNILUXE',
                               style: GoogleFonts.outfit(
                                 fontSize: 26,
                                 fontWeight: FontWeight.w900,
@@ -169,7 +169,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                               ),
                               child: Text(
-                                'LUXE',
+                                'STORE',
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -218,7 +218,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'SYNCED WITH CENTRAL POS & ERP',
+                  'SYNCED WITH CENTRAL OMNILUXE ERP',
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,

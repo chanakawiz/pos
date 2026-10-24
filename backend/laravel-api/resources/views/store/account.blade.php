@@ -1,6 +1,6 @@
 @extends('store.layout')
 
-@section('title', 'My VIP Account & Orders — SmartShop Luxe')
+@section('title', 'My VIP Account & Orders — OmniLuxe Store')
 
 @section('content')
 <div class="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-8">
@@ -46,9 +46,9 @@
                 <div class="flex items-center justify-between mb-8">
                     <div class="flex items-center gap-2">
                         <div class="w-7 h-7 rounded-lg bg-goldLuxury flex items-center justify-center text-black font-extrabold text-xs">
-                            S
+                            O
                         </div>
-                        <span class="font-display font-black tracking-widest text-xs text-goldLuxury uppercase">LUXE PRIVILEGE</span>
+                        <span class="font-display font-black tracking-widest text-xs text-goldLuxury uppercase">OMNILUXE PRIVILEGE</span>
                     </div>
                     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/60 border border-goldLuxury/30 text-goldLuxury font-bold tracking-wider">
                         TIER 01

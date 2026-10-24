@@ -23,7 +23,7 @@ void main() {
     );
 
     await tester.pump();
-    expect(find.text('SMARTSHOP'), findsWidgets);
+    expect(find.text('OMNILUXE'), findsWidgets);
 
     // Advance timer past splash animation and fade transition
     await tester.pump(const Duration(milliseconds: 2400));

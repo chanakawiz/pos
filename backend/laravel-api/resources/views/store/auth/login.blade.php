@@ -1,6 +1,6 @@
 @extends('store.layout')
 
-@section('title', 'Sign In — SmartShop Luxe VIP Member')
+@section('title', 'Sign In — OmniLuxe Store VIP Member')
 
 @section('content')
 <div class="max-w-md mx-auto px-4 py-16 sm:py-24">
@@ -74,7 +74,7 @@
 
         <!-- Footer Switcher -->
         <div class="mt-6 text-center text-xs text-slate-400">
-            New to SmartShop Luxe?
+            New to OmniLuxe Store?
             <a href="{{ route('store.register') }}" class="text-emeraldAccent font-semibold hover:underline ml-1">Create an Account (+100 Pts)</a>
         </div>
     </div>

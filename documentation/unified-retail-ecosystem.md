@@ -1,7 +1,8 @@
-# SmartShop Omnichannel Retail Ecosystem — Master Architectural Blueprint
+# OmniLuxe Store Omnichannel Retail Ecosystem — Master Architectural Blueprint
 
 > **System Scope**: Consumer E-Commerce Web Store + Consumer Mobile App (Flutter) + Dedicated Desktop Cashier POS (Windows/Mac) + Central ERP & Filament v3 Admin + Real-Time Omnichannel Inventory + SMS Digital E-Receipts
-> **Document Version**: 3.0.0
+> **System Name**: OmniLuxe Store (`omniluxe-store`)
+> **Document Version**: 3.1.0
 > **Target Business Profile**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Luxury Automobili & High-Value Assets)
 > **Commercial Readiness**: Turnkey Solution Ready for Commercial Licensing & Deployment to Established Retail Enterprises
 
@@ -9,11 +10,11 @@
 
 ## 1. Executive Summary & Commercial Positioning
 
-SmartShop is an enterprise-grade omnichannel retail platform designed for **premier multi-department retail chains, luxury fashion houses, flagship electronics stores, and high-value asset dealers**.
+OmniLuxe Store is an enterprise-grade omnichannel retail platform designed for **premier multi-department retail chains, luxury fashion houses, flagship electronics stores, and high-value asset dealers**.
 
-Unlike basic point-of-sale systems built for small corner groceries or simple kiosks, SmartShop delivers a unified multi-channel retail infrastructure that connects:
+Unlike basic point-of-sale systems built for small corner groceries or simple kiosks, OmniLuxe Store delivers a unified multi-channel retail infrastructure that connects:
 1. **Consumer Mobile Shopping App (Flutter iOS & Android)**: An editorial, dark luxury mobile store mirroring the web experience. Shoppers discover collections, review variant matrices (sizes, storage, colors), manage their bag, checkout with online card/COD, and receive verified SMS digital e-receipts and warranty cards.
-2. **Customizable E-Commerce Web Storefront (`apps/web-store` & Central Web Store)**: High-converting luxury web storefront providing instant island-wide ordering, real-time stock availability, and automated sync with central ERP inventory.
+2. **Customizable E-Commerce Web Storefront (`apps/web-store` & Central Web Store)**: High-converting luxury web storefront providing instant ordering, real-time stock availability, and automated sync with central ERP inventory.
 3. **Dedicated In-Store Cashier POS (Windows & macOS Desktop)**: A counter checkout terminal designed exclusively for store cashiers and staff, featuring barcode gun scanning, thermal ESC/POS receipt printing, cash drawer kickout, customer-facing pole display, staff shifts (X/Z reports), and offline SQLite durability.
 4. **Central Cloud ERP & Filament v3 Admin (`/admin`)**: Unified multi-branch control panel for catalog management, stock movement ledgers, purchase orders, vendor procurement, role-based permissions, and commercial analytics.
 5. **Customer Protection & Verified SMS E-Receipts Gateway**: Modular driver interface (supporting Notify.lk, Twilio, Dialog, Mobitel, and Mock modes) that dispatches instant digital bill summaries and tamper-evident warranty links to customers via SMS.
@@ -25,13 +26,13 @@ Unlike basic point-of-sale systems built for small corner groceries or simple ki
 ```mermaid
 flowchart TB
     subgraph Consumers["Customer Channels (Omnichannel Shoppers)"]
-        CustomerWeb["Luxury E-Commerce Web Store\n(Next-Gen Dark Storefront • Real-Time Stock)"]
+        CustomerWeb["OmniLuxe E-Commerce Web Store\n(Next-Gen Dark Storefront • Real-Time Stock)"]
         CustomerMobile["Consumer Mobile App (Flutter)\n(iOS / Android • Discover • Bag • Orders • E-Receipts)"]
         InStoreCustomer["In-Store Boutique Shopper\n(SMS Verified Bill • Warranty Link • Click & Collect)"]
     end
 
     subgraph Frontends["Frontend Experience Layer"]
-        WebStoreApp["Web Storefront (Blade / Alpine / Tailwind)\nEditorial Lookbook • Cart • PayHere / COD"]
+        WebStoreApp["Web Storefront (Blade / Alpine / Tailwind)\nEditorial Lookbook • Cart • Checkout"]
         FlutterApp["Consumer Mobile App (Flutter Riverpod)\nDark Luxury Theme • Variant Picker • Offline Orders"]
         DesktopPOS["Dedicated In-Store Cashier POS (Electron / React)\nWindows / Mac • Barcode Gun • Thermal Slip • Cash Drawer"]
     end
@@ -88,7 +89,7 @@ flowchart TB
 
 ---
 
-## 4. UI Design System & Aesthetics (Matching `store_web`)
+## 4. UI Design System & Aesthetics
 
 The entire ecosystem adheres to an editorial, modern luxury aesthetic:
 
@@ -103,7 +104,7 @@ The entire ecosystem adheres to an editorial, modern luxury aesthetic:
 * **Typography**:
   * Primary Headings: Outfit / Google Fonts sans-serif, bold, elegant letter-spacing
   * Body & Metadata: Inter, crisp, clean silver `#94A3B8` and white `#F8FAFC`
-  * Sinhala Support: Noto Sans Sinhala for authentic bilingual representation
+  * Standard English International nomenclature for all luxury goods
 
 ---
 
@@ -126,7 +127,7 @@ sequenceDiagram
     MobileApp->>CentralAPI: Submit Order (POST /api/v1/sales or /orders)
     CentralAPI->>CentralAPI: Atomically Decrement Inventory in Ledger
     CentralAPI->>SMSGateway: Dispatch SMS E-Receipt with Verified Link
-    SMSGateway-->>Customer: SMS: "SmartShop: Order ORD-2026-981 Confirmed. Receipt: http://127.0.0.1:8000/receipt/ORD-2026-981"
+    SMSGateway-->>Customer: SMS: "OmniLuxe Store: Order ORD-2026-981 Confirmed. Receipt: http://127.0.0.1:8000/receipt/ORD-2026-981"
     MobileApp->>Customer: Display OrderConfirmationScreen with QR Code
 
     Note over InStoreCustomer,DesktopPOS: Real-Time In-Store Synchronization
@@ -143,7 +144,7 @@ sequenceDiagram
 
 When delivering this system to a commercial enterprise, the deployment package includes:
 1. **Cloud Central ERP & Admin**: Hosted on AWS / DigitalOcean / On-Premise Docker stack (`backend/laravel-api`).
-2. **Branded Web Storefront**: Configured with custom domain, merchant logo, PayHere / Stripe payment keys, and cloud storage.
+2. **Branded Web Storefront**: Configured with custom domain, merchant logo, and cloud storage.
 3. **Consumer Mobile Apps**: Distributed via Apple App Store & Google Play Store, branded for the enterprise.
 4. **Lane Cashier Terminals**: Packaged Electron executable for Windows / macOS POS hardware (touchscreen POS, barcode gun, 80mm ESC/POS printer, RJ11 cash drawer).
-5. **SMS Provider Integration**: Live API keys for Notify.lk, Dialog, or Twilio with custom sender ID (e.g., `SMARTSHOP`).
+5. **SMS Provider Integration**: Live API keys for Notify.lk, Dialog, or Twilio with custom sender ID (`OMNILUXE`).

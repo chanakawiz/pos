@@ -29,14 +29,14 @@ class DatabaseSeeder extends Seeder
         $store = Store::firstOrCreate(
             ['code' => 'STORE-001'],
             [
-                'name' => 'SmartShop Omnichannel Flagship',
+                'name' => 'OmniLuxe Store Flagship',
                 'phone' => '+94 11 234 5678',
-                'email' => 'contact@smartshop.lk',
+                'email' => 'concierge@omniluxe.store',
                 'address' => '420 Galle Road, Colombo 03, Sri Lanka',
                 'tax_number' => 'TAX-LK-9982400',
                 'currency_code' => 'LKR',
                 'currency_symbol' => 'Rs.',
-                'receipt_header' => "=== SMARTSHOP OMNICHANNEL ===\nColombo Flagship • Real-Time Stock Synced",
+                'receipt_header' => "=== OMNILUXE STORE ===\nFlagship Retail • Real-Time Omnichannel Sync",
                 'receipt_footer' => "Warranties honored on presentation of SMS digital receipt.\nVisit store online at http://127.0.0.1:8000/",
                 'is_active' => true,
             ]
@@ -70,18 +70,30 @@ class DatabaseSeeder extends Seeder
         // 4. Users (Admin ERP, Managers, Counter Cashiers, and Online Customers)
         $customerRole = Role::firstOrCreate(['name' => 'customer']);
 
-        // Admin User for /admin
+        // Admin Users for /admin
         $admin = User::firstOrCreate(
             ['email' => 'admin@smartshop.com'],
             [
                 'store_id' => $store->id,
-                'name' => 'System Administrator',
+                'name' => 'OmniLuxe Administrator',
                 'password' => Hash::make('password'),
                 'role' => 'super_admin',
                 'is_active' => true,
             ]
         );
         $admin->syncRoles([$superAdminRole]);
+
+        $omniluxeAdmin = User::firstOrCreate(
+            ['email' => 'admin@omniluxe.store'],
+            [
+                'store_id' => $store->id,
+                'name' => 'OmniLuxe Super Admin',
+                'password' => Hash::make('password'),
+                'role' => 'super_admin',
+                'is_active' => true,
+            ]
+        );
+        $omniluxeAdmin->syncRoles([$superAdminRole]);
 
         // Manager User for /admin
         $manager = User::firstOrCreate(
@@ -200,7 +212,6 @@ class DatabaseSeeder extends Seeder
             // --- SMARTPHONES & TECH (Requires IMEI/Serial & Warranties) ---
             [
                 'name' => 'Apple iPhone 16 Pro Max 256GB (Space Black)',
-                'sinhala_name' => 'ඇපල් අයිෆෝන් 16 ප්‍රෝ මැක්ස් 256GB',
                 'sku' => 'TECH-IPH-16PM',
                 'barcode' => '445566',
                 'category' => 'Smartphones & Tech',
@@ -216,7 +227,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Samsung Galaxy S24 Ultra 512GB (Titanium Gray)',
-                'sinhala_name' => 'සැම්සුන්ග් ගැලැක්සි S24 අල්ට්‍රා 512GB',
                 'sku' => 'TECH-SAM-S24U',
                 'barcode' => '556677',
                 'category' => 'Smartphones & Tech',
@@ -232,7 +242,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Apple AirPods Pro 2 (USB-C MagSafe)',
-                'sinhala_name' => 'එයාපොඩ්ස් ප්‍රෝ 2 USB-C',
                 'sku' => 'TECH-APP-APP2',
                 'barcode' => '667788',
                 'category' => 'Smartphones & Tech',
@@ -248,7 +257,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Anker Nano II 65W GaN Fast Charger',
-                'sinhala_name' => 'ඇන්කර් 65W GaN චාජරය',
                 'sku' => 'TECH-ANK-65W',
                 'barcode' => '990011',
                 'category' => 'Smartphones & Tech',
@@ -264,7 +272,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
-                'sinhala_name' => 'සෝනි ශබ්ද අවහිර කරණ හෙඩ්ෆෝන්',
                 'sku' => 'TECH-SNY-XM5',
                 'barcode' => '778899',
                 'category' => 'Smartphones & Tech',
@@ -282,7 +289,6 @@ class DatabaseSeeder extends Seeder
             // --- CLOTHING & APPAREL (Studio Ceylon, Zara, Ralph Lauren) ---
             [
                 'name' => 'Apple iPhone 15 Pro 128GB (Natural Titanium)',
-                'sinhala_name' => 'ඇපල් අයිෆෝන් 15 ප්‍රෝ 128GB',
                 'sku' => 'TECH-IPH-15P',
                 'barcode' => '195949038234',
                 'category' => 'Smartphones & Tech',
@@ -298,7 +304,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Apple Watch Ultra 2 (Titanium GPS + Cellular)',
-                'sinhala_name' => 'ඇපල් වොච් අල්ට්‍රා 2 ටයිටේනියම්',
                 'sku' => 'TECH-APP-WCHULT2',
                 'barcode' => '667799',
                 'category' => 'Smartphones & Tech',
@@ -316,7 +321,6 @@ class DatabaseSeeder extends Seeder
             // --- DESIGNER FASHION & APPAREL (Studio Ceylon, Zara, Ralph Lauren, Levi's) ---
             [
                 'name' => 'The Everyday Linen Shirt (Relaxed Fit)',
-                'sinhala_name' => 'සැහැල්ලු ලිනන් කමිසය',
                 'sku' => 'APP-LIN-SHT01',
                 'barcode' => '112233',
                 'category' => 'Designer Fashion & Apparel',
@@ -332,7 +336,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sunday Midi Linen Dress (Warm Ivory)',
-                'sinhala_name' => 'සන්ඩේ ලිනන් මිඩි ඇඳුම',
                 'sku' => 'APP-DRS-MID01',
                 'barcode' => '887766',
                 'category' => 'Designer Fashion & Apparel',
@@ -348,7 +351,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Italian Tailored Wool Blazer (Charcoal)',
-                'sinhala_name' => 'ඉතාලි විලාසිතාවේ බ්ලේසරය',
                 'sku' => 'APP-BLZ-CHR01',
                 'barcode' => '223344',
                 'category' => 'Designer Fashion & Apparel',
@@ -364,7 +366,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Ralph Lauren Custom Slim Fit Mesh Polo',
-                'sinhala_name' => 'රැල්ෆ් ලෝරන් කස්ටම් පොලෝ',
                 'sku' => 'APP-RL-POLO01',
                 'barcode' => '223355',
                 'category' => 'Designer Fashion & Apparel',
@@ -380,7 +381,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Levi\'s 501 Original Fit Denim Jeans',
-                'sinhala_name' => 'ලෙවීස් 501 ඔරිජිනල් ඩෙනිම්',
                 'sku' => 'APP-DNM-501',
                 'barcode' => '334455',
                 'category' => 'Designer Fashion & Apparel',
@@ -398,7 +398,6 @@ class DatabaseSeeder extends Seeder
             // --- FOOTWEAR & SNEAKERS (Nike, Adidas, Clarks, Puma) ---
             [
                 'name' => 'Nike Air Zoom Pegasus 40 Running Shoes',
-                'sinhala_name' => 'නයික් එයාර් සූම් පෙගසස් 40 සපත්තු',
                 'sku' => 'FTW-NIK-PEG40',
                 'barcode' => '789012',
                 'category' => 'Footwear & Sneakers',
@@ -414,7 +413,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Adidas Ultraboost Light Running Shoes',
-                'sinhala_name' => 'ඇඩිඩාස් අල්ට්‍රාබූස්ට් ලයිට්',
                 'sku' => 'FTW-ADI-UB01',
                 'barcode' => '890123',
                 'category' => 'Footwear & Sneakers',
@@ -430,7 +428,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Clarks Batcombe Lord Handcrafted Leather Oxford',
-                'sinhala_name' => 'ක්ලාක්ස් ලෙදර් ඔක්ස්ෆර්ඩ් සම් සපත්තු',
                 'sku' => 'FTW-CLK-OXF01',
                 'barcode' => '123456',
                 'category' => 'Footwear & Sneakers',
@@ -446,7 +443,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Puma Suede Classic XXI Heritage Shoes',
-                'sinhala_name' => 'පූමා ස්වේඩ් ක්ලැසික් සපත්තු',
                 'sku' => 'FTW-PUM-SUD01',
                 'barcode' => '123457',
                 'category' => 'Footwear & Sneakers',
@@ -464,7 +460,6 @@ class DatabaseSeeder extends Seeder
             // --- VEHICLES & LUXURY AUTOMOTIVE (Toyota, Land Rover, BYD, Honda) ---
             [
                 'name' => 'Toyota Land Cruiser Prado 250 (2025 Hybrid AWD)',
-                'sinhala_name' => 'ටොයෝටා ලෑන්ඩ් කෲසර් ප්‍රාඩෝ 250 (2025)',
                 'sku' => 'AUTO-TOY-PRADO250',
                 'barcode' => '900001',
                 'category' => 'Vehicles & Luxury Automotive',
@@ -480,7 +475,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Land Rover Defender 110 X-Dynamic HSE',
-                'sinhala_name' => 'ලෑන්ඩ් රෝවර් ඩිෆෙන්ඩර් 110',
                 'sku' => 'AUTO-LRV-DEF110',
                 'barcode' => '900002',
                 'category' => 'Vehicles & Luxury Automotive',
@@ -496,7 +490,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'BYD Seal EV Performance AWD (82.5 kWh)',
-                'sinhala_name' => 'බී.වයි.ඩී සීල් සුපිරි විදුලි මෝටර් රථය',
                 'sku' => 'AUTO-BYD-SEAL01',
                 'barcode' => '900003',
                 'category' => 'Vehicles & Luxury Automotive',
@@ -512,7 +505,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Honda Civic RS Turbo (Sport Edition)',
-                'sinhala_name' => 'හොන්ඩා සිවික් ආර්.එස් ටර්බෝ',
                 'sku' => 'AUTO-HND-CIVICRS',
                 'barcode' => '900004',
                 'category' => 'Vehicles & Luxury Automotive',
@@ -528,7 +520,6 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Toyota Genuine Ceramic Brake Pad Set & Hybrid Filter',
-                'sinhala_name' => 'ටොයෝටා ඔරිජිනල් බ්‍රේක් පෑඩ් කට්ටලය',
                 'sku' => 'AUTO-TOY-BRK01',
                 'barcode' => '900005',
                 'category' => 'Vehicles & Luxury Automotive',

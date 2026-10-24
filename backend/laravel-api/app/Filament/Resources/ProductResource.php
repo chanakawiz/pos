@@ -33,13 +33,13 @@ class ProductResource extends Resource
                                     ->schema([
                                         Forms\Components\TextInput::make('name')
                                             ->label('Product Name (English)')
-                                            ->placeholder('e.g. Anchor Full Cream Milk Powder 400g')
+                                            ->placeholder('e.g. Apple iPhone 15 Pro 128GB Titanium')
                                             ->required()
                                             ->maxLength(255),
 
                                         Forms\Components\TextInput::make('sinhala_name')
-                                            ->label('Product Name (සිංහල / Sinhala)')
-                                            ->placeholder('උදා: ඇන්කර් කිරිපිටි 400g')
+                                            ->label('Model Subtitle / Secondary Name (Optional)')
+                                            ->placeholder('e.g. Flagship Edition / Titanium Silver')
                                             ->maxLength(255),
                                     ]),
 

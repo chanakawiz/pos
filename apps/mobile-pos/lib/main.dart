@@ -28,7 +28,7 @@ class SmartShopMobilePosApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      title: 'SmartShop Flagship Store',
+      title: 'OmniLuxe Store Flagship',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       home: const SplashScreen(),

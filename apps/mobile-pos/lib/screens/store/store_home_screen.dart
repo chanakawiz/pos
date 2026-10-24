@@ -34,7 +34,7 @@ class StoreHomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'SMARTSHOP BOUTIQUE',
+              'OMNILUXE STORE',
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

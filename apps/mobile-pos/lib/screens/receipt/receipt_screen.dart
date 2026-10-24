@@ -106,8 +106,8 @@ class ReceiptScreen extends ConsumerWidget {
                         Center(
                           child: Column(
                             children: [
-                              Text(
-                                store?.receiptHeader ?? 'ස්මාර්ට්ෂොප් වෙළඳසැල / SMARTSHOP',
+                                Text(
+                                store?.receiptHeader ?? 'OMNILUXE STORE — FLAGSHIP',
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
@@ -117,7 +117,7 @@ class ReceiptScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                store?.name ?? 'Main Store',
+                                store?.name ?? 'OmniLuxe Flagship Store',
                                 style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
                               ),
                               if (store?.address != null) ...[
@@ -146,7 +146,7 @@ class ReceiptScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Invoice / බිල්පත් අංකය:'),
+                            const Text('Invoice:'),
                             Text(sale.invoiceNumber, style: const TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
@@ -154,7 +154,7 @@ class ReceiptScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Date / දිනය:'),
+                            const Text('Date:'),
                             Text(sale.soldAt.toString().substring(0, 16)),
                           ],
                         ),
@@ -162,7 +162,7 @@ class ReceiptScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Cashier / අයකැමි:'),
+                            const Text('Cashier:'),
                             Text(sale.cashierName),
                           ],
                         ),
@@ -171,7 +171,7 @@ class ReceiptScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Customer / පාරිභෝගිකයා:'),
+                              const Text('Customer:'),
                               Text(sale.customerName!),
                             ],
                           ),
@@ -184,7 +184,7 @@ class ReceiptScreen extends ConsumerWidget {
                         // Column Headers
                         const Row(
                           children: [
-                            Expanded(flex: 3, child: Text('ITEM / අයිතමය', style: TextStyle(fontWeight: FontWeight.bold))),
+                            Expanded(flex: 3, child: Text('ITEM', style: TextStyle(fontWeight: FontWeight.bold))),
                             Expanded(flex: 1, child: Text('QTY', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
                             Expanded(flex: 2, child: Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                           ],
@@ -255,7 +255,7 @@ class ReceiptScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Subtotal / උප එකතුව:'),
+                            const Text('Subtotal:'),
                             Text(CurrencyFormatter.format(sale.subtotal, symbol: currencySymbol)),
                           ],
                         ),
@@ -264,7 +264,7 @@ class ReceiptScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Discount / වට්ටම:'),
+                              const Text('Discount:'),
                               Text('- ${CurrencyFormatter.format(sale.discountAmount, symbol: currencySymbol)}'),
                             ],
                           ),
@@ -274,7 +274,7 @@ class ReceiptScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Tax (VAT) / බදු:'),
+                              const Text('Tax (VAT):'),
                               Text(CurrencyFormatter.format(sale.taxAmount, symbol: currencySymbol)),
                             ],
                           ),
@@ -283,7 +283,7 @@ class ReceiptScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('TOTAL / මුළු එකතුව:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                            const Text('TOTAL:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                             Text(
                               CurrencyFormatter.format(sale.totalAmount, symbol: currencySymbol),
                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
@@ -294,7 +294,7 @@ class ReceiptScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Paid / ගෙවූ මුදල:'),
+                            const Text('Paid:'),
                             Text(CurrencyFormatter.format(sale.paidAmount, symbol: currencySymbol)),
                           ],
                         ),
@@ -303,7 +303,7 @@ class ReceiptScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Change / ඉතිරි මුදල:'),
+                              const Text('Change:'),
                               Text(CurrencyFormatter.format(sale.changeAmount, symbol: currencySymbol)),
                             ],
                           ),
@@ -313,17 +313,17 @@ class ReceiptScreen extends ConsumerWidget {
                         const Text('==========================================', textAlign: TextAlign.center),
                         const SizedBox(height: 8),
 
-                        // Sinhala & English Blessings
+                        // Footer
                         Center(
                           child: Column(
                             children: [
                               const Text(
-                                'ස්තූතියි! නැවත එන්න.',
+                                'Thank you for shopping at OmniLuxe Store.',
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                store?.receiptFooter ?? 'Thank you! Please visit again.',
+                                store?.receiptFooter ?? 'Official Luxury Retail & Omnichannel Network',
                                 style: const TextStyle(fontSize: 11, color: Colors.black54),
                               ),
                             ],

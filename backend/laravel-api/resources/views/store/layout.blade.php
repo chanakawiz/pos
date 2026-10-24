@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'SmartShop — Luxury Retail & Online Storefront')</title>
+    <title>@yield('title', 'OmniLuxe Store — Flagship Omnichannel Retail & POS')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -62,7 +62,7 @@
     <!-- Top Announcement Bar -->
     <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-950 border-b border-hairline py-1.5 px-4 text-xs font-medium text-emerald-400 text-center flex items-center justify-center gap-2">
         <span class="inline-block w-2 h-2 rounded-full bg-emeraldAccent animate-pulse"></span>
-        <span>Unified Retail Engine Active — Real-Time Stock Synced Across Physical POS & Online Web Store</span>
+        <span>OmniLuxe Engine Active — Real-Time Stock Synced Across Physical POS, Web Store & Mobile App</span>
         <span class="hidden md:inline text-slate-500">•</span>
         <span class="hidden md:inline text-slate-400">Instant SMS E-Receipts on Every Order</span>
     </div>
@@ -72,16 +72,14 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             <!-- Brand -->
             <a href="{{ route('store.index') }}" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emeraldAccent to-cyanTech flex items-center justify-center shadow-lg shadow-emeraldAccent/20 group-hover:scale-105 transition-transform">
-                    <svg class="w-5 h-5 text-black font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-goldLuxury via-amber-400 to-emeraldAccent flex items-center justify-center shadow-lg shadow-goldLuxury/20 group-hover:scale-105 transition-transform">
+                    <span class="font-display font-black text-black text-lg">O</span>
                 </div>
                 <div>
                     <div class="font-display font-extrabold text-lg tracking-tight text-white flex items-center gap-1.5">
-                        SMARTSHOP <span class="text-xs px-1.5 py-0.5 rounded bg-emeraldAccent/20 text-emeraldAccent font-semibold border border-emeraldAccent/30">LUXE</span>
+                        OMNILUXE <span class="text-xs px-1.5 py-0.5 rounded bg-goldLuxury/20 text-goldLuxury font-bold border border-goldLuxury/30">STORE</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 tracking-widest uppercase">POS + ERP + Web Store</div>
+                    <div class="text-[10px] text-slate-400 tracking-widest uppercase">POS + ERP + Web + App</div>
                 </div>
             </a>
 
