@@ -55,6 +55,7 @@ class NotificationService {
   Future<List<NotificationItem>> fetchNotificationsFromBackend(
     WidgetRef ref, {
     String? authToken,
+    String? customerUuid,
   }) async {
     try {
       final url = Uri.parse('http://127.0.0.1:8000/api/v1/customer/notifications');
@@ -63,6 +64,7 @@ class NotificationService {
         headers: {
           'Accept': 'application/json',
           if (authToken != null) 'Authorization': 'Bearer $authToken',
+          if (customerUuid != null) 'X-Customer-Uuid': customerUuid,
         },
       );
 
@@ -95,7 +97,7 @@ class NotificationService {
   }
 
   /// Mark single notification as read on Central API
-  Future<bool> markAsReadOnBackend(String uuid, {String? authToken}) async {
+  Future<bool> markAsReadOnBackend(String uuid, {String? authToken, String? customerUuid}) async {
     try {
       final url = Uri.parse('http://127.0.0.1:8000/api/v1/customer/notifications/$uuid/read');
       final response = await http.post(
@@ -103,11 +105,31 @@ class NotificationService {
         headers: {
           'Accept': 'application/json',
           if (authToken != null) 'Authorization': 'Bearer $authToken',
+          if (customerUuid != null) 'X-Customer-Uuid': customerUuid,
         },
       );
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('[Notifications] Mark read remote call skipped: $e');
+      return false;
+    }
+  }
+
+  /// Mark all notifications as read on Central API
+  Future<bool> markAllAsReadOnBackend({String? authToken, String? customerUuid}) async {
+    try {
+      final url = Uri.parse('http://127.0.0.1:8000/api/v1/customer/notifications/read-all');
+      final response = await http.post(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          if (authToken != null) 'Authorization': 'Bearer $authToken',
+          if (customerUuid != null) 'X-Customer-Uuid': customerUuid,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[Notifications] Mark all read remote call skipped: $e');
       return false;
     }
   }

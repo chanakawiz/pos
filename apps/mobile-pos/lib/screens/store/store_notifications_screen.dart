@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../services/notification_service.dart';
 
@@ -20,12 +21,14 @@ class _StoreNotificationsScreenState extends ConsumerState<StoreNotificationsScr
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationService().fetchNotificationsFromBackend(ref);
+      final customerUuid = ref.read(authProvider).user?.uuid;
+      NotificationService().fetchNotificationsFromBackend(ref, customerUuid: customerUuid);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = ref.watch(authProvider).user;
     final notifications = ref.watch(notificationProvider);
     final unreadCount = ref.watch(unreadNotificationCountProvider);
 
@@ -52,11 +55,7 @@ class _StoreNotificationsScreenState extends ConsumerState<StoreNotificationsScr
             TextButton(
               onPressed: () {
                 ref.read(notificationProvider.notifier).markAllAsRead();
-                for (final n in notifications) {
-                  if (!n.isRead) {
-                    NotificationService().markAsReadOnBackend(n.id);
-                  }
-                }
+                NotificationService().markAllAsReadOnBackend(customerUuid: currentUser?.uuid);
               },
               child: Text(
                 'Mark All Read',
@@ -158,7 +157,7 @@ class _StoreNotificationsScreenState extends ConsumerState<StoreNotificationsScr
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final item = filtered[index];
-                      return _buildNotificationCard(item);
+                      return _buildNotificationCard(item, currentUser?.uuid);
                     },
                   ),
           ),
@@ -195,7 +194,7 @@ class _StoreNotificationsScreenState extends ConsumerState<StoreNotificationsScr
     );
   }
 
-  Widget _buildNotificationCard(NotificationItem item) {
+  Widget _buildNotificationCard(NotificationItem item, String? customerUuid) {
     IconData icon;
     Color iconColor;
 
@@ -223,7 +222,7 @@ class _StoreNotificationsScreenState extends ConsumerState<StoreNotificationsScr
       onTap: () {
         if (!item.isRead) {
           ref.read(notificationProvider.notifier).markAsRead(item.id);
-          NotificationService().markAsReadOnBackend(item.id);
+          NotificationService().markAsReadOnBackend(item.id, customerUuid: customerUuid);
         }
       },
       borderRadius: BorderRadius.circular(16),
