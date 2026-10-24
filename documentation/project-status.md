@@ -1,9 +1,9 @@
 # SmartShop POS — Current Project Status
 
-> **Audit Date**: 2026-10-18
-> **Overall Health**: Healthy / Stable (28 backend tests and 41 native Electron tests passing; desktop build and unsigned macOS arm64 packaging pass)
+> **Audit Date**: 2026-10-24
+> **Overall Health**: Healthy / Stable (28 backend tests, 41 native Electron tests, and 6 Flutter mobile POS tests passing)
 > **Phase 1 Progress**: SQLite persistence complete; printer/drawer, customer-display, and weighing-scale software complete; physical validation remains
-> **Phase 2 Progress**: Planning & Scaffolding Phase
+> **Phase 2 Progress**: Flutter Mobile POS Core Architecture, SQLite Persistence, Adaptive Split-Screen & Queue Buster Complete (MOB-001 through MOB-006)
 
 ---
 
@@ -79,10 +79,11 @@
 ### 2.4 Mobile POS (`apps/mobile-pos`) — Phase 2
 | Feature | Status | Notes |
 | :--- | :---: | :--- |
-| **Flutter Project Init** | `⏳ PENDING` | Scaffolding with Material 3 and Riverpod. |
-| **Tablet Split Screen** | `⏳ PENDING` | 60/40 Landscape cashier workspace. |
-| **Phone Queue Buster** | `⏳ PENDING` | Camera scanner & compact cart bottom sheet. |
-| **Mobile SQLite & Sync** | `⏳ PENDING` | Local sqflite database and Dio sync engine. |
+| **Flutter Project Init** | `✅ DONE` | Flutter 3.27+, Material 3 dark retail design system, and Riverpod state container. |
+| **Tablet Split Screen** | `✅ DONE` | Adaptive 60/40 Landscape cashier workspace with fixed cart panel and live totals. |
+| **Phone Queue Buster** | `✅ DONE` | Single-column view with live camera barcode scanner (`mobile_scanner`) and floating cart sheet. |
+| **Mobile SQLite & Sync** | `✅ DONE` | Embedded `sqflite` database with atomic sales persistence, WAL durability, and Dio delta sync. |
+| **Smart Items & Warranty**| `✅ DONE` | Serial number / IMEI capture, warranty period badges, and bilingual Sinhala receipt preview. |
 
 ---
 

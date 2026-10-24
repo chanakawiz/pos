@@ -78,13 +78,13 @@
 
 | Task ID | Task Title | Priority | Status | Description |
 | :--- | :--- | :---: | :---: | :--- |
-| **MOB-001** | Flutter 3.x Project Scaffolding | P0 | `⏳ PENDING` | Flutter project setup with Material 3, Riverpod, Dio, and responsive screen utility. |
-| **MOB-002** | Device Pairing & Cashier Login | P0 | `⏳ PENDING` | QR code store pairing and 4-digit PIN authentication screen. |
-| **MOB-003** | Tablet Split-Screen Layout | P0 | `⏳ PENDING` | Landscape 60/40 view with category navigation, product grid, and active cart. |
-| **MOB-004** | Phone Portrait Queue-Busting UI | P1 | `⏳ PENDING` | Compact single-column view with camera barcode scanning and floating cart sheet. |
-| **MOB-005** | Mobile SQLite Local Storage | P0 | `⏳ PENDING` | Embedded `sqflite` database for catalog caching and offline sales queue. |
-| **MOB-006** | Dio Offline Sync Client | P0 | `⏳ PENDING` | Interceptors for auto-headers, background sales push, and delta catalog pull. |
-| **MOB-007** | Bluetooth / WiFi Thermal Print | P1 | `⏳ PENDING` | Integration with mobile ESC/POS Bluetooth printers (Star Micronics / Epson). |
+| **MOB-001** | Flutter 3.x Project Scaffolding | P0 | `✅ DONE` | Flutter 3.27+ project setup with Material 3, Riverpod 2.6, Dio 5.11, and responsive design tokens. |
+| **MOB-002** | Device Pairing & Cashier Login | P0 | `✅ DONE` | 3x4 numeric PIN pad, password login, quick session init, and stable device UUID pairing. |
+| **MOB-003** | Tablet Split-Screen Layout | P0 | `✅ DONE` | Adaptive 60/40 landscape view with category filter chips, search, product grid, and fixed cart panel. |
+| **MOB-004** | Phone Portrait Queue-Busting UI | P1 | `✅ DONE` | Compact single-column view with live camera barcode scanner and floating cart bottom sheet. |
+| **MOB-005** | Mobile SQLite Local Storage | P0 | `✅ DONE` | Embedded `sqflite` WAL database for products, categories, customers, and atomic `offline_sales` queue. |
+| **MOB-006** | Dio Offline Sync Client | P0 | `✅ DONE` | Background sales push to `/api/v1/sync/push` and delta catalog pull from `/api/v1/sync/pull`. |
+| **MOB-007** | Bluetooth / WiFi Thermal Print | P1 | `⏳ PENDING` | Integration with physical mobile ESC/POS Bluetooth printers (Star Micronics / Epson). |
 
 ---
 
