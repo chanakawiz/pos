@@ -25,7 +25,9 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        title: Row(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'OMNILUXE PRIVILEGE',
@@ -36,23 +38,13 @@ class _StoreMemberScreenState extends ConsumerState<StoreMemberScreen> {
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: user != null ? AppColors.gold.withOpacity(0.18) : AppColors.surfaceElevated,
-                borderRadius: BorderRadius.circular(5),
-                border: Border.all(
-                  color: user != null ? AppColors.gold.withOpacity(0.4) : AppColors.border,
-                ),
-              ),
-              child: Text(
-                user != null ? 'VIP MEMBER' : 'GUEST MODE',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: user != null ? AppColors.gold : AppColors.textSecondary,
-                ),
+            Text(
+              user != null ? 'VIP MEMBER CLUB' : 'GUEST EXPLORER MODE',
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+                color: user != null ? AppColors.gold : AppColors.textSecondary,
               ),
             ),
           ],
