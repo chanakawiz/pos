@@ -117,9 +117,17 @@ async function until(check, label) {
   }
   throw new Error(`Timed out: ${label}`);
 }
-const evaluate = (script) => window.webContents.executeJavaScript(script, true);
+const evaluate = async (script) => {
+  try { return await window.webContents.executeJavaScript(script, true); }
+  catch (err) { console.error('evaluate error for script:', script, err); throw err; }
+};
+const customerEvaluate = async (script) => {
+  try { return await customerWindow.webContents.executeJavaScript(script, true); }
+  catch (err) { console.error('customerEvaluate error for script:', script, err); throw err; }
+};
 const clickText = (text) => evaluate(`(() => {
-  const button = [...document.querySelectorAll('button')].find((node) => node.textContent.includes(${JSON.stringify(text)}));
+  const target = ${JSON.stringify(text)}.toLowerCase();
+  const button = [...document.querySelectorAll('button')].find((node) => node.textContent.toLowerCase().includes(target));
   if (!button || button.disabled) throw new Error('Button unavailable: ' + ${JSON.stringify(text)});
   button.click();
 })()`);
@@ -203,10 +211,9 @@ app.whenReady().then(async () => {
       return customerWindow;
     } });
   display.attach(window);
-  const customerEvaluate = (script) => customerWindow.webContents.executeJavaScript(script, true);
   await window.loadURL(baseUrl);
   await until(() => evaluate("document.body.innerText.includes('Smoke Milk')"), 'offline catalog');
-  await evaluate("document.querySelector('div.group').click()");
+  await evaluate("document.querySelector('.product-card').click()");
   await until(() => customerEvaluate("document.body.innerText.includes('Smoke Milk') && document.querySelector('[data-testid=total]')?.textContent === '$ 11.55'"), 'live customer cart');
   assert.deepEqual(await customerEvaluate("({posApi: typeof window.posApi, require: typeof require, token: localStorage.getItem('pos_token')})"),
     { posApi: 'undefined', require: 'undefined', token: null });
@@ -238,7 +245,7 @@ app.whenReady().then(async () => {
   await until(() => customerEvaluate("document.body.innerText.includes('Smoke Milk')"), 'display enabled');
   assert.equal(readDisplayEnabled(preference), true);
   await clickText('Got it');
-  await evaluate("document.querySelector('div.group').click()");
+  await evaluate("document.querySelector('.product-card').click()");
   await until(() => customerEvaluate("document.querySelector('[data-testid=total]')?.textContent === '$ 23.10'"), 'updated quantity');
   await evaluate("(() => { window.smokePrompt = window.prompt; window.prompt = () => '1'; })()");
   await clickText('Discount');
@@ -246,7 +253,7 @@ app.whenReady().then(async () => {
   await until(() => customerEvaluate("document.querySelector('[data-testid=total]')?.textContent === '$ 22.10' && document.body.innerText.includes('Bill discount')"), 'updated bill discount');
   await evaluate("document.querySelector('button[title=\"Clear Cart\"]').click()");
   await until(() => customerEvaluate("!document.querySelector('[data-testid=total]')"), 'clear cart display');
-  await evaluate("document.querySelector('div.group').click()");
+  await evaluate("document.querySelector('.product-card').click()");
   await evaluate("window.dispatchEvent(new KeyboardEvent('keydown', {key: 'F4'}))");
   await until(() => customerEvaluate("!document.querySelector('[data-testid=total]')"), 'held cart display');
   await clickText('Held (1)');
@@ -308,7 +315,7 @@ app.whenReady().then(async () => {
   await until(() => evaluate("document.body.innerText.includes('Smoke Milk')"), 'cached catalog after reload');
   assert.equal(storage.getSales(scope, true)[0].transaction_uuid, saved.transaction_uuid);
   console.log('PASS: catalog and queued sale survive renderer reload during an outage');
-  await evaluate("[...document.querySelectorAll('div.group')].find((node) => node.textContent.includes('Weighed Rice')).click()");
+  await evaluate("[...document.querySelectorAll('.product-card')].find((node) => node.textContent.includes('Weighed Rice')).click()");
   await until(() => scalePort?.isOpen && evaluate("document.body.innerText.includes('Weigh product')"), 'scale port open');
   const captureDisabled = () => evaluate("[...document.querySelectorAll('button')].find((node) => node.textContent === 'Capture weight')?.disabled");
   assert.equal(await captureDisabled(), true);
@@ -411,7 +418,7 @@ app.whenReady().then(async () => {
   }
   console.log(`PASS: long 58mm bilingual receipt preserves all ${totalRows} raster rows across capture tiles`);
   await evaluate("window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))");
-  await evaluate("document.querySelector('div.group').click()");
+  await evaluate("document.querySelector('.product-card').click()");
   await until(() => customerEvaluate("document.body.innerText.includes('Smoke Milk')"), 'display before logout');
   await evaluate("document.querySelector('button[title=\"Logout Cashier\"]').click()");
   await until(() => customerEvaluate("!document.body.innerText.includes('Smoke Milk') && !document.body.innerText.includes('Smoke Store')"), 'display cleared on logout');

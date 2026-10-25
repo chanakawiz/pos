@@ -23,7 +23,9 @@ export function CategoryBar({ categories, selectedCategoryUuid, onSelectCategory
       <div className="sidebar-bottom">
         <span className="eyebrow">DISPLAY MODE</span>
         <div className="language-switch" aria-label="Display mode">{([
-          ['en', 'EN', 'Standard English'], ['bilingual', 'Dual', 'English + Subtitle'],
+          ['en', 'EN', 'Language: English'],
+          ['bilingual', 'Dual', 'Language: Dual (EN+සිං)'],
+          ['si', 'සිං', 'Language: Sinhala (සිංහල)'],
         ] as const).map(([value, label, title]) => <button type="button" key={value} title={title} aria-pressed={language === value} className={language === value ? 'is-active' : ''} onClick={() => setLanguage(value)}>{label}</button>)}</div>
         <button type="button" className="sidebar-help" onClick={() => openModal('help')}><HelpCircle /><span>Help (F1)</span><kbd>F1</kbd></button>
         <p className="sidebar-footnote">A little more order.<br />A better day in store.</p>

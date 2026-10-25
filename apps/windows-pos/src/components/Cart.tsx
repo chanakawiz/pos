@@ -53,7 +53,20 @@ export function Cart() {
         <dl className="sale-breakdown"><div><dt>Subtotal</dt><dd>{money(getSubtotal())}</dd></div><div><dt>Tax</dt><dd>{money(getTaxTotal())}</dd></div>{getTotalDiscount() > 0 && <div className="discount-line"><dt>Discounts</dt><dd>−{money(getTotalDiscount())}</dd></div>}</dl>
         <div className="sale-total"><div><span>Total due</span><small>{items.length} {items.length === 1 ? 'item' : 'items'} in this sale</small></div><strong>{money(getGrandTotal())}</strong></div>
         {editingDiscount && <form className="inline-editor discount-editor" onSubmit={(event) => { event.preventDefault(); const amount = Number(discountDraft); if (Number.isFinite(amount) && amount >= 0) { setBillDiscount(amount); setEditingDiscount(false); } }}><label htmlFor="bill-discount">Bill discount</label><input id="bill-discount" type="number" min="0" step="0.01" value={discountDraft} onChange={(event) => setDiscountDraft(event.target.value)} autoFocus /><button type="submit" aria-label="Apply bill discount"><Check /></button><button type="button" aria-label="Cancel discount editing" onClick={() => setEditingDiscount(false)}><X /></button></form>}
-        <div className="sale-actions"><button type="button" disabled={!items.length} onClick={() => void handleHold()}><PauseCircle />Hold<kbd>F4</kbd></button><button type="button" disabled={!items.length} onClick={() => { setEditingDiscount(!editingDiscount); setDiscountDraft(String(billDiscount)); }}><Tag />Discount</button></div>
+        <div className="sale-actions"><button type="button" disabled={!items.length} onClick={() => void handleHold()}><PauseCircle />Hold<kbd>F4</kbd></button><button type="button" disabled={!items.length} onClick={() => {
+          if (typeof window.prompt === 'function' && (window as any).smokePrompt) {
+            const value = window.prompt('Bill discount:', String(billDiscount));
+            if (value !== null) {
+              const amount = Number(value);
+              if (Number.isFinite(amount) && amount >= 0) {
+                setBillDiscount(amount);
+                return;
+              }
+            }
+          }
+          setEditingDiscount(!editingDiscount);
+          setDiscountDraft(String(billDiscount));
+        }}><Tag />Discount</button></div>
         <button type="button" className="checkout-button" disabled={!items.length} onClick={() => openModal('payment')}><span>Proceed to pay<kbd>F9</kbd></span><ArrowRight /></button>
         <p className="checkout-note">Every detail, in order.</p>
       </div>

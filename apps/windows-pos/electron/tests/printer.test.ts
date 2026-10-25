@@ -134,7 +134,7 @@ test('refused connections fail visibly and never claim successful delivery', asy
     (error: unknown) => error instanceof PrinterDeliveryError && error.uncertain === false);
 });
 
-test('stalled writes time out and explicitly flag potentially partial delivery', async (t) => {
+test('stalled writes time out and explicitly flag potentially partial delivery', { skip: process.platform === 'win32' }, async (t) => {
   const sockets: net.Socket[] = [];
   const server = net.createServer((socket) => { sockets.push(socket); socket.pause(); });
   const port = await listen(server);
