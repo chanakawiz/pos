@@ -10,6 +10,8 @@
     "!dist-electron/tests/**"
   ],
   "asarUnpack": ["node_modules/better-sqlite3/**", "node_modules/@serialport/bindings-cpp/**"],
+  "electronDist": "node_modules/electron/dist",
+  "npmRebuild": false,
   "win": {
     "target": [
       {

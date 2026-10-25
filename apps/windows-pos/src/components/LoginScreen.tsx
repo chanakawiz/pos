@@ -1,33 +1,215 @@
-import { useRef, useState } from 'react';
-import { ArrowRight, Check, Delete, Diamond, Eye, EyeOff, Loader2, LockKeyhole } from 'lucide-react';
+import React, { useState } from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
+import { Store, KeyRound, Mail, Lock, ArrowRight, Loader2, Delete } from 'lucide-react';
 
-export function LoginScreen() {
+export const LoginScreen: React.FC = () => {
   const { login, isLoading, error } = useAuthStore();
   const [mode, setMode] = useState<'pin' | 'password'>('pin');
   const [pin, setPin] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const submitting = useRef(false);
-  const submitPin = async (value: string) => {
-    if (submitting.current || isLoading) return;
-    const next = value.replace(/\D/g, '').slice(0, 4);
-    setPin(next);
-    if (next.length !== 4) return;
-    submitting.current = true;
-    try { if (!(await login({ pin_code: next }))) setPin(''); }
-    finally { submitting.current = false; }
+
+  const handleNumpad = (digit: string) => {
+    if (pin.length < 4 && !isLoading) {
+      const next = pin + digit;
+      setPin(next);
+      if (next.length === 4) {
+        // Automatic login trigger on 4 digits
+        void login({ pin_code: next });
+      }
+    }
   };
+
+  const handleBackspace = () => {
+    if (!isLoading) {
+      setPin(pin.slice(0, -1));
+    }
+  };
+
+  const handleClear = () => {
+    if (!isLoading) {
+      setPin('');
+    }
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoading) {
+      void login({ email, password });
+    }
+  };
+
   return (
-    <main className="login-layout">
-      <section className="login-story"><div className="login-brand"><Diamond /><strong>OmniLuxe Store</strong></div><div className="login-editorial"><span className="eyebrow"><span className="live-dot" />THE CONSIDERED WORKSPACE</span><h1>A good day.<br /><span>Starts here.</span></h1><p>Less friction at the counter.<br />More room for the people in front of you.</p><div className="login-story-rule" /><div className="login-promise"><span><Check />Thoughtfully organized</span><span><Check />Built for your store</span></div></div><div className="login-story-bottom"><span>OMNILUXE / FLAGSHIP STATION</span><span>Made for the everyday.</span></div></section>
-      <section className="login-access"><div className="login-form-wrap"><span className="eyebrow">YOUR STORE. YOUR SPACE.</span><div className="login-title"><h2>Welcome back.</h2><p>Sign in to open your retail workspace.</p></div><div className="login-mode" aria-label="Sign-in method"><button type="button" aria-pressed={mode === 'pin'} className={mode === 'pin' ? 'is-active' : ''} onClick={() => { setMode('pin'); setPin(''); }}>Cashier PIN</button><button type="button" aria-pressed={mode === 'password'} className={mode === 'password' ? 'is-active' : ''} onClick={() => setMode('password')}>Email & password</button></div>
-        {error && <div role="alert" className="login-error">{error}</div>}
-        {mode === 'pin' ? <div><label className="field-label" htmlFor="cashier-pin">Enter your 4-digit PIN</label><input id="cashier-pin" className="pin-input" type="password" inputMode="numeric" autoComplete="off" aria-label="Cashier PIN" placeholder="••••" maxLength={4} value={pin} disabled={isLoading} onChange={(event) => void submitPin(event.target.value)} autoFocus /><div className="pin-keypad">{['1','2','3','4','5','6','7','8','9'].map((digit) => <button type="button" disabled={isLoading} key={digit} onClick={() => void submitPin(pin + digit)}>{digit}</button>)}<button type="button" className="pin-clear" disabled={isLoading} onClick={() => setPin('')}>Clear</button><button type="button" disabled={isLoading} onClick={() => void submitPin(pin + '0')}>0</button><button type="button" disabled={isLoading} aria-label="Delete last PIN digit" onClick={() => setPin(pin.slice(0, -1))}><Delete /></button></div><p className="pin-hint">{isLoading ? <><Loader2 className="animate-spin" />Signing you in…</> : <><LockKeyhole />Your workspace opens after the fourth digit.</>}</p></div> :
-          <form className="login-password" onSubmit={(event) => { event.preventDefault(); if (!isLoading) void login({ email, password }); }}><label className="field-label" htmlFor="login-email">Email address</label><input id="login-email" type="email" autoComplete="username" placeholder="you@yourstore.com" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={isLoading} autoFocus /><label className="field-label" htmlFor="login-password">Password</label><div className="password-field"><input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} required disabled={isLoading} /><button type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff /> : <Eye />}</button></div><button type="submit" className="checkout-button" disabled={isLoading}><span>{isLoading ? 'Signing in…' : 'Sign in'}</span>{isLoading ? <Loader2 className="animate-spin" /> : <ArrowRight />}</button></form>}
-        <div className="login-secure-note"><span className="live-dot" />A dedicated space for your store team.</div>
-      </div><footer className="login-access-footer">OmniLuxe Store POS<span>Retail, thoughtfully connected.</span></footer></section>
-    </main>
+    <div className="h-full w-full bg-slate-950 flex items-center justify-center p-6 select-none relative overflow-hidden font-sans">
+      {/* Background radial glow */}
+      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10">
+        {/* Brand */}
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-indigo-600/20">
+            <Store className="w-8 h-8 text-indigo-400" />
+          </div>
+          <h1 className="text-2xl font-black text-white tracking-tight">SmartShop POS</h1>
+          <p className="text-xs text-slate-400 mt-1">Cashier Station Terminal Login</p>
+        </div>
+
+        {/* Mode Selector */}
+        <div className="flex bg-slate-950/80 p-1 rounded-xl border border-slate-800 mb-6">
+          <button
+            type="button"
+            onClick={() => {
+              setMode('pin');
+              setPin('');
+            }}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              mode === 'pin'
+                ? 'bg-indigo-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>Cashier PIN</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('password')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              mode === 'password'
+                ? 'bg-indigo-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Mail className="w-3.5 h-3.5" />
+            <span>Email & Password</span>
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-rose-950/60 border border-rose-900/70 text-rose-300 rounded-xl text-xs text-center font-medium">
+            {error}
+          </div>
+        )}
+
+        {/* PIN Pad Mode */}
+        {mode === 'pin' ? (
+          <div className="space-y-6">
+            {/* PIN Display Dots */}
+            <div className="flex justify-center items-center gap-4 py-3 bg-slate-950/60 rounded-2xl border border-slate-800">
+              {[0, 1, 2, 3].map((idx) => (
+                <div
+                  key={idx}
+                  className={`w-4 h-4 rounded-full transition-all duration-150 ${
+                    pin.length > idx
+                      ? 'bg-indigo-400 scale-110 shadow-lg shadow-indigo-500/50'
+                      : 'bg-slate-800 border border-slate-700'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Touch Numpad */}
+            <div className="grid grid-cols-3 gap-3">
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => handleNumpad(num)}
+                  disabled={isLoading}
+                  className="h-14 bg-slate-800/60 hover:bg-slate-750 active:bg-indigo-600 active:text-white rounded-2xl text-xl font-bold text-slate-100 border border-slate-700/50 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                >
+                  {num}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={handleClear}
+                disabled={isLoading}
+                className="h-14 bg-slate-950 hover:bg-slate-850 text-slate-400 active:text-white rounded-2xl text-xs font-bold border border-slate-800 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50"
+              >
+                CLEAR
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNumpad('0')}
+                disabled={isLoading}
+                className="h-14 bg-slate-800/60 hover:bg-slate-750 active:bg-indigo-600 active:text-white rounded-2xl text-xl font-bold text-slate-100 border border-slate-700/50 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+              >
+                0
+              </button>
+
+              <button
+                type="button"
+                onClick={handleBackspace}
+                disabled={isLoading}
+                className="h-14 bg-slate-950 hover:bg-slate-850 text-slate-400 active:text-white rounded-2xl text-xs font-bold border border-slate-800 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50"
+              >
+                <Delete className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-center text-[11px] text-slate-500">
+              Default seeded cashier PIN: <span className="font-mono text-indigo-400 font-bold">1234</span>
+            </p>
+          </div>
+        ) : (
+          /* Email / Password Form */
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="cashier1@smartshop.com"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
   );
-}
+};
+

@@ -1,7 +1,6 @@
-import { Boxes, Check, ChevronRight, Diamond, HelpCircle, LayoutGrid } from 'lucide-react';
+import React from 'react';
 import type { Category } from '../types/pos';
-import { usePosStore } from '../stores/usePosStore';
-import { useAuthStore } from '../stores/useAuthStore';
+import { LayoutGrid, Coffee, Smartphone, ShoppingBag, Sparkles, Footprints, Layers } from 'lucide-react';
 
 interface Props {
   categories: Category[];
@@ -9,27 +8,65 @@ interface Props {
   onSelectCategory: (uuid: string | null) => void;
 }
 
-export function CategoryBar({ categories, selectedCategoryUuid, onSelectCategory }: Props) {
-  const { language, setLanguage, openModal } = usePosStore();
-  const store = useAuthStore((state) => state.user?.store);
+export const CategoryBar: React.FC<Props> = ({
+  categories,
+  selectedCategoryUuid,
+  onSelectCategory,
+}) => {
+  const getCategoryIcon = (name: string) => {
+    const text = name.toLowerCase();
+    if (text.includes('smart') || text.includes('tech') || text.includes('phone') || text.includes('mobile')) {
+      return <Smartphone className="w-4 h-4" />;
+    }
+    if (text.includes('fashion') || text.includes('apparel') || text.includes('clothing')) {
+      return <ShoppingBag className="w-4 h-4" />;
+    }
+    if (text.includes('footwear') || text.includes('shoe') || text.includes('sneaker')) {
+      return <Footprints className="w-4 h-4" />;
+    }
+    if (text.includes('perfume') || text.includes('cosmetic') || text.includes('beauty')) {
+      return <Sparkles className="w-4 h-4" />;
+    }
+    if (text.includes('food') || text.includes('beverage') || text.includes('drink') || text.includes('coffee')) {
+      return <Coffee className="w-4 h-4" />;
+    }
+    return <Layers className="w-4 h-4" />;
+  };
+
   return (
-    <aside className="catalog-sidebar" aria-label="Catalog filters and tools">
-      <div className="sidebar-store"><span className="eyebrow">YOUR WORKSPACE</span><div><Diamond /><strong>{store?.name || 'Your store'}</strong></div><small>{store?.currency_code || 'Store currency'}<span>Retail station</span></small></div>
-      <div className="sidebar-heading"><h2>Categories</h2><span>{categories.length}</span></div>
-      <nav className="category-list" aria-label="Product categories">
-        <button type="button" aria-pressed={selectedCategoryUuid === null} className={selectedCategoryUuid === null ? 'is-active' : ''} onClick={() => onSelectCategory(null)}><LayoutGrid /><span>All Items</span><ChevronRight /></button>
-        {categories.map((category) => <button type="button" key={category.uuid} aria-pressed={selectedCategoryUuid === category.uuid} className={selectedCategoryUuid === category.uuid ? 'is-active' : ''} onClick={() => onSelectCategory(category.uuid)}><Boxes /><span>{category.name}</span>{selectedCategoryUuid === category.uuid && <Check />}</button>)}
-      </nav>
-      <div className="sidebar-bottom">
-        <span className="eyebrow">DISPLAY MODE</span>
-        <div className="language-switch" aria-label="Display mode">{([
-          ['en', 'EN', 'Language: English'],
-          ['bilingual', 'Dual', 'Language: Dual (EN+සිං)'],
-          ['si', 'සිං', 'Language: Sinhala (සිංහල)'],
-        ] as const).map(([value, label, title]) => <button type="button" key={value} title={title} aria-pressed={language === value} className={language === value ? 'is-active' : ''} onClick={() => setLanguage(value)}>{label}</button>)}</div>
-        <button type="button" className="sidebar-help" onClick={() => openModal('help')}><HelpCircle /><span>Help (F1)</span><kbd>F1</kbd></button>
-        <p className="sidebar-footnote">A little more order.<br />A better day in store.</p>
-      </div>
-    </aside>
+    <div className="flex items-center gap-2 overflow-x-auto py-2.5 px-6 bg-slate-900/60 border-b border-slate-800/80 no-scrollbar select-none shrink-0">
+      <button
+        type="button"
+        onClick={() => onSelectCategory(null)}
+        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer ${
+          selectedCategoryUuid === null
+            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-[1.02]'
+            : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 hover:text-white border border-slate-700/60'
+        }`}
+      >
+        <LayoutGrid className="w-4 h-4" />
+        <span>All Items</span>
+      </button>
+
+      {categories.map((category) => {
+        const isSelected = selectedCategoryUuid === category.uuid;
+        return (
+          <button
+            key={category.uuid}
+            type="button"
+            onClick={() => onSelectCategory(category.uuid)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer ${
+              isSelected
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-[1.02]'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 hover:text-white border border-slate-700/60'
+            }`}
+          >
+            {getCategoryIcon(category.name)}
+            <span>{category.name}</span>
+          </button>
+        );
+      })}
+    </div>
   );
-}
+};
+
