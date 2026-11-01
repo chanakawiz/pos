@@ -39,6 +39,7 @@ Route::prefix('v1')->group(function () {
         // Catalog & Products
         Route::get('/products', [ProductController::class, 'index']);
         Route::get('/products/barcode/{barcode}', [ProductController::class, 'byBarcode']);
+        Route::get('/products/{id}/cross-store-stock', [ProductController::class, 'crossStoreStock']);
         Route::get('/categories', [ProductController::class, 'categories']);
         Route::get('/brands', [ProductController::class, 'brands']);
 
@@ -76,6 +77,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/purchases', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'store']);
         Route::get('/purchases/{uuid}', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'show']);
         Route::post('/purchases/{uuid}/receive', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'receive']);
+
+        // Supply Chain — Inter-Branch Stock Transfers
+        Route::get('/stock-transfers', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'index']);
+        Route::post('/stock-transfers', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'store']);
+        Route::get('/stock-transfers/{uuid}', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'show']);
+        Route::post('/stock-transfers/{uuid}/dispatch', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'dispatchTransfer']);
+        Route::post('/stock-transfers/{uuid}/receive', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'receiveTransfer']);
+        Route::post('/stock-transfers/{uuid}/cancel', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'cancelTransfer']);
 
         // Analytics & Reporting
         Route::get('/reports/sales-summary', [\App\Http\Controllers\Api\v1\ReportController::class, 'salesSummary']);

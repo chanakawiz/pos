@@ -160,4 +160,35 @@ class ProductController extends Controller
         $brands = Brand::where('is_active', true)->get(['id', 'uuid', 'name', 'slug']);
         return response()->json(['status' => 'success', 'data' => $brands]);
     }
+
+    /**
+     * Cross-store inventory inquiry for Cashier POS and mobile apps.
+     */
+    public function crossStoreStock(Request $request, string $identifier, \App\Services\StockTransferService $transferService): JsonResponse
+    {
+        $product = Product::where('id', $identifier)
+            ->orWhere('uuid', $identifier)
+            ->orWhere('barcode', $identifier)
+            ->orWhere('sku', $identifier)
+            ->first();
+
+        if (!$product) {
+            return response()->json(['status' => 'error', 'message' => 'Product not found.'], 404);
+        }
+
+        $variantId = $request->query('variant_id');
+        $stocks = $transferService->getCrossStoreStock($product->id, $variantId ? (int) $variantId : null);
+
+        return response()->json([
+            'status' => 'success',
+            'product' => [
+                'id' => $product->id,
+                'uuid' => $product->uuid,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'barcode' => $product->barcode,
+            ],
+            'stores' => $stocks,
+        ]);
+    }
 }
