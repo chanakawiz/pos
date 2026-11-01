@@ -3,7 +3,7 @@ import { useCartStore } from '../stores/useCartStore';
 import { usePosStore } from '../stores/usePosStore';
 import { api } from '../services/api';
 import type { PaymentType } from '../types/pos';
-import { X, Banknote, CreditCard, Landmark, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Banknote, CreditCard, Landmark, Gift, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { posSounds } from '../utils/audio';
 import { useAuthStore } from '../stores/useAuthStore';
 import { getStorageScope } from '../services/offlineStorage';
@@ -29,12 +29,42 @@ export const PaymentModal: React.FC = () => {
   const transactionUuid = useRef(crypto.randomUUID());
   const checkoutTime = useRef(new Date().toISOString());
 
+  const [giftCardCode, setGiftCardCode] = useState<string>('');
+  const [giftCardInfo, setGiftCardInfo] = useState<{ code: string; balance: number; message: string; customerName?: string } | null>(null);
+  const [isVerifyingGiftCard, setIsVerifyingGiftCard] = useState<boolean>(false);
+  const [giftCardError, setGiftCardError] = useState<string | null>(null);
+
   const tenderedAmount = parseFloat(cashTendered) || 0;
   const changeDue = Math.max(0, tenderedAmount - grandTotal);
-  const isSufficient = paymentMethod === 'cash' ? tenderedAmount >= grandTotal : true;
+  const isGiftCardSufficient = paymentMethod === 'gift_card' ? (giftCardInfo !== null && giftCardInfo.balance >= grandTotal) : true;
+  const isSufficient = paymentMethod === 'cash' ? tenderedAmount >= grandTotal : (paymentMethod === 'gift_card' ? isGiftCardSufficient : true);
 
   const handlePreset = (amount: number) => {
     setCashTendered(amount.toFixed(2));
+  };
+
+  const handleVerifyGiftCard = async () => {
+    if (!giftCardCode.trim()) return;
+    setIsVerifyingGiftCard(true);
+    setGiftCardError(null);
+    try {
+      const res = await api.verifyGiftCard(giftCardCode.trim());
+      if (res.status === 'success' && res.data) {
+        setGiftCardInfo({
+          code: res.data.code,
+          balance: Number(res.data.balance),
+          message: res.data.message,
+          customerName: res.data.customer?.name,
+        });
+        setReferenceNumber(res.data.code);
+      } else {
+        setGiftCardError(res.message || 'Gift card could not be verified.');
+      }
+    } catch (err: any) {
+      setGiftCardError(err.response?.data?.message || err.message || 'Gift card verification failed.');
+    } finally {
+      setIsVerifyingGiftCard(false);
+    }
   };
 
   const handlePay = async () => {
@@ -73,6 +103,23 @@ export const PaymentModal: React.FC = () => {
       const totalAmount = roundMoney(Math.max(0, subtotal + taxAmount - billDiscount));
       const paidAmount = paymentMethod === 'cash' ? tenderedAmount : totalAmount;
       if (!Number.isFinite(paidAmount) || paidAmount < totalAmount) throw new Error('Insufficient payment.');
+
+      if (paymentMethod === 'gift_card') {
+        if (!giftCardInfo || giftCardInfo.balance < totalAmount) {
+          throw new Error('Gift card must be verified with sufficient balance before completing payment.');
+        }
+        try {
+          await api.redeemGiftCard({
+            code: giftCardInfo.code,
+            amount: totalAmount,
+            sale_uuid: transactionUuid.current,
+            notes: 'Counter POS checkout',
+          });
+        } catch (gcErr: any) {
+          throw new Error(gcErr.response?.data?.message || gcErr.message || 'Gift card redemption failed.');
+        }
+      }
+
       const payload: OfflineSale = {
         transaction_uuid: transactionUuid.current,
         invoice_number: `POS-${transactionUuid.current}`,
@@ -90,7 +137,7 @@ export const PaymentModal: React.FC = () => {
           {
             payment_method: paymentMethod,
             amount: paidAmount,
-            reference_number: referenceNumber || null,
+            reference_number: referenceNumber || (paymentMethod === 'gift_card' ? giftCardInfo?.code : null),
           },
         ],
       };
@@ -179,47 +226,60 @@ export const PaymentModal: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
               Payment Method
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-2.5">
               <button
                 type="button"
                 onClick={() => {
                   setPaymentMethod('cash');
                   setCashTendered(grandTotal.toFixed(2));
                 }}
-                className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
                   paymentMethod === 'cash'
                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30'
                     : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
-                <Banknote className="w-6 h-6" />
+                <Banknote className="w-5 h-5" />
                 <span>Cash</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setPaymentMethod('card')}
-                className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
                   paymentMethod === 'card'
                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30'
                     : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
-                <CreditCard className="w-6 h-6" />
+                <CreditCard className="w-5 h-5" />
                 <span>Card</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setPaymentMethod('bank_transfer')}
-                className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
                   paymentMethod === 'bank_transfer'
                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30'
                     : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
-                <Landmark className="w-6 h-6" />
-                <span>Bank Transfer</span>
+                <Landmark className="w-5 h-5" />
+                <span>Bank</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('gift_card')}
+                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                  paymentMethod === 'gift_card'
+                    ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-600/30'
+                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-white'
+                }`}
+              >
+                <Gift className="w-5 h-5" />
+                <span>Gift Card</span>
               </button>
             </div>
           </div>
@@ -300,8 +360,76 @@ export const PaymentModal: React.FC = () => {
             </div>
           )}
 
+          {/* Gift Card Verification Block */}
+          {paymentMethod === 'gift_card' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                  Boutique Gift Card / Voucher Code
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="GC-XXXX-XXXX-XXXX"
+                    value={giftCardCode}
+                    onChange={(e) => setGiftCardCode(e.target.value.toUpperCase())}
+                    className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono tracking-wider uppercase"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyGiftCard}
+                    disabled={isVerifyingGiftCard || !giftCardCode.trim()}
+                    className="px-5 py-3 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    {isVerifyingGiftCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                    <span>Verify</span>
+                  </button>
+                </div>
+              </div>
+
+              {giftCardError && (
+                <div className="p-3 bg-rose-950/60 border border-rose-900 text-rose-300 rounded-xl text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <span>{giftCardError}</span>
+                </div>
+              )}
+
+              {giftCardInfo && (
+                <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-800/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-amber-300">Verified Card Balance</span>
+                    <span className="text-lg font-black text-amber-400 font-mono">
+                      Rs. {giftCardInfo.balance.toFixed(2)}
+                    </span>
+                  </div>
+                  {giftCardInfo.customerName && (
+                    <div className="text-xs text-slate-400">
+                      Cardholder: <span className="text-slate-200 font-medium">{giftCardInfo.customerName}</span>
+                    </div>
+                  )}
+                  <div className="pt-2 border-t border-amber-900/40 flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Bill Total</span>
+                    <span className="text-slate-200 font-bold font-mono">Rs. {grandTotal.toFixed(2)}</span>
+                  </div>
+                  {giftCardInfo.balance >= grandTotal ? (
+                    <div className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5 pt-1">
+                      <CheckCircle className="w-4 h-4 text-emerald-400" />
+                      Full amount covered. Remaining balance after sale: Rs. {(giftCardInfo.balance - grandTotal).toFixed(2)}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-rose-400 font-semibold flex items-center gap-1.5 pt-1">
+                      <AlertCircle className="w-4 h-4 text-rose-400" />
+                      Insufficient card credit. Requires split tender of Rs. {(grandTotal - giftCardInfo.balance).toFixed(2)}.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Reference input for Card / Bank Transfer */}
-          {paymentMethod !== 'cash' && (
+          {(paymentMethod === 'card' || paymentMethod === 'bank_transfer') && (
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                 Transaction / Authorization Reference

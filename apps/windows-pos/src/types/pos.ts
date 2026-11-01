@@ -18,7 +18,7 @@ export interface CartItem {
   warranty_notes?: string | null;
 }
 
-export type PaymentType = 'cash' | 'card' | 'bank_transfer' | 'credit';
+export type PaymentType = 'cash' | 'card' | 'bank_transfer' | 'credit' | 'gift_card';
 
 export interface PaymentItem {
   payment_method: PaymentType;

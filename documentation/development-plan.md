@@ -248,10 +248,39 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
-### Milestone 15: Omnichannel VIP Gift Cards & Boutique Store Credit Engine (`🚀 NEXT`)
-- [ ] Enterprise digital gift card issuance with alphanumeric codes (`GC-XXXX-XXXX`), balance tracking, and expiry rules.
-- [ ] POS counter gift card redemption and partial split payments.
-- [ ] Consumer mobile & web wallet balance lookup and auto-apply during checkout.
+### Milestone 15: Omnichannel VIP Gift Cards & Boutique Store Credit Engine (`✅ COMPLETED`)
+- [x] **Enterprise Digital Gift Card & Voucher Schema**:
+  - Migration `2026_11_01_084858_create_gift_cards_tables.php` establishing `gift_cards` and `gift_card_transactions` tables.
+  - Alphanumeric code generator format: `GC-XXXX-XXXX-XXXX` with collision-safe uniqueness guarantees.
+  - Eloquent models `GiftCard` and `GiftCardTransaction` with balances, statuses (`active`, `redeemed`, `expired`, `disabled`), customer assignment, and audit histories.
+- [x] **Business Service Layer (`GiftCardService`)**:
+  - `issueCard`: Creates card with face value, activates initial transaction audit, and assigns 1-year default expiry.
+  - `checkBalance`: Validates card status, expiration, and returns available store credit.
+  - `redeemCard`: Thread-safe database transactions (`lockForUpdate`) that decrement balance, update status to `redeemed` upon exhaustion, and record audit logs.
+  - `refundToCard`: Restores balances on sales returns or RMA concierges.
+- [x] **Omnichannel REST APIs (`/api/v1`)**:
+  - Public balance verification: `POST /api/v1/gift-cards/verify`.
+  - Cashier & staff management: `GET /api/v1/gift-cards`, `POST /api/v1/gift-cards` (issue), and `POST /api/v1/gift-cards/redeem`.
+- [x] **Filament ERP Control Room (`GiftCardResource`)**:
+  - Created under *Sales & Fulfillment* with card generation, balance monitoring, customer/store associations, and disable/enable quick actions.
+- [x] **In-Store Desktop POS Integration (`apps/windows-pos`)**:
+  - Added dedicated Gift Card tender option in `PaymentModal.tsx` with instant verification and balance deduction.
+  - Extended offline storage types and validators to support `gift_card` payment method.
+- [x] **Web Storefront Cart Drawer Integration**:
+  - Integrated VIP Gift Card / Voucher accordion into `layout.blade.php` and `WebStoreController.php` with real-time balance lookup and automatic order discount deduction.
+- [x] **100% Passing Automated Tests**:
+  - 6/6 tests in `GiftCardTest.php` passing all assertions.
+  - 56/56 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`) and Vite build clean.
+  - 22/22 Flutter mobile tests passing (`flutter test`).
+  - **Total: 119/119 passing tests across the entire omnichannel ecosystem**.
+
+---
+
+### Milestone 16: Automated VIP Loyalty Tier Progression & Privilege Perks (`🚀 NEXT`)
+- [ ] Tier calculation rules engine: Silver Privilege (Entry), Gold Elite (Rs. 100,000+), Black Diamond (Rs. 250,000+).
+- [ ] Dynamic benefits: Automatic % discount on select luxury departments and 2x point multipliers.
+- [ ] Tier badge presentation across Web Store, Flutter VIP card, and Desktop POS.
 
 ## 3. Technology Stack & Design Tokens
 

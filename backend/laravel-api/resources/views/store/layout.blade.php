@@ -250,6 +250,55 @@
                             </select>
                         </div>
 
+                        <!-- Boutique VIP Gift Card / Voucher Accordion -->
+                        <div x-data="{ open: false, code: '', verifying: false, info: null, error: null }" class="border-t border-hairline pt-2">
+                            <button type="button" @click="open = !open" class="text-[11px] font-bold text-gold hover:underline flex items-center justify-between w-full py-1">
+                                <span>Have an OmniLuxe Gift Card or Voucher?</span>
+                                <span x-text="open ? '▲' : '▼'"></span>
+                            </button>
+                            <div x-show="open" x-cloak class="mt-2 p-2.5 bg-canvas border border-hairline rounded-lg space-y-2">
+                                <div class="flex gap-1.5">
+                                    <input type="text" x-model="code" placeholder="GC-XXXX-XXXX-XXXX"
+                                        class="flex-1 bg-paper border border-hairline rounded px-2.5 py-1.5 text-xs uppercase font-mono tracking-wider focus:outline-none focus:border-gold">
+                                    <button type="button"
+                                        @click="
+                                            if (!code.trim()) return;
+                                            verifying = true; error = null; info = null;
+                                            fetch('/api/v1/gift-cards/verify', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                                                body: JSON.stringify({ code: code.trim() })
+                                            })
+                                            .then(r => r.json())
+                                            .then(data => {
+                                                verifying = false;
+                                                if (data.status === 'success') {
+                                                    info = data.data;
+                                                    document.getElementById('giftCardInput').value = data.data.code;
+                                                } else {
+                                                    error = data.message || 'Invalid gift card code';
+                                                }
+                                            })
+                                            .catch(() => { verifying = false; error = 'Verification failed'; });
+                                        "
+                                        :disabled="verifying"
+                                        class="px-3 py-1.5 bg-forest hover:bg-forestDark text-white text-xs font-semibold rounded disabled:opacity-50">
+                                        <span x-show="!verifying">Apply</span>
+                                        <span x-show="verifying">...</span>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="gift_card_code" id="giftCardInput" value="">
+                                <template x-if="error">
+                                    <p class="text-[10px] text-red-600 font-medium" x-text="error"></p>
+                                </template>
+                                <template x-if="info">
+                                    <div class="text-[10px] text-forest font-medium bg-forest/5 p-1.5 rounded">
+                                        ✓ Verified Gift Card: <strong x-text="info.code"></strong> (Available: Rs. <span x-text="Number(info.balance).toLocaleString()"></span>)
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <button type="submit" id="checkoutBtn" disabled
                             class="w-full py-3.5 rounded-xl bg-forest hover:bg-forestDark text-white font-display font-extrabold text-sm tracking-wide disabled:opacity-40 disabled:cursor-not-allowed shadow-md transition-all">
                             Complete Order & Receive SMS Bill

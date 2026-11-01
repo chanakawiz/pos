@@ -27,6 +27,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/orders/track/{identifier}', [\App\Http\Controllers\OrderTrackingController::class, 'apiTrack']);
     Route::post('/orders/returns', [\App\Http\Controllers\OrderTrackingController::class, 'apiSubmitReturn']);
 
+    // Omnichannel VIP Gift Cards & Store Credit
+    Route::post('/gift-cards/verify', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'verify']);
+
     // Authenticated POS & Management routes
     Route::middleware('auth:sanctum')->group(function () {
         // Real-Time Reverb WebSocket Channel Auth for Mobile / POS
@@ -85,6 +88,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/stock-transfers/{uuid}/dispatch', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'dispatchTransfer']);
         Route::post('/stock-transfers/{uuid}/receive', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'receiveTransfer']);
         Route::post('/stock-transfers/{uuid}/cancel', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'cancelTransfer']);
+
+        // VIP Gift Cards & Store Credit Engine
+        Route::get('/gift-cards', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'index']);
+        Route::post('/gift-cards', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'store']);
+        Route::post('/gift-cards/redeem', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'redeem']);
 
         // Analytics & Reporting
         Route::get('/reports/sales-summary', [\App\Http\Controllers\Api\v1\ReportController::class, 'salesSummary']);

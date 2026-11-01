@@ -35,7 +35,7 @@ function assertSale(sale: OfflineSale): void {
     }
   }
   for (const payment of sale.payments) {
-    if (!['cash', 'card', 'bank_transfer', 'credit'].includes(payment.payment_method) ||
+    if (!['cash', 'card', 'bank_transfer', 'credit', 'gift_card'].includes(payment.payment_method) ||
         !Number.isFinite(payment.amount) || payment.amount < 0) {
       throw new Error('Invalid sale payment');
     }

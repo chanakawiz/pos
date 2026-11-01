@@ -80,6 +80,7 @@ class WebStoreController extends Controller
             'shipping_address' => 'required|string|max:300',
             'payment_method' => 'required|string|in:cod,card,bank_transfer',
             'cart_items' => 'required|string', // JSON array of [{product_id, quantity, price}]
+            'gift_card_code' => 'nullable|string|max:64',
         ]);
 
         $cartItems = json_decode($validated['cart_items'], true);
@@ -127,7 +128,27 @@ class WebStoreController extends Controller
             ];
         }
 
-        $isOnlineCard = $validated['payment_method'] === 'card';
+        // Apply VIP Gift Card / Store Credit if provided
+        $giftCardDiscount = 0.00;
+        $appliedCardCode = null;
+        if (!empty($validated['gift_card_code'])) {
+            $giftCardService = app(\App\Services\GiftCardService::class);
+            $check = $giftCardService->checkBalance($validated['gift_card_code']);
+            if ($check['valid']) {
+                $redeemResult = $giftCardService->redeemCard(
+                    code: $validated['gift_card_code'],
+                    amount: $subtotal,
+                    notes: 'Web Store checkout discount'
+                );
+                $giftCardDiscount = $redeemResult['redeemed_amount'];
+                $appliedCardCode = $check['code'];
+            }
+        }
+
+        $remainingToPay = max(0.00, round($subtotal - $giftCardDiscount, 2));
+        $fullyCoveredByCard = ($remainingToPay <= 0);
+
+        $isOnlineCard = !$fullyCoveredByCard && $validated['payment_method'] === 'card';
         $paymentMethod = match ($validated['payment_method']) {
             'card' => 'card',
             'bank_transfer' => 'bank_transfer',
@@ -139,14 +160,17 @@ class WebStoreController extends Controller
         $salePayload = [
             'transaction_uuid' => (string) Str::uuid(),
             'customer_id' => $customer->id,
-            'discount_amount' => 0.00,
+            'discount_amount' => $giftCardDiscount,
             'source' => 'online',
-            'notes' => 'Web Store Order | Ship to: ' . $validated['shipping_address'] . ' (' . $validated['customer_name'] . ')' . ($isOnlineCard ? ' | Pending Gateway Payment' : ''),
+            'notes' => 'Web Store Order | Ship to: ' . $validated['shipping_address'] . ' (' . $validated['customer_name'] . ')'
+                . ($appliedCardCode ? " | Applied Gift Card: {$appliedCardCode} (Rs. {$giftCardDiscount})" : '')
+                . ($isOnlineCard ? ' | Pending Gateway Payment' : ''),
             'items' => $saleItems,
             'payments' => $isOnlineCard ? [] : [
                 [
-                    'payment_method' => $paymentMethod,
-                    'amount' => $subtotal,
+                    'payment_method' => $fullyCoveredByCard ? 'gift_card' : $paymentMethod,
+                    'amount' => $fullyCoveredByCard ? $subtotal : $remainingToPay,
+                    'reference_number' => $appliedCardCode,
                 ],
             ],
         ];

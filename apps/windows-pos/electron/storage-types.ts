@@ -82,7 +82,7 @@ export interface OfflineSale {
   sold_at?: string;
   items: OfflineSaleItem[];
   payments: {
-    payment_method: 'cash' | 'card' | 'bank_transfer' | 'credit';
+    payment_method: 'cash' | 'card' | 'bank_transfer' | 'credit' | 'gift_card';
     amount: number;
     reference_number?: string | null;
   }[];

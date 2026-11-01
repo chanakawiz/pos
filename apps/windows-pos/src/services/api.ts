@@ -142,4 +142,14 @@ export const api = {
     const res = await apiClient.get('/sync/status');
     return res.data;
   },
+
+  // VIP Gift Cards & Store Credit
+  verifyGiftCard: async (code: string) => {
+    const res = await apiClient.post('/gift-cards/verify', { code });
+    return res.data;
+  },
+  redeemGiftCard: async (payload: { code: string; amount: number; sale_uuid?: string; notes?: string }) => {
+    const res = await apiClient.post('/gift-cards/redeem', payload);
+    return res.data;
+  },
 };
