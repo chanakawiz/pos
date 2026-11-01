@@ -12,6 +12,16 @@ class Sale extends Model
 {
     use HasFactory, HasUuid;
 
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->transaction_uuid)) {
+                $model->transaction_uuid = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
+
     protected $fillable = [
         'uuid',
         'invoice_number',
@@ -27,6 +37,12 @@ class Sale extends Model
         'paid_amount',
         'change_amount',
         'payment_status',
+        'fulfillment_status',
+        'courier_name',
+        'tracking_number',
+        'estimated_delivery_at',
+        'dispatched_at',
+        'delivered_at',
         'sale_status',
         'source',
         'sync_status',
@@ -42,6 +58,9 @@ class Sale extends Model
         'paid_amount' => 'decimal:2',
         'change_amount' => 'decimal:2',
         'sold_at' => 'datetime',
+        'estimated_delivery_at' => 'datetime',
+        'dispatched_at' => 'datetime',
+        'delivered_at' => 'datetime',
     ];
 
     public function store(): BelongsTo
@@ -82,5 +101,10 @@ class Sale extends Model
     public function paymentTransactions(): HasMany
     {
         return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function returnRequests(): HasMany
+    {
+        return $this->hasMany(ReturnRequest::class);
     }
 }

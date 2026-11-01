@@ -35,7 +35,7 @@
             <div class="text-right">
                 <span class="text-sage block uppercase text-[10px] font-bold tracking-wider">Date & Time</span>
                 <span class="font-display font-bold text-ink block mt-1 text-sm">{{ $sale->sold_at ? $sale->sold_at->format('d M Y, h:i A') : now()->format('d M Y, h:i A') }}</span>
-                <span class="text-forest font-semibold text-[11px] block mt-0.5">Status: <span class="capitalize">{{ $sale->status }}</span></span>
+                <span class="text-forest font-semibold text-[11px] block mt-0.5">Payment: <span class="capitalize">{{ $sale->payment_status === 'paid' ? 'Paid & Confirmed' : ucfirst($sale->payment_status) }}</span></span>
             </div>
         </div>
 
@@ -46,17 +46,17 @@
                 @foreach($sale->items as $item)
                     <div class="py-4 flex items-start justify-between gap-4 text-xs">
                         <div class="flex-1 space-y-1">
-                            <div class="font-display font-bold text-ink text-sm">{{ $item->product_name }}</div>
-                            <div class="text-sage text-xs">Qty: {{ $item->quantity }} × {{ $sale->store->currency_symbol ?? 'Rs.' }} {{ number_format($item->unit_price, 2) }}</div>
+                            <div class="font-display font-bold text-ink text-sm">{{ $item->product?->name ?? 'Luxury Item' }}</div>
+                            <div class="text-sage text-xs">Qty: {{ (int) $item->quantity }} × {{ $sale->store->currency_symbol ?? 'Rs.' }} {{ number_format($item->unit_price, 2) }}</div>
                             @if($item->serial_number)
                                 <div class="text-[11px] text-forest font-mono">IMEI/SN: {{ $item->serial_number }}</div>
                             @endif
-                            @if($item->warranty_expires_at)
-                                <div class="text-[11px] text-goldLuxury font-semibold">★ Warranty valid until {{ $item->warranty_expires_at->format('d M Y') }}</div>
+                            @if($item->warranty_notes)
+                                <div class="text-[11px] text-goldLuxury font-semibold">★ {{ $item->warranty_notes }}</div>
                             @endif
                         </div>
                         <div class="text-right font-display font-bold text-ink text-sm shrink-0">
-                            {{ $sale->store->currency_symbol ?? 'Rs.' }} {{ number_format($item->subtotal, 2) }}
+                            {{ $sale->store->currency_symbol ?? 'Rs.' }} {{ number_format($item->total ?? $item->subtotal, 2) }}
                         </div>
                     </div>
                 @endforeach

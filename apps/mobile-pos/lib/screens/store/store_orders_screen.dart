@@ -226,20 +226,210 @@ class _StoreOrdersScreenState extends State<StoreOrdersScreen> {
                   ),
                 ],
               ),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.gold),
-                  foregroundColor: AppColors.gold,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              Row(
+                children: [
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.card,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(color: AppColors.border),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                    ),
+                    onPressed: () => _showTrackingModal(context, invoiceNumber),
+                    icon: const Icon(Icons.local_shipping_outlined, size: 18, color: AppColors.textPrimary),
+                    tooltip: 'Track Courier & Returns',
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                onPressed: () => _showReceiptModal(context, invoiceNumber, totalAmount),
-                icon: const Icon(Icons.qr_code, size: 16),
-                label: const Text('View E-Receipt'),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.gold),
+                      foregroundColor: AppColors.gold,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    onPressed: () => _showReceiptModal(context, invoiceNumber, totalAmount),
+                    icon: const Icon(Icons.qr_code, size: 16),
+                    label: const Text('E-Receipt'),
+                  ),
+                ],
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTrackingModal(BuildContext context, String invoice) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ORDER TELEMETRY & TRACKING',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      invoice,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    'IN TRANSIT',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(color: AppColors.border, height: 24),
+            _buildTimelineTile('1. Order Placed', 'Logged in OmniLuxe ERP engine', isDone: true),
+            _buildTimelineTile('2. Payment Verified', 'Settled via OmniLuxe cashier & gateway', isDone: true),
+            _buildTimelineTile('3. Packed & Inspected', 'Inspected in premium tamper-proof package', isDone: true),
+            _buildTimelineTile('4. Dispatched with Courier', 'Prompt Express Priority Delivery', isDone: true, isActive: true),
+            _buildTimelineTile('5. Delivered', 'Signature required upon recipient handover', isDone: false),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.assignment_return_outlined, size: 20, color: AppColors.gold),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Self-Service Returns & Exchanges',
+                          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        Text(
+                          'Available on web portal: http://127.0.0.1:8000/track/$invoice',
+                          style: GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.card,
+                  foregroundColor: AppColors.textPrimary,
+                  side: const BorderSide(color: AppColors.border),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimelineTile(String title, String subtitle, {required bool isDone, bool isActive = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            margin: const EdgeInsets.only(top: 1),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDone ? AppColors.primary : AppColors.card,
+              border: Border.all(color: isActive ? AppColors.gold : (isDone ? AppColors.primary : AppColors.border)),
+            ),
+            child: Icon(
+              isDone ? Icons.check : Icons.circle,
+              size: isDone ? 14 : 8,
+              color: isDone ? AppColors.gold : AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: isDone ? FontWeight.bold : FontWeight.w500,
+                    color: isDone ? AppColors.textPrimary : AppColors.textMuted,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
           ),
         ],
       ),

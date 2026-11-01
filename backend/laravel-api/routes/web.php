@@ -30,3 +30,8 @@ Route::post('/checkout/payment/{uuid}/process', [\App\Http\Controllers\PaymentCo
 Route::get('/checkout/payment/{uuid}/success', [\App\Http\Controllers\PaymentController::class, 'success'])->name('store.payment.success');
 Route::get('/checkout/payment/{uuid}/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('store.payment.cancel');
 
+// Order Tracking & Self-Service Returns Portal
+Route::get('/track', [\App\Http\Controllers\OrderTrackingController::class, 'show'])->name('store.track');
+Route::get('/track/{invoice}', [\App\Http\Controllers\OrderTrackingController::class, 'show'])->name('store.track.invoice');
+Route::post('/track/{invoice}/return', [\App\Http\Controllers\OrderTrackingController::class, 'submitReturn'])->name('store.track.return');
+

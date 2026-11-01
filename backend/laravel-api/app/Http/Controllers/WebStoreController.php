@@ -329,7 +329,7 @@ class WebStoreController extends Controller
         // Get past orders for this customer
         $orders = collect();
         if ($customer) {
-            $orders = Sale::with(['items', 'payments'])
+            $orders = Sale::with(['items.product', 'payments'])
                 ->where('customer_id', $customer->id)
                 ->latest()
                 ->take(15)

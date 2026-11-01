@@ -151,7 +151,7 @@
                             <div class="text-xs text-ink">
                                 {{ $order->items->count() }} items: 
                                 <span class="text-sage">
-                                    {{ $order->items->pluck('product_name')->take(3)->join(', ') }}
+                                    {{ $order->items->map(fn($item) => $item->product?->name)->filter()->take(3)->join(', ') }}
                                     @if($order->items->count() > 3)
                                         + {{ $order->items->count() - 3 }} more
                                     @endif
@@ -164,6 +164,12 @@
                                 <div class="text-[10px] text-sage uppercase font-semibold">Total Amount</div>
                                 <div class="text-base font-extrabold font-display text-forest">Rs. {{ number_format($order->total_amount, 2) }}</div>
                             </div>
+                            <a href="{{ route('store.track', ['query' => $order->invoice_number]) }}" class="px-3.5 py-2 rounded-xl bg-forestLight hover:bg-forestLight/80 border border-forest/30 text-xs font-bold text-forest transition-colors flex items-center gap-1.5" title="Track Dispatch & Returns">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                </svg>
+                                Track & Return
+                            </a>
                             <a href="{{ route('store.receipt', ['invoice' => $order->invoice_number]) }}" class="px-3.5 py-2 rounded-xl bg-paper hover:bg-cream border border-hairline text-xs font-semibold text-forest transition-colors flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

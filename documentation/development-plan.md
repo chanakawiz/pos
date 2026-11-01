@@ -155,21 +155,37 @@ The platform establishes strict separation across customer, cashier, and adminis
 - [x] **Mobile App Synchronization with Central Inbox**:
   - Flutter `NotificationService` and `NotificationNotifier` updated to fetch notification history from `GET /api/v1/customer/notifications`, sync read states via `POST /api/v1/customer/notifications/{uuid}/read`, and sync device tokens.
 
-### Milestone 10: Live Payment Gateway Integration & Webhooks (`✅ COMPLETED`)
-- [x] **Universal Payment Gateway Engine (`PaymentGatewayService`)**:
-  - Driver architecture supporting Sri Lankan flagship gateway (**PayHere** with dynamic MD5 signature generation and validation), **Stripe** (SHA256 signature verification), and **Instant Sandbox** driver.
-  - Dedicated `payment_transactions` database table tracking session UUIDs, gateway references, payload parameters, and timestamps.
-- [x] **Luxury Web Storefront Checkout (`store.payment`)**:
-  - Hosted 256-bit SSL checkout page at `/checkout/payment/{uuid}` featuring credit/debit card authorization, PayHere direct redirect, and sandbox verification.
-  - Immediate redirect to tamper-evident public e-receipt at `/receipt/{invoice}` upon confirmation.
-- [x] **Secure Asynchronous Webhooks & CSRF Exemption**:
-  - Webhook endpoint `POST /api/v1/payments/webhook/{gateway}` with CSRF exemption in `bootstrap/app.php`.
-  - Atomic transaction completion updating `sales.payment_status` to `'paid'`, inserting into `payments` ledger, and triggering real-time Reverb and FCM customer notifications.
-- [x] **Mobile REST API & Client Checkout**:
-  - Session initiation endpoint `POST /api/v1/payments/initiate` linked with Flutter `StoreCheckoutScreen`.
+### Milestone 11: Self-Service Order Tracking & Returns/Exchange Portal (`✅ COMPLETED`)
+- [x] **Omnichannel Fulfillment & Tracking Telemetry Database Layer**:
+  - Migration `2026_11_01_000001_add_fulfillment_and_tracking_to_sales_table.php` adding `fulfillment_status` (`unfulfilled`, `processing`, `packed`, `dispatched`, `delivered`, `returned`), `courier_name`, `tracking_number`, `estimated_delivery_at`, `dispatched_at`, and `delivered_at`.
+  - Migration `2026_11_01_000002_create_return_requests_tables.php` establishing `return_requests` and `return_request_items` for RMA tracking.
+  - Eloquent models `ReturnRequest`, `ReturnRequestItem`, and relationships on `Sale` and `SaleItem`.
+- [x] **Central Business Service Engine (`OrderTrackingService`)**:
+  - Universal multi-reference lookup (`trackOrder`) via invoice number, courier tracking code, or UUID.
+  - Self-service RMA submission (`submitReturnRequest`) supporting item condition reporting, exchange variant preferences, and refunds.
+  - Dispatch telemetry updates (`updateFulfillment`) with automated timestamp capture (`dispatched_at`, `delivered_at`).
+- [x] **Editorial Light Luxury Web Tracking Portal (`store.track`)**:
+  - Search interface supporting instant query resolution for web and counter POS orders.
+  - 5-step visual telemetry stepper (Order Placed -> Payment Verified -> Packed & Inspected -> Dispatched with Courier -> Delivered).
+  - Courier dispatch banner with tracking code copy and estimated delivery date.
+  - Interactive self-service return & exchange submission accordion.
+  - Customer account order card direct deep-links (`Track & Return`).
+- [x] **Mobile REST APIs & In-App Order Telemetry (`apps/mobile-pos`)**:
+  - Public mobile telemetry endpoint `GET /api/v1/orders/track/{identifier}` and submission endpoint `POST /api/v1/orders/returns`.
+  - Flutter `StoreOrdersScreen` updated with order telemetry bottom sheet showing 5-step progress and self-service return guidance.
 - [x] **100% Verified Automated Test Suite**:
-  - 5 feature tests in `PaymentGatewayTest.php` passing all assertions for initiation, rendering, processing, and signature verification.
-  - Full backend test suite passing with 33/33 tests (`php artisan test`).
+  - 8/8 feature tests in `OrderTrackingTest.php` passing all assertions.
+  - 41/41 Laravel backend tests passing (`php artisan test`).
+  - 22/22 Flutter mobile tests passing (`flutter test`).
+  - 41/41 Desktop POS tests passing (`npm test`).
+  - **Total: 104/104 passing tests across the entire omnichannel ecosystem**.
+
+---
+
+### Milestone 12: Automated Courier Dispatch & Concierge RMA Approvals (`🚀 NEXT`)
+- [ ] ERP / Admin Panel review interface for pending `return_requests` (approve/reject/issue credit note).
+- [ ] Automated SMS & Email status alerts upon fulfillment transition (e.g. "Order Dispatched with Courier").
+- [ ] Instant customer loyalty points credit upon approved store-credit returns.
 
 ---
 

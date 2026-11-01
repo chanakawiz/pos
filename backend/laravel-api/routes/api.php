@@ -23,6 +23,10 @@ Route::prefix('v1')->group(function () {
     Route::post('/payments/initiate', [\App\Http\Controllers\PaymentController::class, 'apiInitiate']);
     Route::post('/payments/webhook/{gateway}', [\App\Http\Controllers\PaymentController::class, 'webhook']);
 
+    // Order Tracking & Self-Service Returns API
+    Route::get('/orders/track/{identifier}', [\App\Http\Controllers\OrderTrackingController::class, 'apiTrack']);
+    Route::post('/orders/returns', [\App\Http\Controllers\OrderTrackingController::class, 'apiSubmitReturn']);
+
     // Authenticated POS & Management routes
     Route::middleware('auth:sanctum')->group(function () {
         // Real-Time Reverb WebSocket Channel Auth for Mobile / POS

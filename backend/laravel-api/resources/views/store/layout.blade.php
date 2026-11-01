@@ -103,6 +103,12 @@
                 <a href="{{ route('store.index') }}" class="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-lg bg-cream border border-hairline text-ink hover:text-forest hover:border-forest/40 transition-colors">
                     Catalog
                 </a>
+                <a href="{{ route('store.track') }}" class="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-cream border border-hairline text-ink hover:text-forest hover:border-forest/40 transition-colors">
+                    <svg class="w-3.5 h-3.5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                    Track Order
+                </a>
 
                 @auth
                     <a href="{{ route('store.account') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cream border border-goldLuxury/50 text-xs font-semibold text-forest hover:bg-goldLight transition-colors shadow-sm" title="My VIP Account & Orders">
@@ -119,7 +125,7 @@
                 @endauth
 
                 <!-- Real-Time Push Notification Indicator -->
-                <button type="button" onclick="showPusherToast('Notifications Active', 'Subscribed to real-time order and loyalty updates via Pusher Broadcast.', 'info')" 
+                <button type="button" onclick="showReverbToast('Real-Time WebSockets Active', 'Subscribed to live order and VIP loyalty updates via Laravel Reverb.')" 
                     class="relative p-2 rounded-xl bg-cream border border-hairline text-forest hover:border-forest transition-colors" title="Push Notifications">
                     <svg class="w-5 h-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -138,7 +144,7 @@
         </div>
     </header>
 
-    <!-- Real-Time Push Notification Toast Container (Pusher Protocol) -->
+    <!-- Real-Time Push Notification Toast Container (Reverb Protocol) -->
     <div id="pusherToastContainer" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
 
     <!-- Main Content Area -->
@@ -261,7 +267,8 @@
                 <span class="font-display font-bold text-forest text-sm">OMNILUXE STORE</span>
                 <span>• Omnichannel POS + ERP + Web Storefront</span>
             </div>
-            <div class="flex items-center gap-6 text-ink/80">
+            <div class="flex items-center gap-6 text-ink/80 flex-wrap justify-center">
+                <a href="{{ route('store.track') }}" class="hover:text-forest font-semibold transition-colors">📦 Track Order & Returns</a>
                 <span>🔐 Data Privacy Protected</span>
                 <span>📱 Real-Time Sync</span>
                 <span>⚡ Powered by Laravel & Flutter</span>
