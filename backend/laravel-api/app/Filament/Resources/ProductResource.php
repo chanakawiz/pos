@@ -229,12 +229,12 @@ class ProductResource extends Resource
 
                 Tables\Columns\TextColumn::make('cost_price')
                     ->label('Cost')
-                    ->money('USD')
+                    ->formatStateUsing(fn ($state) => 'Rs. ' . number_format((float) $state, 2))
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('selling_price')
                     ->label('Price')
-                    ->money('USD')
+                    ->formatStateUsing(fn ($state) => 'Rs. ' . number_format((float) $state, 2))
                     ->sortable()
                     ->weight('bold'),
 
@@ -256,6 +256,18 @@ class ProductResource extends Resource
                     ->label('Active'),
             ])
             ->actions([
+                Tables\Actions\Action::make('boutiqueStock')
+                    ->label('Boutiques')
+                    ->icon('heroicon-m-building-storefront')
+                    ->color('warning')
+                    ->modalHeading(fn (Product $record): string => "Boutique Stock: {$record->name}")
+                    ->modalDescription('Real-time cross-branch inventory levels across all retail locations.')
+                    ->modalContent(fn (Product $record): \Illuminate\Contracts\View\View => view(
+                        'filament.pages.modals.cross-store-stock-modal',
+                        ['stocks' => app(\App\Services\StockTransferService::class)->getCrossStoreStock($record->id)]
+                    ))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

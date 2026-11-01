@@ -59,13 +59,15 @@ class WebStoreController extends Controller
     /**
      * Show single product details.
      */
-    public function show($id)
+    public function show($id, \App\Services\StockTransferService $transferService)
     {
         $product = Product::with(['category', 'brand', 'variants', 'inventories'])
             ->findOrFail($id);
 
         $store = Store::first();
-        return view('store.product', compact('product', 'store'));
+        $boutiqueStocks = $transferService->getCrossStoreStock($product->id);
+
+        return view('store.product', compact('product', 'store', 'boutiqueStocks'));
     }
 
     /**

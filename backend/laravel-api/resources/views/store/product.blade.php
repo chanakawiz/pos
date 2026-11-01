@@ -113,6 +113,62 @@
                 </div>
             </div>
 
+            <!-- In-Store Boutique Availability -->
+            @if(!empty($boutiqueStocks) && count($boutiqueStocks) > 0)
+                <div class="p-5 bg-paper rounded-3xl border border-hairline shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full bg-cream border border-hairline flex items-center justify-center text-forest">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xs uppercase tracking-wider font-bold text-ink">Boutique Availability</h3>
+                                <p class="text-[11px] text-sage">Live stock across OmniLuxe physical boutiques</p>
+                            </div>
+                        </div>
+                        <span class="text-[11px] font-semibold text-goldLuxury bg-cream px-2.5 py-1 rounded-full border border-hairline">
+                            Click & Collect Ready
+                        </span>
+                    </div>
+
+                    <div class="divide-y divide-hairline">
+                        @foreach($boutiqueStocks as $boutique)
+                            <div class="py-2.5 first:pt-1 last:pb-1 flex items-center justify-between gap-3 text-xs">
+                                <div>
+                                    <div class="font-bold text-ink flex items-center gap-1.5">
+                                        {{ $boutique['store_name'] }}
+                                        <span class="text-[10px] text-sage font-normal">({{ $boutique['store_code'] }})</span>
+                                    </div>
+                                    <div class="text-[11px] text-sage truncate max-w-xs">
+                                        {{ $boutique['address'] }} • <a href="tel:{{ $boutique['phone'] }}" class="text-forest hover:underline font-medium">{{ $boutique['phone'] }}</a>
+                                    </div>
+                                </div>
+
+                                <div class="shrink-0 text-right">
+                                    @if($boutique['quantity_available'] > 5)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            In Stock ({{ (int)$boutique['quantity_available'] }})
+                                        </span>
+                                    @elseif($boutique['quantity_available'] > 0)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            Low Stock ({{ (int)$boutique['quantity_available'] }})
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-gray-50 text-gray-500 border border-gray-200">
+                                            Out of Stock
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <!-- Description -->
             <div class="space-y-3">
                 <h3 class="text-xs uppercase tracking-wider font-bold text-ink">Piece Overview</h3>
