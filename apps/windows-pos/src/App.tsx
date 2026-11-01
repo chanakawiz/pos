@@ -25,6 +25,7 @@ import { openCashDrawer } from './services/hardware';
 import { startCustomerDisplay } from './services/customerDisplay';
 import { weightUnit } from '../electron/quantity';
 import { WeighingModal } from './modals/WeighingModal';
+import { BranchStockModal } from './modals/BranchStockModal';
 
 export const App: React.FC = () => {
   useEffect(startCustomerDisplay, []);
@@ -199,6 +200,9 @@ export const App: React.FC = () => {
       } else if (e.key === 'F3' && !activeModal) {
         e.preventDefault();
         usePosStore.getState().openModal('refund');
+      } else if (e.key === 'F6' && !activeModal) {
+        e.preventDefault();
+        usePosStore.getState().openModal('branchStock');
       } else if (e.key === 'F8') {
         e.preventDefault();
         if (!e.repeat) void openCashDrawer();
@@ -261,6 +265,7 @@ export const App: React.FC = () => {
       {activeModal === 'syncStatus' && <SyncStatusModal />}
       {activeModal === 'help' && <HelpModal />}
       {activeModal === 'weighing' && weighingProduct && <WeighingModal product={weighingProduct} />}
+      {activeModal === 'branchStock' && <BranchStockModal />}
     </div>
   );
 };

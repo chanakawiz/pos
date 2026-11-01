@@ -42,6 +42,13 @@ class InventoryService
 
             $inventory->update(['quantity_on_hand' => $after]);
 
+            $minStock = (float) ($product->min_stock_level ?? 5.0);
+            if ($after <= $minStock) {
+                \Illuminate\Support\Facades\Log::warning(
+                    "LOW STOCK ALERT: Product [{$product->name}] (SKU: {$product->sku}) reached {$after} at store [{$store->name}] (minimum threshold: {$minStock})."
+                );
+            }
+
             return StockMovement::create([
                 'store_id' => $store->id,
                 'product_id' => $product->id,

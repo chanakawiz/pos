@@ -25,7 +25,7 @@ class InventoryBroadcaster
         }
 
         $rows = Inventory::query()
-            ->with('product:id,uuid')
+            ->with('product:id,uuid,name,min_stock_level')
             ->where('store_id', $store->id)
             ->whereIn('product_id', $productIds)
             ->whereNull('variant_id')
@@ -40,8 +40,14 @@ class InventoryBroadcaster
             }
 
             $qty = (float) $row->quantity_on_hand;
-            $internal[] = ['product_uuid' => $row->product->uuid, 'quantity_on_hand' => $qty];
-            $public[] = ['product_uuid' => $row->product->uuid, 'availability' => self::availabilityBand($qty, (float) ($row->reorder_point ?? 0))];
+            $threshold = (float) ($row->reorder_point ?: ($row->product->min_stock_level ?? 5));
+            $internal[] = [
+                'product_uuid' => $row->product->uuid,
+                'quantity_on_hand' => $qty,
+                'min_stock_level' => $threshold,
+                'is_low_stock' => $qty <= $threshold,
+            ];
+            $public[] = ['product_uuid' => $row->product->uuid, 'availability' => self::availabilityBand($qty, $threshold)];
         }
 
         if ($internal === []) {

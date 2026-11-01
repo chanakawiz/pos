@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Product } from '../types/pos';
 
-export type PosModalType = 'payment' | 'hold' | 'cashSession' | 'receipt' | 'customer' | 'refund' | 'syncStatus' | 'help' | 'weighing';
+export type PosModalType = 'payment' | 'hold' | 'cashSession' | 'receipt' | 'customer' | 'refund' | 'syncStatus' | 'help' | 'weighing' | 'branchStock';
 
 interface PosState {
   isOnline: boolean;

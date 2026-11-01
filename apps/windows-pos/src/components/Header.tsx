@@ -62,6 +62,16 @@ export const Header: React.FC = () => {
 
         <button
           type="button"
+          onClick={() => openModal('branchStock')}
+          title="Cross-Branch Stock (F6)"
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+        >
+          <Store className="w-3.5 h-3.5" />
+          <span>Branches (F6)</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => openModal('help')}
           title="Help (F1)"
           className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"

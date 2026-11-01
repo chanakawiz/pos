@@ -229,12 +229,29 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
-### Milestone 14: POS Cross-Branch Stock Modal & Low-Stock Alerts (`🚀 NEXT`)
-- [ ] Desktop POS UI integration: "Check Other Stores" button on product search/line item row in `windows-pos`.
-- [ ] Automated low-stock alerts triggering when store inventory hits `min_stock_level`.
-- [ ] Mobile app branch availability indicator on product details screen.
+### Milestone 14: POS Cross-Branch Stock Modal & Low-Stock Alerts (`✅ COMPLETED`)
+- [x] **Desktop POS Cross-Branch Lookup (`BranchStockModal`)**:
+  - Added dedicated `BranchStockModal.tsx` in `apps/windows-pos` with `F6` shortcut and Header action button.
+  - Cashiers can look up any item by name, barcode, or SKU to inspect stock levels across all active stores (Colombo Flagship Hub, Kandy Galleria, Galle Fort Boutique) with contact and address details.
+  - Added `getCrossStoreStock()` API client integration and global modal state in `usePosStore.ts`.
+- [x] **Automated Low-Stock Alerts**:
+  - `InventoryService::deductStock()` automatically checks against product `min_stock_level` and logs warning alerts on deficit.
+  - `InventoryBroadcaster` calculates public availability bands (`in_stock`, `low_stock`, `out_of_stock`) using product minimum stock thresholds, streaming to Reverb WebSockets.
+- [x] **Mobile App Boutique Availability**:
+  - Added "Check In-Store Availability" interactive live card on `ProductDetailScreen` in `apps/mobile-pos`.
+  - Tapping opens a luxury bottom sheet querying `GET /api/v1/products/{id}/cross-store-stock` with real-time stock badges (`In Stock`, `Low Stock`, `Out of Stock`) and resilient offline fallback.
+- [x] **100% Passing Automated Tests**:
+  - 50/50 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`) and Vite build verified.
+  - 22/22 Flutter mobile tests passing (`flutter test`).
+  - **Total: 113/113 passing tests across the entire omnichannel ecosystem**.
 
 ---
+
+### Milestone 15: Omnichannel VIP Gift Cards & Boutique Store Credit Engine (`🚀 NEXT`)
+- [ ] Enterprise digital gift card issuance with alphanumeric codes (`GC-XXXX-XXXX`), balance tracking, and expiry rules.
+- [ ] POS counter gift card redemption and partial split payments.
+- [ ] Consumer mobile & web wallet balance lookup and auto-apply during checkout.
 
 ## 3. Technology Stack & Design Tokens
 

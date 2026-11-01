@@ -52,6 +52,10 @@ export const api = {
     const res = await apiClient.get('/categories');
     return res.data;
   },
+  getCrossStoreStock: async (identifier: string | number) => {
+    const res = await apiClient.get(`/products/${identifier}/cross-store-stock`);
+    return res.data;
+  },
 
   // Sales
   createSale: async (salePayload: any): Promise<{ status: string; sale: any; receipt: SaleReceipt }> => {
