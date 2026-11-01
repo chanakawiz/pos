@@ -3,10 +3,24 @@ import type { Product, CartItem } from '../types/pos';
 import { roundMoney } from '../../electron/money';
 import { isValidQuantity, roundQuantity } from '../../electron/quantity';
 
+interface CartCustomer {
+  id?: number;
+  uuid?: string;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  loyalty_points?: number;
+  vip_tier?: string;
+  tier_title?: string;
+  tier_discount_percent?: number;
+  points_multiplier?: number;
+  total_spend?: number;
+}
+
 interface CartState {
   items: CartItem[];
   billDiscount: number;
-  customer: { id?: number; uuid?: string; name: string; phone?: string | null; email?: string | null; loyalty_points?: number } | null;
+  customer: CartCustomer | null;
   heldBills: { id: string; timestamp: string; note: string; items: CartItem[]; subtotal: number }[];
 
   // Actions
@@ -16,7 +30,7 @@ interface CartState {
   updateSerial: (productId: number, serial: string) => void;
   updateDiscount: (productId: number, discountAmount: number) => void;
   setBillDiscount: (amount: number) => void;
-  setCustomer: (customer: { id?: number; uuid?: string; name: string; phone?: string | null; email?: string | null; loyalty_points?: number } | null) => void;
+  setCustomer: (customer: CartCustomer | null) => void;
   clearCart: () => void;
   holdCurrentBill: (note?: string) => void;
   restoreHeldBill: (heldId: string) => void;
@@ -149,7 +163,16 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({ billDiscount: Math.max(0, amount) });
   },
 
-  setCustomer: (customer) => set({ customer }),
+  setCustomer: (customer) => {
+    set((state) => {
+      let billDiscount = state.billDiscount;
+      if (customer?.tier_discount_percent && customer.tier_discount_percent > 0) {
+        const sub = state.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice - item.discountAmount), 0);
+        billDiscount = roundMoney((sub * customer.tier_discount_percent) / 100);
+      }
+      return { customer, billDiscount };
+    });
+  },
 
   clearCart: () => set({ items: [], billDiscount: 0, customer: null }),
 

@@ -24,6 +24,7 @@ class BillingService
         protected InventoryService $inventoryService,
         protected CustomerNotifier $customerNotifier,
         protected InventoryBroadcaster $inventoryBroadcaster,
+        protected LoyaltyTierService $loyaltyTierService,
     ) {}
 
     /**
@@ -174,13 +175,14 @@ class BillingService
                 ]);
             }
 
-            // Customer loyalty point update & real-time notification
+            // Customer loyalty point update & VIP tier progression
             if ($customerId) {
                 $customer = Customer::find($customerId);
                 if ($customer) {
-                    $earnedPoints = (int) floor($finalTotal / 10);
-                    $customer->increment('loyalty_points', $earnedPoints);
-                    $this->customerNotifier->loyaltyCredited($customer, $earnedPoints, $sale->invoice_number);
+                    $loyaltyResult = $this->loyaltyTierService->processSaleSpend($customer, $finalTotal, $sale);
+                    if ($loyaltyResult['points_earned'] > 0) {
+                        $this->customerNotifier->loyaltyCredited($customer, $loyaltyResult['points_earned'], $sale->invoice_number);
+                    }
                 }
             }
 

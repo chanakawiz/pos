@@ -277,10 +277,46 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
-### Milestone 16: Automated VIP Loyalty Tier Progression & Privilege Perks (`🚀 NEXT`)
-- [ ] Tier calculation rules engine: Silver Privilege (Entry), Gold Elite (Rs. 100,000+), Black Diamond (Rs. 250,000+).
-- [ ] Dynamic benefits: Automatic % discount on select luxury departments and 2x point multipliers.
-- [ ] Tier badge presentation across Web Store, Flutter VIP card, and Desktop POS.
+### Milestone 16: Automated VIP Loyalty Tier Progression & Privilege Perks (`✅ COMPLETED`)
+- [x] **VIP Tier Architecture & Progression Rules Engine**:
+  - Migration `2026_11_01_090927_add_vip_tier_and_total_spend_to_customers_table.php` adding `vip_tier` (`silver`, `gold`, `black`), `total_spend`, and `tier_updated_at` to `customers` table.
+  - Multi-tiered tier definition:
+    - **Silver Privilege**: Default entry tier (Rs. 0 - 99,999 spend / 0 - 999 pts), 1.0x point multiplier, 0% automatic discount.
+    - **Gold Elite**: Rs. 100,000+ spend or 1,000+ loyalty points, 1.5x point multiplier, 5% automatic privilege discount.
+    - **Black Diamond**: Rs. 250,000+ spend or 2,500+ loyalty points, 2.0x point multiplier, 10% automatic privilege discount.
+  - Eloquent model `Customer` enhanced with `$appends = ['tier_title', 'tier_discount_percent', 'points_multiplier']` and accessors.
+- [x] **Automated Tier Upgrade & Billing Engine (`LoyaltyTierService`)**:
+  - Real-time spend progression evaluation during sale finalization via `LoyaltyTierService::processSaleSpend()`.
+  - Atomic recalculation and tier elevation with in-app customer notification dispatch on tier promotion.
+  - Integration with `BillingService.php` to award loyalty points scaled by active tier point multipliers (e.g. 1.5x or 2.0x).
+- [x] **Omnichannel Loyalty Tier APIs**:
+  - Public tier benefits discovery endpoint `GET /api/v1/loyalty/tiers` returning spend thresholds, point multipliers, and privilege discounts.
+  - Customer profile and authentication responses return full tier metadata and progression metrics.
+- [x] **Web Storefront VIP Portal & Profile**:
+  - Updated `account.blade.php` with luxury tier badge presentation (Onyx Black Diamond, Emerald Gold Elite, Forest Silver), current tier multiplier, spend progress bar towards next tier, and privilege perks overview.
+- [x] **In-Store Desktop POS Tier Benefits & Automatic Discounting**:
+  - Extended `storage-types.ts` with VIP tier fields.
+  - Updated `useCartStore.ts` to automatically apply the customer's tier discount (5% for Gold Elite, 10% for Black Diamond) upon customer attachment.
+  - Updated `CustomerModal.tsx` displaying luxury VIP tier badge and automatic discount percentage.
+- [x] **100% Passing Automated Tests**:
+  - 5/5 tests in `LoyaltyTierTest.php` passing all assertions (spend calculation, multiplier calculation, tier upgrade notifications, API tier list).
+  - 61/61 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`) and Vite build verified.
+  - 22/22 Flutter mobile tests passing (`flutter test`).
+  - **Total: 124/124 passing tests across the entire omnichannel ecosystem**.
+
+---
+
+### Milestone 17: Multi-Branch Performance & Inventory Health Dashboards (`🚀 ACTIVE`)
+- [ ] Cross-branch revenue and gross margin comparative telemetry across Colombo Flagship, Kandy Galleria, and Galle Fort.
+- [ ] Cashier sales velocity and drawer reconciliation accuracy tracking widgets.
+- [ ] Stock aging & transfer velocity table identifying slow-moving items for inter-branch transfer.
+
+---
+
+### Milestone 18: Production Containerization & Resilient Health Audits (`⏳ QUEUED`)
+- [ ] Multi-container Docker compose configuration for Laravel 11, PHP 8.3 FPM, Nginx, MySQL 8, and Reverb WebSocket worker.
+- [ ] Production health check endpoints (`/health/live`, `/health/ready`) auditing database connectivity, cache responsiveness, and Reverb socket status.
 
 ## 3. Technology Stack & Design Tokens
 

@@ -44,6 +44,11 @@ export interface Customer {
   email?: string | null;
   address?: string | null;
   loyalty_points: number;
+  vip_tier?: string;
+  tier_title?: string;
+  tier_discount_percent?: number;
+  points_multiplier?: number;
+  total_spend?: number;
   credit_limit: number;
   balance: number;
   deleted_at?: string | null;

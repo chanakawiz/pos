@@ -30,6 +30,9 @@ Route::prefix('v1')->group(function () {
     // Omnichannel VIP Gift Cards & Store Credit
     Route::post('/gift-cards/verify', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'verify']);
 
+    // VIP Loyalty Tier System
+    Route::get('/loyalty/tiers', [\App\Http\Controllers\Api\v1\CustomerController::class, 'tiers']);
+
     // Authenticated POS & Management routes
     Route::middleware('auth:sanctum')->group(function () {
         // Real-Time Reverb WebSocket Channel Auth for Mobile / POS

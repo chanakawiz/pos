@@ -183,10 +183,22 @@ export const CustomerModal: React.FC = () => {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <h4 className="text-xs font-bold text-white truncate">{c.name}</h4>
+                            {c.vip_tier && (
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                                c.vip_tier === 'black'
+                                  ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm'
+                                  : c.vip_tier === 'gold'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  : 'bg-slate-800 text-slate-300 border-slate-700'
+                              }`}>
+                                {c.tier_title || c.vip_tier.toUpperCase()}
+                                {c.tier_discount_percent ? ` (${c.tier_discount_percent}% off)` : ''}
+                              </span>
+                            )}
                             {c.loyalty_points > 0 && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                                {c.loyalty_points} pts (${(c.loyalty_points * 0.1).toFixed(2)})
+                                {c.loyalty_points} pts
                               </span>
                             )}
                           </div>

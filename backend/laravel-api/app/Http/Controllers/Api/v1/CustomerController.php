@@ -110,4 +110,19 @@ class CustomerController extends Controller
             'remaining_points' => $customer->fresh()->loyalty_points,
         ]);
     }
+
+    /**
+     * Get VIP Loyalty Tier breakdown and privilege perks.
+     */
+    public function tiers(\App\Services\LoyaltyTierService $tierService): JsonResponse
+    {
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'silver' => $tierService->getTierPerks('silver'),
+                'gold' => $tierService->getTierPerks('gold'),
+                'black' => $tierService->getTierPerks('black'),
+            ],
+        ]);
+    }
 }

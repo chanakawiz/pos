@@ -37,11 +37,20 @@
 
     <!-- VIP Membership Card & Loyalty Stats Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Luxury Digital Membership Card (Deep Forest Green) -->
+        <!-- Luxury Digital Membership Card (Dynamic VIP Tier) -->
         <div class="lg:col-span-1">
-            <div class="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-forest via-[#1C3229] to-[#12221C] border border-goldLuxury/50 shadow-lg text-white">
+            @php
+                $tier = $customer->vip_tier ?? 'silver';
+                $tierTitle = $customer->tier_title ?? 'Silver Privilege';
+                $tierMultiplier = $customer->points_multiplier ?? 1.0;
+                $tierDiscount = $customer->tier_discount_percent ?? 0;
+                $totalSpend = (float) ($customer->total_spend ?? 0.0);
+                $nextTarget = $tier === 'silver' ? 100000.0 : ($tier === 'gold' ? 250000.0 : null);
+                $progressPercent = $nextTarget ? min(100, round(($totalSpend / $nextTarget) * 100)) : 100;
+            @endphp
+            <div class="relative overflow-hidden rounded-3xl p-6 {{ $tier === 'black' ? 'bg-gradient-to-br from-[#111311] via-[#1c1f1c] to-[#0a0a0a] border-goldLuxury/80 shadow-2xl' : ($tier === 'gold' ? 'bg-gradient-to-br from-[#1E3B2E] via-[#152B21] to-[#0F1E17] border-goldLuxury/60 shadow-xl' : 'bg-gradient-to-br from-forest via-[#1C3229] to-[#12221C] border-hairline shadow-lg') }} border text-white">
                 <!-- Shiny glow effect -->
-                <div class="absolute -right-12 -top-12 w-40 h-40 bg-goldLuxury/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="absolute -right-12 -top-12 w-40 h-40 {{ $tier === 'black' ? 'bg-goldLuxury/20' : 'bg-goldLuxury/10' }} rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex items-center justify-between mb-8">
                     <div class="flex items-center gap-2">
@@ -50,25 +59,42 @@
                         </div>
                         <span class="font-display font-black tracking-widest text-xs text-goldLuxury uppercase">OMNILUXE PRIVILEGE</span>
                     </div>
-                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-goldLuxury/30 text-goldLuxury font-bold tracking-wider">
-                        TIER 01
+                    <span class="text-[10px] font-mono px-2.5 py-1 rounded-full {{ $tier === 'black' ? 'bg-goldLuxury text-black font-extrabold shadow-sm' : ($tier === 'gold' ? 'bg-goldLuxury/20 border border-goldLuxury text-goldLuxury font-bold' : 'bg-white/10 border border-white/20 text-white font-medium') }} uppercase tracking-wider">
+                        {{ $tierTitle }}
                     </span>
                 </div>
 
-                <div class="space-y-1 mb-8">
-                    <div class="text-[10px] uppercase font-bold tracking-widest text-white/60">Cardholder</div>
+                <div class="space-y-1 mb-6">
+                    <div class="text-[10px] uppercase font-bold tracking-widest text-white/60">Privilege Cardholder</div>
                     <div class="text-lg font-display font-extrabold text-white tracking-wide uppercase">{{ $user->name }}</div>
                     <div class="text-xs font-mono text-white/60">ID: {{ substr($customer->uuid ?? $user->uuid, 0, 8) }} •••• {{ substr($customer->uuid ?? $user->uuid, -4) }}</div>
                 </div>
 
+                <!-- Next Tier Progress Bar -->
+                @if($nextTarget)
+                    <div class="mb-6 bg-black/30 p-2.5 rounded-xl border border-white/10">
+                        <div class="flex items-center justify-between text-[10px] text-white/70 mb-1">
+                            <span>Tier Spend: Rs. {{ number_format($totalSpend, 0) }}</span>
+                            <span class="text-goldLuxury font-semibold">{{ $progressPercent }}% to {{ $tier === 'silver' ? 'Gold Elite' : 'Black Diamond' }}</span>
+                        </div>
+                        <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-goldLuxury h-1.5 rounded-full transition-all duration-500" style="width: {{ $progressPercent }}%"></div>
+                        </div>
+                    </div>
+                @else
+                    <div class="mb-6 bg-goldLuxury/10 p-2 rounded-xl border border-goldLuxury/30 text-center text-[10px] text-goldLuxury font-bold tracking-wider uppercase">
+                        👑 Supreme Black Diamond VIP Status Achieved
+                    </div>
+                @endif
+
                 <div class="flex items-end justify-between pt-4 border-t border-white/20">
                     <div>
-                        <div class="text-[10px] uppercase font-bold tracking-wider text-white/60">Club Loyalty Points</div>
-                        <div class="text-2xl font-black font-display text-goldLuxury">{{ $customer->loyalty_points ?? 100 }} <span class="text-xs font-normal text-white/60">PTS</span></div>
+                        <div class="text-[10px] uppercase font-bold tracking-wider text-white/60">Loyalty Points</div>
+                        <div class="text-2xl font-black font-display text-goldLuxury">{{ $customer->loyalty_points ?? 100 }} <span class="text-xs font-normal text-white/60">PTS ({{ $tierMultiplier }}x)</span></div>
                     </div>
                     <div class="text-right">
-                        <div class="text-[10px] uppercase font-bold tracking-wider text-white/60">Store Credit Limit</div>
-                        <div class="text-sm font-bold text-white font-mono">Rs. {{ number_format($customer->credit_limit ?? 50000, 0) }}</div>
+                        <div class="text-[10px] uppercase font-bold tracking-wider text-white/60">Privilege Discount</div>
+                        <div class="text-sm font-bold text-emerald-400 font-mono">{{ $tierDiscount > 0 ? "{$tierDiscount}% OFF" : 'Standard Rate' }}</div>
                     </div>
                 </div>
             </div>
