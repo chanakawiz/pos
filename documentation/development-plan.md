@@ -307,14 +307,31 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
-### Milestone 17: Multi-Branch Performance & Inventory Health Dashboards (`🚀 ACTIVE`)
-- [ ] Cross-branch revenue and gross margin comparative telemetry across Colombo Flagship, Kandy Galleria, and Galle Fort.
-- [ ] Cashier sales velocity and drawer reconciliation accuracy tracking widgets.
-- [ ] Stock aging & transfer velocity table identifying slow-moving items for inter-branch transfer.
+### Milestone 17: Multi-Branch Performance & Inventory Health Dashboards (`✅ COMPLETED`)
+- [x] **Omnichannel Branch Analytics Engine (`BranchAnalyticsService`)**:
+  - `getBranchPerformanceSummary`: Real-time cross-branch sales, cost of goods sold (COGS), gross margin ($ and %), orders count, average order value (AOV), online/offline channel breakdown, and branch inventory valuation across Colombo Flagship (`STORE-001`), Kandy Galleria (`STORE-002`), and Galle Fort Boutique (`STORE-003`).
+  - `getCashierPerformance`: Sales velocity tracking, completed transactions count, revenue volume, drawer discrepancy tracking, and reconciliation integrity status (`100% Balanced`, `Minor Variance`, `Audit Required`).
+  - `getStockAgingAndRecommendations`: Automated inventory age calculation (days inactive since latest sale or movement), turnover classification (`Fast Mover`, `Steady`, `Slow Moving`, `Stagnant`), and dynamic inter-branch transfer recommendations.
+  - `getExecutiveKpis`: High-level executive KPIs including network gross margin %, top branch revenue, total network inventory valuation, and cash drawer reconciliation accuracy.
+- [x] **Filament ERP Visual Intelligence Suite**:
+  - `BranchPerformanceStatsWidget`: Executive KPI cards (Network Gross Margin %, Top Branch, Reconciliation Accuracy %, Luxury Inventory Valuation).
+  - `BranchPerformanceChartWidget`: Grouped multi-branch comparative bar chart visualizing Gross Revenue vs. Gross Margin vs. COGS.
+  - `CashierVelocityWidget`: Table tracking staff throughput, processed revenue, shift register counts, drawer variances, and integrity health badges.
+  - `StockAgingVelocityWidget`: Table monitoring slow-moving luxury inventory with 1-click inter-branch transfer dispatch actions.
+  - Dedicated Filament Page: `BranchPerformance` (`/admin/branch-performance`) grouped under *Analytics & Reports*.
+- [x] **REST Telemetry Endpoints**:
+  - `GET /api/v1/reports/branch-performance`: Consolidated executive KPIs, branch summaries, and cashier velocity.
+  - `GET /api/v1/reports/stock-aging`: Inventory aging metrics with transfer advisories.
+- [x] **100% Passing Automated Tests**:
+  - 6/6 tests in `BranchPerformanceTest.php` passing all assertions.
+  - 67/67 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`).
+  - 22/22 Flutter mobile tests passing (`flutter test`).
+  - **Total: 130/130 passing tests across the entire omnichannel ecosystem**.
 
 ---
 
-### Milestone 18: Production Containerization & Resilient Health Audits (`⏳ QUEUED`)
+### Milestone 18: Production Containerization & Resilient Health Audits (`🚀 NEXT`)
 - [ ] Multi-container Docker compose configuration for Laravel 11, PHP 8.3 FPM, Nginx, MySQL 8, and Reverb WebSocket worker.
 - [ ] Production health check endpoints (`/health/live`, `/health/ready`) auditing database connectivity, cache responsiveness, and Reverb socket status.
 

@@ -156,4 +156,42 @@ class ReportController extends Controller
             'items'        => $lowStockItems,
         ]);
     }
+
+    /**
+     * GET /api/v1/reports/branch-performance
+     * Cross-branch revenue, gross margins, and cashier performance telemetry.
+     */
+    public function branchPerformance(Request $request, \App\Services\BranchAnalyticsService $analytics): JsonResponse
+    {
+        $kpis = $analytics->getExecutiveKpis();
+        $branches = $analytics->getBranchPerformanceSummary();
+        $cashiers = $analytics->getCashierPerformance();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'kpis' => $kpis,
+                'branches' => $branches,
+                'cashiers' => $cashiers,
+            ],
+        ]);
+    }
+
+    /**
+     * GET /api/v1/reports/stock-aging
+     * Inventory aging analysis and inter-branch transfer recommendations.
+     */
+    public function stockAging(Request $request, \App\Services\BranchAnalyticsService $analytics): JsonResponse
+    {
+        $limit = (int) $request->get('limit', 50);
+        $recommendations = $analytics->getStockAgingAndRecommendations($limit);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'total_analyzed' => $recommendations->count(),
+                'recommendations' => $recommendations,
+            ],
+        ]);
+    }
 }

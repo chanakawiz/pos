@@ -101,6 +101,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/reports/sales-summary', [\App\Http\Controllers\Api\v1\ReportController::class, 'salesSummary']);
         Route::get('/reports/top-products', [\App\Http\Controllers\Api\v1\ReportController::class, 'topProducts']);
         Route::get('/reports/low-stock', [\App\Http\Controllers\Api\v1\ReportController::class, 'lowStock']);
+        Route::get('/reports/branch-performance', [\App\Http\Controllers\Api\v1\ReportController::class, 'branchPerformance']);
+        Route::get('/reports/stock-aging', [\App\Http\Controllers\Api\v1\ReportController::class, 'stockAging']);
 
         // Offline Synchronization Engine
         Route::post('/sync/push', [SyncController::class, 'push']);

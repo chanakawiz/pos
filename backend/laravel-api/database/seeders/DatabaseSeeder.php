@@ -7,7 +7,10 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Device;
 use App\Models\Inventory;
+use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\StockMovement;
 use App\Models\Store;
 use App\Models\User;
@@ -42,6 +45,38 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $kandyStore = Store::updateOrCreate(
+            ['code' => 'STORE-002'],
+            [
+                'name' => 'OmniLuxe Kandy Galleria',
+                'phone' => '+94 81 223 4567',
+                'email' => 'kandy@omniluxe.store',
+                'address' => '15 Dalada Veediya, Kandy, Sri Lanka',
+                'tax_number' => 'TAX-LK-9982402',
+                'currency_code' => 'LKR',
+                'currency_symbol' => 'Rs.',
+                'receipt_header' => "=== OMNILUXE KANDY GALLERIA ===\nFlagship Retail • Central Province",
+                'receipt_footer' => "Warranties honored on presentation of SMS digital receipt.\nVisit store online at http://127.0.0.1:8000/",
+                'is_active' => true,
+            ]
+        );
+
+        $galleStore = Store::updateOrCreate(
+            ['code' => 'STORE-003'],
+            [
+                'name' => 'OmniLuxe Galle Fort Boutique',
+                'phone' => '+94 91 224 8901',
+                'email' => 'galle@omniluxe.store',
+                'address' => '28 Church Street, Galle Fort, Sri Lanka',
+                'tax_number' => 'TAX-LK-9982403',
+                'currency_code' => 'LKR',
+                'currency_symbol' => 'Rs.',
+                'receipt_header' => "=== OMNILUXE GALLE FORT ===\nLuxury Boutique • Southern Coast",
+                'receipt_footer' => "Warranties honored on presentation of SMS digital receipt.\nVisit store online at http://127.0.0.1:8000/",
+                'is_active' => true,
+            ]
+        );
+
         // 3. Counter Devices for Cashiers (In-Store Desktop POS Terminals)
         $counter01 = Device::firstOrCreate(
             ['pairing_code' => 'COUNTER-01'],
@@ -62,6 +97,30 @@ class DatabaseSeeder extends Seeder
                 'device_name' => 'Counter Lane 02 - Express POS',
                 'device_type' => 'windows',
                 'mac_address' => '00:1B:44:11:3A:C8',
+                'app_version' => '1.0.0',
+                'is_active' => true,
+            ]
+        );
+
+        $counter03 = Device::firstOrCreate(
+            ['pairing_code' => 'COUNTER-03'],
+            [
+                'store_id' => $kandyStore->id,
+                'device_name' => 'Counter Lane 01 - Kandy Galleria POS',
+                'device_type' => 'windows',
+                'mac_address' => '00:1B:44:11:3A:D9',
+                'app_version' => '1.0.0',
+                'is_active' => true,
+            ]
+        );
+
+        $counter04 = Device::firstOrCreate(
+            ['pairing_code' => 'COUNTER-04'],
+            [
+                'store_id' => $galleStore->id,
+                'device_name' => 'Counter Lane 01 - Galle Fort POS',
+                'device_type' => 'windows',
+                'mac_address' => '00:1B:44:11:3A:EA',
                 'app_version' => '1.0.0',
                 'is_active' => true,
             ]
@@ -113,7 +172,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'cashier1@smartshop.com'],
             [
                 'store_id' => $store->id,
-                'name' => 'Sarah Connor (Counter 1 Cashier)',
+                'name' => 'Sarah Connor (Flagship Cashier)',
                 'pin_code_hash' => Hash::make('1234'),
                 'password' => Hash::make('password'),
                 'role' => 'cashier',
@@ -121,6 +180,32 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $cashier->syncRoles([$cashierRole]);
+
+        $cashierKandy = User::firstOrCreate(
+            ['email' => 'cashier2@smartshop.com'],
+            [
+                'store_id' => $kandyStore->id,
+                'name' => 'Nimal Jayasuriya (Kandy Cashier)',
+                'pin_code_hash' => Hash::make('1234'),
+                'password' => Hash::make('password'),
+                'role' => 'cashier',
+                'is_active' => true,
+            ]
+        );
+        $cashierKandy->syncRoles([$cashierRole]);
+
+        $cashierGalle = User::firstOrCreate(
+            ['email' => 'cashier3@smartshop.com'],
+            [
+                'store_id' => $galleStore->id,
+                'name' => 'Sandun Wickramasinghe (Galle Cashier)',
+                'pin_code_hash' => Hash::make('1234'),
+                'password' => Hash::make('password'),
+                'role' => 'cashier',
+                'is_active' => true,
+            ]
+        );
+        $cashierGalle->syncRoles([$cashierRole]);
 
         // Online Registered Customer (Web App & Mobile App)
         $onlineCustomer = User::firstOrCreate(
@@ -572,6 +657,32 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
+            // Seed Multi-Branch Inventory for Kandy Galleria
+            Inventory::firstOrCreate(
+                [
+                    'store_id' => $kandyStore->id,
+                    'product_id' => $product->id,
+                    'variant_id' => null,
+                ],
+                [
+                    'quantity_on_hand' => max(5, (int) ($item['initial_stock'] * 0.4)),
+                    'quantity_reserved' => 0,
+                ]
+            );
+
+            // Seed Multi-Branch Inventory for Galle Fort Boutique
+            Inventory::firstOrCreate(
+                [
+                    'store_id' => $galleStore->id,
+                    'product_id' => $product->id,
+                    'variant_id' => null,
+                ],
+                [
+                    'quantity_on_hand' => max(3, (int) ($item['initial_stock'] * 0.25)),
+                    'quantity_reserved' => 0,
+                ]
+            );
+
             // Record Initial Stock Movement
             StockMovement::firstOrCreate(
                 [
@@ -589,6 +700,55 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
+
+        // 8. Multi-Branch Cash Sessions (Closed Audited Shifts)
+        \App\Models\CashSession::firstOrCreate(
+            ['notes' => 'Flagship Counter 01 audited evening close'],
+            [
+                'store_id' => $store->id,
+                'device_id' => $counter01->id,
+                'cashier_id' => $cashier->id,
+                'opened_at' => now()->subDay()->setTime(9, 0),
+                'closed_at' => now()->subDay()->setTime(21, 0),
+                'opening_balance' => 25000.00,
+                'closing_balance' => 125000.00,
+                'expected_balance' => 125000.00,
+                'discrepancy' => 0.00,
+                'status' => 'closed',
+            ]
+        );
+
+        \App\Models\CashSession::firstOrCreate(
+            ['notes' => 'Kandy Galleria Counter 01 audited evening close'],
+            [
+                'store_id' => $kandyStore->id,
+                'device_id' => $counter03->id,
+                'cashier_id' => $cashierKandy->id,
+                'opened_at' => now()->subDay()->setTime(9, 30),
+                'closed_at' => now()->subDay()->setTime(20, 30),
+                'opening_balance' => 20000.00,
+                'closing_balance' => 85200.00,
+                'expected_balance' => 85000.00,
+                'discrepancy' => 200.00,
+                'status' => 'closed',
+            ]
+        );
+
+        \App\Models\CashSession::firstOrCreate(
+            ['notes' => 'Galle Fort Boutique Counter 01 audited evening close'],
+            [
+                'store_id' => $galleStore->id,
+                'device_id' => $counter04->id,
+                'cashier_id' => $cashierGalle->id,
+                'opened_at' => now()->subDay()->setTime(10, 0),
+                'closed_at' => now()->subDay()->setTime(19, 0),
+                'opening_balance' => 15000.00,
+                'closing_balance' => 60000.00,
+                'expected_balance' => 60000.00,
+                'discrepancy' => 0.00,
+                'status' => 'closed',
+            ]
+        );
 
         // 8. Sample Customers
         Customer::firstOrCreate(
@@ -616,5 +776,148 @@ class DatabaseSeeder extends Seeder
                 'version' => 1,
             ]
         );
+
+        // 9. Multi-Branch Sample Completed Sales
+        $sampleProducts = Product::take(6)->get();
+        $customerKasun = Customer::where('phone', '+94771234567')->first();
+        $customerDilini = Customer::where('phone', '+94719876543')->first();
+
+        // Colombo Flagship Sale
+        if ($sampleProducts->count() >= 2 && !Sale::where('invoice_number', 'INV-COLOMBO-001')->exists()) {
+            $p1 = $sampleProducts[0];
+            $p2 = $sampleProducts[1];
+            $subtotal = ($p1->selling_price * 1) + ($p2->selling_price * 2);
+            $total = $subtotal;
+            $sale1 = Sale::create([
+                'invoice_number' => 'INV-COLOMBO-001',
+                'store_id' => $store->id,
+                'device_id' => $counter01->id,
+                'cashier_id' => $cashier->id,
+                'customer_id' => $customerKasun?->id,
+                'subtotal' => $subtotal,
+                'discount_amount' => 0.00,
+                'tax_amount' => 0.00,
+                'total_amount' => $total,
+                'paid_amount' => $total,
+                'change_amount' => 0.00,
+                'payment_status' => 'paid',
+                'fulfillment_status' => 'delivered',
+                'sale_status' => 'completed',
+                'source' => 'offline',
+                'sync_status' => 'synced',
+                'sold_at' => now()->subHours(5),
+            ]);
+
+            SaleItem::create([
+                'sale_id' => $sale1->id,
+                'product_id' => $p1->id,
+                'quantity' => 1,
+                'unit_cost' => $p1->cost_price,
+                'unit_price' => $p1->selling_price,
+                'subtotal' => $p1->selling_price,
+                'total' => $p1->selling_price,
+            ]);
+
+            SaleItem::create([
+                'sale_id' => $sale1->id,
+                'product_id' => $p2->id,
+                'quantity' => 2,
+                'unit_cost' => $p2->cost_price,
+                'unit_price' => $p2->selling_price,
+                'subtotal' => $p2->selling_price * 2,
+                'total' => $p2->selling_price * 2,
+            ]);
+
+            \App\Models\Payment::create([
+                'sale_id' => $sale1->id,
+                'payment_method' => 'card',
+                'amount' => $total,
+                'paid_at' => now()->subHours(5),
+            ]);
+        }
+
+        // Kandy Galleria Sale
+        if ($sampleProducts->count() >= 3 && !Sale::where('invoice_number', 'INV-KANDY-001')->exists()) {
+            $p3 = $sampleProducts[2];
+            $total = $p3->selling_price * 1;
+            $sale2 = Sale::create([
+                'invoice_number' => 'INV-KANDY-001',
+                'store_id' => $kandyStore->id,
+                'device_id' => $counter03->id,
+                'cashier_id' => $cashierKandy->id,
+                'customer_id' => $customerDilini?->id,
+                'subtotal' => $total,
+                'discount_amount' => 0.00,
+                'tax_amount' => 0.00,
+                'total_amount' => $total,
+                'paid_amount' => $total,
+                'change_amount' => 0.00,
+                'payment_status' => 'paid',
+                'fulfillment_status' => 'delivered',
+                'sale_status' => 'completed',
+                'source' => 'offline',
+                'sync_status' => 'synced',
+                'sold_at' => now()->subHours(3),
+            ]);
+
+            SaleItem::create([
+                'sale_id' => $sale2->id,
+                'product_id' => $p3->id,
+                'quantity' => 1,
+                'unit_cost' => $p3->cost_price,
+                'unit_price' => $p3->selling_price,
+                'subtotal' => $total,
+                'total' => $total,
+            ]);
+
+            \App\Models\Payment::create([
+                'sale_id' => $sale2->id,
+                'payment_method' => 'cash',
+                'amount' => $total,
+                'paid_at' => now()->subHours(3),
+            ]);
+        }
+
+        // Galle Fort Boutique Sale
+        if ($sampleProducts->count() >= 4 && !Sale::where('invoice_number', 'INV-GALLE-001')->exists()) {
+            $p4 = $sampleProducts[3];
+            $total = $p4->selling_price * 1;
+            $sale3 = Sale::create([
+                'invoice_number' => 'INV-GALLE-001',
+                'store_id' => $galleStore->id,
+                'device_id' => $counter04->id,
+                'cashier_id' => $cashierGalle->id,
+                'customer_id' => null,
+                'subtotal' => $total,
+                'discount_amount' => 0.00,
+                'tax_amount' => 0.00,
+                'total_amount' => $total,
+                'paid_amount' => $total,
+                'change_amount' => 0.00,
+                'payment_status' => 'paid',
+                'fulfillment_status' => 'delivered',
+                'sale_status' => 'completed',
+                'source' => 'offline',
+                'sync_status' => 'synced',
+                'sold_at' => now()->subHours(2),
+            ]);
+
+            SaleItem::create([
+                'sale_id' => $sale3->id,
+                'product_id' => $p4->id,
+                'quantity' => 1,
+                'unit_cost' => $p4->cost_price,
+                'unit_price' => $p4->selling_price,
+                'subtotal' => $total,
+                'total' => $total,
+            ]);
+
+            \App\Models\Payment::create([
+                'sale_id' => $sale3->id,
+                'payment_method' => 'cash',
+                'amount' => $total,
+                'paid_at' => now()->subHours(2),
+            ]);
+        }
     }
 }
