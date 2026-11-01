@@ -1,13 +1,15 @@
-# SmartShop POS — REST API Specification (`/api/v1`)
+# OmniLuxe Store — REST API Specification (`/api/v1`)
 
-All endpoints accept and return `application/json`. Authenticated requests require the HTTP header:
-`Authorization: Bearer <sanctum_token>`
-Along with terminal identification:
-`X-Device-UUID: <device_uuid>`
+> **Platform**: OmniLuxe Store Omnichannel Engine  
+> **Base URL**: `http://localhost:8000/api/v1`  
+> **Headers**:  
+> `Accept: application/json`  
+> `Content-Type: application/json`  
+> Authenticated requests require: `Authorization: Bearer <sanctum_token>` and `X-Device-UUID: <device_uuid>` (for POS terminals).
 
 ---
 
-## 1. Authentication Endpoints
+## 1. Authentication & Device Endpoints
 
 ### 1.1 Cashier / User Login
 - **Endpoint**: `POST /api/v1/auth/login`
@@ -27,13 +29,13 @@ Along with terminal identification:
     "token": "1|q7X9z0...bearer_token",
     "user": {
       "uuid": "2b2a6f23-6447-49f0-b5ec-8f43c3325c89",
-      "name": "Sarah Miller",
+      "name": "Sarah Connor",
       "email": "cashier1@smartshop.com",
       "role": "cashier",
       "store": {
         "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        "name": "Main Downtown Store",
-        "currency_symbol": "$"
+        "name": "OmniLuxe Store Flagship",
+        "currency_symbol": "Rs."
       }
     }
   }
@@ -44,142 +46,206 @@ Along with terminal identification:
 - **Request Body**:
   ```json
   {
-    "pairing_code": "STORE-9921",
-    "device_name": "Lane 01 - Windows POS",
+    "pairing_code": "COUNTER-01",
+    "device_name": "Counter Lane 01 - Flagship POS",
     "device_type": "windows",
     "mac_address": "00:1B:44:11:3A:B7",
     "app_version": "1.0.0"
   }
   ```
-- **Response (201 Created)**:
-  ```json
-  {
-    "status": "success",
-    "device": {
-      "uuid": "550e8400-e29b-41d4-a716-446655440000",
-      "device_name": "Lane 01 - Windows POS",
-      "store_name": "Main Downtown Store"
-    }
-  }
-  ```
+- **Response (201 Created)**: Returns registered device UUID and store association.
 
 ---
 
-## 2. Catalog & Products Endpoints
+## 2. Catalog & Cross-Branch Stock
 
 ### 2.1 List Products
 - **Endpoint**: `GET /api/v1/products`
-- **Query Parameters**:
-  - `search`: Filter by name, barcode, or SKU
-  - `category_id`: Category filter
-  - `page`: Page index
-  - `per_page`: Page size (default: 50)
+- **Query Parameters**: `search`, `category_id`, `brand_id`, `per_page`
+
+### 2.2 Cross-Branch Stock Inquiry
+- **Endpoint**: `GET /api/v1/products/{id}/cross-store-stock`
+- **Purpose**: Cashier POS and mobile apps query inventory levels across all physical boutiques.
 - **Response (200 OK)**:
   ```json
   {
-    "data": [
+    "status": "success",
+    "product": {
+      "id": 23,
+      "name": "Apple iPhone 16 Pro Max 256GB (Space Black)",
+      "sku": "TECH-IPH-16PM"
+    },
+    "stores": [
       {
-        "uuid": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-        "name": "Organic Roasted Coffee Beans 1kg",
-        "sku": "BEV-COF-001",
-        "barcode": "8901234567890",
-        "category": "Beverages",
-        "unit": "pack",
-        "cost_price": 14.00,
-        "selling_price": 22.50,
-        "tax_rate": 8.00,
-        "min_stock_level": 10,
-        "stock_quantity": 48.00,
-        "image_url": "/storage/products/coffee.jpg"
+        "store_id": 35,
+        "store_code": "STORE-001",
+        "store_name": "OmniLuxe Store Flagship",
+        "quantity_on_hand": 55,
+        "quantity_reserved": 0,
+        "quantity_available": 55
+      },
+      {
+        "store_id": 176,
+        "store_code": "STORE-002",
+        "store_name": "OmniLuxe Kandy Galleria",
+        "quantity_on_hand": 20,
+        "quantity_reserved": 0,
+        "quantity_available": 20
+      },
+      {
+        "store_id": 177,
+        "store_code": "STORE-003",
+        "store_name": "OmniLuxe Galle Fort Boutique",
+        "quantity_on_hand": 12,
+        "quantity_reserved": 0,
+        "quantity_available": 12
       }
+    ]
+  }
+  ```
+
+### 2.3 Inter-Branch Stock Transfers
+- **Endpoint**: `POST /api/v1/stock-transfers`
+- **Request Body**:
+  ```json
+  {
+    "source_store_id": 176,
+    "destination_store_id": 35,
+    "items": [
+      { "product_id": 23, "quantity": 5 }
     ],
-    "meta": {
-      "current_page": 1,
-      "total": 120
+    "notes": "Inter-branch balance transfer to Colombo Flagship"
+  }
+  ```
+
+---
+
+## 3. VIP Gift Cards & Store Credit Engine
+
+### 3.1 Public Balance Verification
+- **Endpoint**: `POST /api/v1/gift-cards/verify`
+- **Request Body**:
+  ```json
+  { "code": "GC-ABCD-1234-EFGH" }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "code": "GC-ABCD-1234-EFGH",
+      "balance": 25000.00,
+      "status": "active",
+      "expires_at": "2027-11-01"
     }
   }
   ```
 
-### 2.2 Barcode Quick Lookup
-- **Endpoint**: `GET /api/v1/products/barcode/{barcode}`
-- **Response (200 OK)**: Returns the matching product or 404 if not found.
-
----
-
-## 3. Direct Online Billing Endpoints
-
-### 3.1 Create Sale
-- **Endpoint**: `POST /api/v1/sales`
+### 3.2 Cashier Gift Card Tender Redemption
+- **Endpoint**: `POST /api/v1/gift-cards/redeem` (Authenticated)
 - **Request Body**:
   ```json
   {
-    "transaction_uuid": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-    "customer_id": null,
+    "code": "GC-ABCD-1234-EFGH",
+    "amount": 10000.00,
+    "sale_id": 102
+  }
+  ```
+- **Concurrency Protection**: Uses `lockForUpdate` database transaction ensuring zero race conditions or double deductions.
+
+---
+
+## 4. VIP Loyalty Tiers & Privilege Perks
+
+### 4.1 Loyalty Tiers Breakdown
+- **Endpoint**: `GET /api/v1/loyalty/tiers` (Public)
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "silver": {
+        "title": "Silver Privilege",
+        "spend_threshold": 0,
+        "points_multiplier": 1.0,
+        "discount_percent": 0
+      },
+      "gold": {
+        "title": "Gold Elite",
+        "spend_threshold": 100000,
+        "points_multiplier": 1.5,
+        "discount_percent": 5
+      },
+      "black": {
+        "title": "Black Diamond",
+        "spend_threshold": 250000,
+        "points_multiplier": 2.0,
+        "discount_percent": 10
+      }
+    }
+  }
+  ```
+
+---
+
+## 5. Order Tracking & Returns Portal
+
+### 5.1 Track Order by Invoice or Courier Number
+- **Endpoint**: `GET /api/v1/orders/track/{identifier}` (Public)
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "invoice_number": "INV-20261101-001",
+      "fulfillment_status": "dispatched",
+      "courier_name": "Pronto Luxury Logistics",
+      "tracking_number": "PRONTO-LK-89412",
+      "estimated_delivery_at": "2026-11-03",
+      "items": [ ... ]
+    }
+  }
+  ```
+
+### 5.2 Submit Return Request (RMA)
+- **Endpoint**: `POST /api/v1/orders/returns` (Public)
+- **Request Body**:
+  ```json
+  {
+    "invoice_number": "INV-20261101-001",
+    "customer_phone": "0771234567",
+    "customer_name": "Kasun Fernando",
     "items": [
       {
-        "product_id": 1,
-        "quantity": 2,
-        "unit_price": 22.50,
-        "discount_amount": 0.00
+        "product_id": 23,
+        "quantity": 1,
+        "reason": "Size exchange for Colombo flagship"
       }
-    ],
-    "payments": [
-      {
-        "payment_method": "cash",
-        "amount": 50.00
-      }
-    ],
-    "discount_amount": 0.00,
-    "notes": "Fast checkout"
-  }
-  ```
-- **Response (201 Created)**: Returns the completed sale object, receipt printable payload, and updated inventory counts.
-
----
-
-## 4. Register Cash Sessions
-
-### 4.1 Open Cash Register Session
-- **Endpoint**: `POST /api/v1/cash-sessions/open`
-- **Request Body**:
-  ```json
-  {
-    "opening_balance": 150.00,
-    "notes": "Morning float verified"
-  }
-  ```
-
-### 4.2 Close Cash Register Session
-- **Endpoint**: `POST /api/v1/cash-sessions/close`
-- **Request Body**:
-  ```json
-  {
-    "closing_balance": 890.50,
-    "notes": "Shift ended cleanly"
-  }
-  ```
-- **Response (200 OK)**:
-  ```json
-  {
-    "session": {
-      "uuid": "8b9e6679-...",
-      "opening_balance": 150.00,
-      "total_sales_cash": 740.50,
-      "expected_balance": 890.50,
-      "closing_balance": 890.50,
-      "discrepancy": 0.00,
-      "status": "closed"
-    }
+    ]
   }
   ```
 
 ---
 
-## 5. Synchronization Endpoints
-- `POST /api/v1/sync/push`: Batch push of offline sales and payments (idempotent).
-- `GET /api/v1/sync/pull`: Delta pull of catalog and customers based on version.
-- `GET /api/v1/sync/status`: Returns server health, active version, and device sync log.
+## 6. Executive & Multi-Branch Analytics
 
-## Quantity precision (2026-10-18)
+### 6.1 Multi-Branch Performance Telemetry
+- **Endpoint**: `GET /api/v1/reports/branch-performance` (Authenticated)
+- **Response**: Aggregated revenue, COGS, gross margin %, orders count, AOV, and cashier reconciliation accuracy across all branches.
 
-Sale, refund, purchase, and offline-sync item quantities accept a positive numeric value of at least `0.001` with up to three decimal places. Excess precision is rejected rather than silently rounded. Deploy `2026_10_17_000002_preserve_three_decimal_stock_quantities.php` first; inventory/reservations and stock movements also retain three decimals. Money remains two decimals. See [weighing-scales.md](weighing-scales.md) for kg/g capture and rollout details.
+### 6.2 Stock Aging & Transfer Advisories
+- **Endpoint**: `GET /api/v1/reports/stock-aging?limit=50` (Authenticated)
+- **Response**: Products classified by turnover velocity (`Fast Mover`, `Steady`, `Slow Moving`, `Stagnant`) with inter-branch transfer recommendations.
+
+---
+
+## 7. Production Health & Liveness Audits
+
+### 7.1 Liveness Probe
+- **Endpoint**: `GET /health/live` (or `/api/v1/health/live`)
+- **Status Code**: `200 OK`
+
+### 7.2 Deep Readiness Audit
+- **Endpoint**: `GET /health/ready` (or `/api/v1/health/ready`)
+- **Status Code**: `200 OK` (Healthy) or `503 Service Unavailable` (Degraded)
+- **Audited Components**: Database latency (ms), cache read/write, storage writeability, Reverb WebSockets configuration.
