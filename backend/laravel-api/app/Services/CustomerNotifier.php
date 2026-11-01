@@ -74,4 +74,72 @@ class CustomerNotifier
             ]
         );
     }
+
+    public function orderDispatched(Sale $sale): ?CustomerNotification
+    {
+        $customer = $sale->customer;
+        if (! $customer) {
+            return null;
+        }
+
+        $courier = $sale->courier_name ?? 'Priority Dispatch';
+        $tracking = $sale->tracking_number ? " (Tracking: {$sale->tracking_number})" : '';
+
+        return $this->notify(
+            $customer,
+            CustomerNotification::TYPE_ORDER,
+            "Order {$sale->invoice_number} Dispatched",
+            "Your package has been dispatched via {$courier}{$tracking}.",
+            [
+                'invoice_number' => $sale->invoice_number,
+                'courier_name' => $sale->courier_name,
+                'tracking_number' => $sale->tracking_number,
+                'track_path' => '/track/'.$sale->invoice_number,
+            ]
+        );
+    }
+
+    public function orderDelivered(Sale $sale): ?CustomerNotification
+    {
+        $customer = $sale->customer;
+        if (! $customer) {
+            return null;
+        }
+
+        return $this->notify(
+            $customer,
+            CustomerNotification::TYPE_ORDER,
+            "Order {$sale->invoice_number} Delivered",
+            "Your package has been delivered. Thank you for choosing OmniLuxe.",
+            [
+                'invoice_number' => $sale->invoice_number,
+                'delivered_at' => $sale->delivered_at?->toIso8601String(),
+                'track_path' => '/track/'.$sale->invoice_number,
+            ]
+        );
+    }
+
+    public function returnRequestUpdated(\App\Models\ReturnRequest $returnRequest): ?CustomerNotification
+    {
+        $customer = $returnRequest->customer;
+        if (! $customer) {
+            return null;
+        }
+
+        $statusLabel = ucfirst($returnRequest->status);
+        $note = $returnRequest->staff_notes ? " Note: {$returnRequest->staff_notes}" : '';
+
+        return $this->notify(
+            $customer,
+            CustomerNotification::TYPE_ORDER,
+            "Return Request #{$returnRequest->request_number} {$statusLabel}",
+            "Your return/exchange request status has been updated to {$statusLabel}.{$note}",
+            [
+                'request_number' => $returnRequest->request_number,
+                'status' => $returnRequest->status,
+                'staff_notes' => $returnRequest->staff_notes,
+                'track_path' => '/track/'.($returnRequest->sale?->invoice_number ?? ''),
+            ]
+        );
+    }
 }

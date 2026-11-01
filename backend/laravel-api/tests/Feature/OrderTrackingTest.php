@@ -232,4 +232,84 @@ class OrderTrackingTest extends TestCase
         $this->assertEquals('Domex Express', $updated->courier_name);
         $this->assertNotNull($updated->delivered_at);
     }
+
+    public function test_update_fulfillment_triggers_customer_dispatch_notification(): void
+    {
+        $sale = $this->createTestSale(['fulfillment_status' => 'processing']);
+        $service = app(OrderTrackingService::class);
+
+        $service->updateFulfillment(
+            $sale,
+            'dispatched',
+            'PRM-REALTIME-77',
+            'Prompt Express'
+        );
+
+        $this->assertDatabaseHas('customer_notifications', [
+            'customer_id' => $this->customer->id,
+            'title' => "Order {$sale->invoice_number} Dispatched",
+        ]);
+    }
+
+    public function test_concierge_can_approve_return_request_and_credit_loyalty(): void
+    {
+        $sale = $this->createTestSale();
+        $saleItem = $sale->items->first();
+        $service = app(OrderTrackingService::class);
+
+        $returnRequest = $service->submitReturnRequest($sale, [
+            'type' => 'exchange',
+            'reason' => 'Wrong size',
+            'items' => [
+                ['sale_item_id' => $saleItem->id, 'quantity' => 1],
+            ],
+        ], $this->customer);
+
+        $initialPoints = (int) $this->customer->fresh()->loyalty_points;
+
+        $approved = $service->actionReturnRequest(
+            $returnRequest,
+            'approved',
+            'Approved for size exchange. Replacement packed.',
+            $this->user,
+            50
+        );
+
+        $this->assertEquals('approved', $approved->status);
+        $this->assertEquals('Approved for size exchange. Replacement packed.', $approved->staff_notes);
+        $this->assertEquals($this->user->id, $approved->actioned_by);
+        $this->assertNotNull($approved->actioned_at);
+
+        $this->assertEquals($initialPoints + 50, (int) $this->customer->fresh()->loyalty_points);
+
+        $this->assertDatabaseHas('customer_notifications', [
+            'customer_id' => $this->customer->id,
+            'title' => "Return Request #{$returnRequest->request_number} Approved",
+        ]);
+    }
+
+    public function test_concierge_can_reject_return_request(): void
+    {
+        $sale = $this->createTestSale();
+        $saleItem = $sale->items->first();
+        $service = app(OrderTrackingService::class);
+
+        $returnRequest = $service->submitReturnRequest($sale, [
+            'type' => 'return',
+            'reason' => 'Changed mind',
+            'items' => [
+                ['sale_item_id' => $saleItem->id, 'quantity' => 1],
+            ],
+        ], $this->customer);
+
+        $rejected = $service->actionReturnRequest(
+            $returnRequest,
+            'rejected',
+            'Item tags missing.',
+            $this->user
+        );
+
+        $this->assertEquals('rejected', $rejected->status);
+        $this->assertEquals('Item tags missing.', $rejected->staff_notes);
+    }
 }

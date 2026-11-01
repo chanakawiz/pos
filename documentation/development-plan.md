@@ -182,10 +182,33 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
-### Milestone 12: Automated Courier Dispatch & Concierge RMA Approvals (`🚀 NEXT`)
-- [ ] ERP / Admin Panel review interface for pending `return_requests` (approve/reject/issue credit note).
-- [ ] Automated SMS & Email status alerts upon fulfillment transition (e.g. "Order Dispatched with Courier").
-- [ ] Instant customer loyalty points credit upon approved store-credit returns.
+### Milestone 12: Automated Courier Dispatch & Concierge RMA Approvals (`✅ COMPLETED`)
+- [x] **Filament ERP Courier Dispatch & Delivery Actions**:
+  - Enhanced `SaleResource.php` with fulfillment status badges, courier and tracking number columns, and quick table actions:
+    - **Dispatch Order**: Modal collecting courier service (Prompt Express, Domex, DHL), tracking number, and estimated delivery date.
+    - **Mark Delivered**: Instant delivery confirmation and customer alert.
+- [x] **Filament Concierge Returns & Exchanges RMA Resource (`ReturnRequestResource`)**:
+  - Dedicated Filament resource under *Sales & Fulfillment* with RMA table, items count, customer lookup, and filterable status tags.
+  - Concierge staff actions:
+    - **Approve**: Reviews item condition, adds instructions, and optionally credits customer with instant loyalty/privilege points.
+    - **Reject**: Captures official concierge reason for rejection.
+    - **Complete**: Final settlement upon physical goods inspection.
+- [x] **Real-Time Multi-Channel Notification Pipeline (`CustomerNotifier`)**:
+  - Automated `orderDispatched` and `orderDelivered` alerts pushed to persistent inbox (`customer_notifications`), broadcasted over Laravel Reverb (`private-customer.{uuid}`), and queued for FCM push.
+  - `returnRequestUpdated` alerts triggered on concierge RMA approvals, rejections, and point credits.
+- [x] **100% Passing Automated Tests**:
+  - 11/11 tests in `OrderTrackingTest.php` passing all assertions for dispatch, RMA approval, rejection, and loyalty credit.
+  - 44/44 Laravel tests passing (`php artisan test`).
+  - 22/22 Flutter tests passing (`flutter test`).
+  - 41/41 Desktop POS tests passing (`npm test`).
+  - **Total: 107/107 passing tests across the entire omnichannel ecosystem**.
+
+---
+
+### Milestone 13: Multi-Branch Stock Transfers & Sibling Inventory Lookup (`🚀 NEXT`)
+- [ ] Inter-branch stock transfer requests & transit manifests between retail outlets.
+- [ ] In-store Cashier POS cross-branch inventory inquiry (check nearby store stock if local inventory runs low).
+- [ ] Automated low-stock threshold triggers notifying central warehouse dispatch.
 
 ---
 

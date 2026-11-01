@@ -7,11 +7,18 @@ use App\Models\ReturnRequest;
 use App\Models\ReturnRequestItem;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class OrderTrackingService
 {
+    protected ?CustomerNotifier $customerNotifier;
+
+    public function __construct(?CustomerNotifier $customerNotifier = null)
+    {
+        $this->customerNotifier = $customerNotifier ?? app(CustomerNotifier::class);
+    }
     /**
      * Find an order by invoice number, tracking number, or UUID.
      */
@@ -143,6 +150,60 @@ class OrderTrackingService
 
         $sale->save();
 
+        // Trigger real-time customer dispatch / delivery alerts
+        if ($sale->customer) {
+            if ($status === 'dispatched') {
+                $this->customerNotifier?->orderDispatched($sale);
+            } elseif ($status === 'delivered') {
+                $this->customerNotifier?->orderDelivered($sale);
+            }
+        }
+
         return $sale->fresh(['store', 'customer', 'items.product', 'paymentTransactions', 'returnRequests']);
+    }
+
+    /**
+     * Action an incoming return/exchange request (approve, reject, or complete).
+     */
+    public function actionReturnRequest(
+        ReturnRequest $returnRequest,
+        string $status,
+        ?string $staffNotes = null,
+        ?User $staffUser = null,
+        int $loyaltyPointsCredit = 0
+    ): ReturnRequest {
+        $allowedStatuses = ['pending', 'approved', 'rejected', 'completed'];
+        if (!in_array($status, $allowedStatuses)) {
+            throw new InvalidArgumentException("Invalid return request status: {$status}");
+        }
+
+        return DB::transaction(function () use ($returnRequest, $status, $staffNotes, $staffUser, $loyaltyPointsCredit) {
+            $returnRequest->status = $status;
+            if ($staffNotes !== null) {
+                $returnRequest->staff_notes = trim($staffNotes);
+            }
+            if ($staffUser) {
+                $returnRequest->actioned_by = $staffUser->id;
+            }
+            $returnRequest->actioned_at = now();
+            $returnRequest->save();
+
+            // Store credit / loyalty points reward if customer opted for store credit
+            if ($loyaltyPointsCredit > 0 && $returnRequest->customer) {
+                $returnRequest->customer->increment('loyalty_points', $loyaltyPointsCredit);
+                $this->customerNotifier?->loyaltyCredited(
+                    $returnRequest->customer,
+                    $loyaltyPointsCredit,
+                    $returnRequest->sale?->invoice_number
+                );
+            }
+
+            // Real-Time Reverb & FCM Notification to customer
+            if ($returnRequest->customer) {
+                $this->customerNotifier?->returnRequestUpdated($returnRequest);
+            }
+
+            return $returnRequest->fresh(['sale', 'customer', 'items.saleItem.product', 'staff']);
+        });
     }
 }
