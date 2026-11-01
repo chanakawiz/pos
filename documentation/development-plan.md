@@ -348,6 +348,29 @@ The platform establishes strict separation across customer, cashier, and adminis
   - 22/22 Flutter mobile tests passing (`flutter test`).
   - **Total: 133/133 passing tests across the entire omnichannel ecosystem**.
 
+---
+
+### Milestone 19: Progressive Web App (PWA) & Offline Storefront Resilience (`✅ COMPLETED`)
+- [x] **Web App Manifest (`/manifest.json`)**:
+  - Configured standalone display mode, orientation, brand theme color `#233C32`, canvas color `#FBFBF9`, and 192x192 & 512x512 luxury monogram icons for iOS and Android "Add to Home Screen" installation.
+- [x] **Service Worker Caching Engine (`/sw.js`)**:
+  - Intelligent multi-strategy caching with versioned cache storage (`omniluxe-cache-v1`).
+  - Network-first navigation routing with seamless fallback to offline boutique view.
+  - Cache-first strategy for Google fonts, Tailwind styling, and static image assets.
+  - Explicit bypass rules for ERP (`/admin`), API endpoints (`/api`), and Reverb WebSocket channels (`/app`).
+- [x] **Offline Concierge View (`/offline`)**:
+  - Light Editorial Luxury offline screen with session cart retention notification, one-tap connection retry, and 24/7 VIP Concierge hotline.
+- [x] **Connectivity Telemetry & Toasts**:
+  - Live browser online/offline event listeners in `layout.blade.php` displaying informative notifications when connection status changes.
+- [x] **100% Passing Automated Tests**:
+  - 4/4 tests in `PwaStoreTest.php` passing all assertions.
+  - 74/74 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`).
+  - 22/22 Flutter mobile tests passing (`flutter test`).
+  - **Total: 137/137 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |

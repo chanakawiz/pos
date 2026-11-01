@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'OmniLuxe Store — Flagship Omnichannel Retail & POS')</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#233C32">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="OmniLuxe">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -527,6 +533,25 @@
                 toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => toast.remove(), 400);
             }, 7000);
+        }
+
+        // PWA Service Worker Registration & Connectivity Monitoring
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then((reg) => {
+                    console.log('[OmniLuxe PWA] Service Worker registered in scope:', reg.scope);
+                }).catch((err) => {
+                    console.warn('[OmniLuxe PWA] Service Worker registration failed:', err);
+                });
+            });
+
+            window.addEventListener('offline', () => {
+                showToast('Offline Mode Active', 'Browsing in offline resilience mode. Your cart remains saved.', 'info');
+            });
+
+            window.addEventListener('online', () => {
+                showToast('Reconnected to OmniLuxe', 'Live inventory and catalog telemetry synchronized.', 'success');
+            });
         }
     </script>
 </body>

@@ -39,4 +39,8 @@ Route::post('/track/{invoice}/return', [\App\Http\Controllers\OrderTrackingContr
 Route::get('/health/live', [\App\Http\Controllers\HealthController::class, 'live'])->name('health.live');
 Route::get('/health/ready', [\App\Http\Controllers\HealthController::class, 'ready'])->name('health.ready');
 
+// PWA Offline Fallback
+Route::get('/offline', fn () => view('store.offline'))->name('store.offline');
+
+
 
