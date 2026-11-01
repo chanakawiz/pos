@@ -33,6 +33,10 @@ Route::prefix('v1')->group(function () {
     // VIP Loyalty Tier System
     Route::get('/loyalty/tiers', [\App\Http\Controllers\Api\v1\CustomerController::class, 'tiers']);
 
+    // Production Health Check & Audits
+    Route::get('/health/live', [\App\Http\Controllers\HealthController::class, 'live']);
+    Route::get('/health/ready', [\App\Http\Controllers\HealthController::class, 'ready']);
+
     // Authenticated POS & Management routes
     Route::middleware('auth:sanctum')->group(function () {
         // Real-Time Reverb WebSocket Channel Auth for Mobile / POS

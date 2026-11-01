@@ -3,44 +3,57 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: smartshop-app
+    container_name: omniluxe-app
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
       - ./backend/laravel-api:/var/www/html
     environment:
-      APP_NAME: "SmartShop POS"
-      APP_ENV: local
-      APP_DEBUG: "true"
+      APP_NAME: "OmniLuxe Store"
+      APP_ENV: production
+      APP_DEBUG: "false"
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
       DB_DATABASE: smartshop_pos
       DB_USERNAME: smartshop
       DB_PASSWORD: secret
+      BROADCAST_CONNECTION: reverb
+      REVERB_APP_ID: 100001
+      REVERB_APP_KEY: omniluxe_key
+      REVERB_APP_SECRET: omniluxe_secret
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
+      REVERB_SCHEME: http
     depends_on:
       mysql:
         condition: service_healthy
     networks:
-      - smartshop-net
+      - omniluxe-net
 
   web:
     image: nginx:alpine
-    container_name: smartshop-web
+    container_name: omniluxe-web
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-8000}:80"
     volumes:
       - ./backend/laravel-api:/var/www/html:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:80/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       - app
     networks:
-      - smartshop-net
+      - omniluxe-net
 
   mysql:
     image: mysql:8.0
-    container_name: smartshop-mysql
+    container_name: omniluxe-mysql
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password
     environment:
@@ -59,28 +72,74 @@ services:
       retries: 10
       start_period: 10s
     networks:
-      - smartshop-net
+      - omniluxe-net
 
-  queue:
+  reverb:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: smartshop-queue
+    container_name: omniluxe-reverb
     restart: unless-stopped
     working_dir: /var/www/html
-    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3"]
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    ports:
+      - "${REVERB_PORT:-8080}:8080"
     volumes:
       - ./backend/laravel-api:/var/www/html
+    environment:
+      APP_NAME: "OmniLuxe Store"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: smartshop_pos
+      DB_USERNAME: smartshop
+      DB_PASSWORD: secret
+      BROADCAST_CONNECTION: reverb
+      REVERB_APP_ID: 100001
+      REVERB_APP_KEY: omniluxe_key
+      REVERB_APP_SECRET: omniluxe_secret
+      REVERB_HOST: 0.0.0.0
+      REVERB_PORT: 8080
     depends_on:
       mysql:
         condition: service_healthy
       app:
         condition: service_started
     networks:
-      - smartshop-net
+      - omniluxe-net
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: omniluxe-queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3"]
+    volumes:
+      - ./backend/laravel-api:/var/www/html
+    environment:
+      APP_NAME: "OmniLuxe Store"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: smartshop_pos
+      DB_USERNAME: smartshop
+      DB_PASSWORD: secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+      app:
+        condition: service_started
+    networks:
+      - omniluxe-net
 
 networks:
-  smartshop-net:
+  omniluxe-net:
     driver: bridge
 
 volumes:

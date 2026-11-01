@@ -35,3 +35,8 @@ Route::get('/track', [\App\Http\Controllers\OrderTrackingController::class, 'sho
 Route::get('/track/{invoice}', [\App\Http\Controllers\OrderTrackingController::class, 'show'])->name('store.track.invoice');
 Route::post('/track/{invoice}/return', [\App\Http\Controllers\OrderTrackingController::class, 'submitReturn'])->name('store.track.return');
 
+// Production Health Checks & Liveness Probes
+Route::get('/health/live', [\App\Http\Controllers\HealthController::class, 'live'])->name('health.live');
+Route::get('/health/ready', [\App\Http\Controllers\HealthController::class, 'ready'])->name('health.ready');
+
+
