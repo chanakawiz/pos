@@ -6,6 +6,7 @@ import '../models/device_session.dart';
 import '../models/payment_tender.dart';
 import '../models/pos_cart_item.dart';
 import '../services/esc_pos_service.dart';
+import '../services/pos_database_service.dart';
 import 'pos_auth_provider.dart';
 import 'pos_cart_provider.dart';
 
@@ -316,6 +317,20 @@ class PosPaymentNotifier extends StateNotifier<PosPaymentState> {
     final phoneToUse = customerPhone ?? cart.customerPhone;
     if (sendSms && phoneToUse != null && phoneToUse.isNotEmpty) {
       smsDispatched = await dispatchSmsReceipt(session, finalInvoiceNumber, totalPayable, phoneToUse);
+    }
+
+    // If offline sale, persist to SQLite WAL database and enqueue
+    if (isOfflineSale) {
+      await PosDatabaseService.instance.enqueueOfflineSale(
+        receipt: receipt,
+        apiPayload: {
+          'transaction_uuid': transactionUuid,
+          'items': apiItems,
+          'payments': apiPayments,
+          'discount_amount': totalDiscount,
+          'notes': 'Mobile Staff POS Register (${session.deviceCode})',
+        },
+      );
     }
 
     // Reset active cart

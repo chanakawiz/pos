@@ -7,6 +7,9 @@ import '../providers/pos_auth_provider.dart';
 import 'staff_pin_screen.dart';
 import 'pos_checkout_screen.dart';
 import 'held_bills_dialog.dart';
+import 'sync_status_ribbon.dart';
+import 'shift_close_dialog.dart';
+import '../providers/pos_shift_provider.dart';
 
 class PosHomeScreen extends ConsumerWidget {
   const PosHomeScreen({super.key});
@@ -22,6 +25,7 @@ class PosHomeScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
+            const SyncStatusRibbon(),
             // Top Staff Bar
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -259,7 +263,7 @@ class PosHomeScreen extends ConsumerWidget {
                       icon: Icons.analytics_outlined,
                       accentColor: PosTheme.primaryGold,
                       onTap: () {
-                        _showXReportModal(context, session, currencyFormat);
+                        _showXReportModal(context, ref, session, currencyFormat);
                       },
                     ),
                     const SizedBox(height: 14),
@@ -272,14 +276,10 @@ class PosHomeScreen extends ConsumerWidget {
                       icon: Icons.lock_clock_outlined,
                       accentColor: PosTheme.accentAmber,
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: PosTheme.surface,
-                            content: Text(
-                              'Close Register routine ready. Integrated with pos:eod-closeout scheduler.',
-                              style: GoogleFonts.inter(color: PosTheme.accentAmber),
-                            ),
-                          ),
+                        showDialog(
+                          context: context,
+                          barrierColor: Colors.black.withOpacity(0.75),
+                          builder: (_) => const ShiftCloseDialog(),
                         );
                       },
                     ),
@@ -383,7 +383,13 @@ class PosHomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showXReportModal(BuildContext context, dynamic session, NumberFormat currencyFormat) {
+  void _showXReportModal(BuildContext context, WidgetRef ref, dynamic session, NumberFormat currencyFormat) {
+    final shiftState = ref.read(posShiftProvider);
+    final report = shiftState.activeSummary;
+    final cashSales = report?.cashSales ?? 0.0;
+    final cardSales = report?.cardSales ?? 0.0;
+    final expectedCash = report?.expectedCash ?? session.openingFloat;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: PosTheme.surface,
@@ -421,16 +427,19 @@ class PosHomeScreen extends ConsumerWidget {
               _buildReportRow('Device Terminal', session.deviceCode),
               _buildReportRow('Cashier Staff', session.cashierName.isNotEmpty ? session.cashierName : 'Cashier 01'),
               _buildReportRow('Opening Cash Float', 'LKR ${currencyFormat.format(session.openingFloat)}'),
-              _buildReportRow('Total Cash Sales', 'LKR 0.00'),
-              _buildReportRow('Total Card Sales', 'LKR 0.00'),
-              _buildReportRow('Expected Drawer Cash', 'LKR ${currencyFormat.format(session.openingFloat)}'),
+              _buildReportRow('Total Cash Sales', 'LKR ${currencyFormat.format(cashSales)}'),
+              _buildReportRow('Total Card Sales', 'LKR ${currencyFormat.format(cardSales)}'),
+              _buildReportRow('Expected Drawer Cash', 'LKR ${currencyFormat.format(expectedCash)}'),
               const SizedBox(height: 20),
               ElevatedButton.icon(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('X-Report queued to Bluetooth ESC/POS printer')),
-                  );
+                  await ref.read(posShiftProvider.notifier).generateXReport(printReceipt: true);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('X-Report queued to Bluetooth ESC/POS printer')),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.print_outlined, size: 18),
                 label: const Text('PRINT X-REPORT TO BLUETOOTH PRINTER'),

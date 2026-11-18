@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import '../models/payment_tender.dart';
+import '../models/shift_session_report.dart';
 
 enum PrinterPaperWidth {
   mm58(32),
@@ -151,6 +152,109 @@ class EscPosService {
     // Log to audit buffer
     printAuditLog.add(
       'ESC/POS Print [${width.name}] -> Invoice: ${receipt.invoiceNumber}, Bytes: ${resultBytes.length}, Total: LKR ${currency.format(receipt.totalAmount)}',
+    );
+
+    return resultBytes;
+  }
+
+  static Uint8List buildShiftReportBytes(
+    ShiftSessionReport report, {
+    PrinterPaperWidth width = PrinterPaperWidth.mm58,
+  }) {
+    final currency = NumberFormat('#,##0.00');
+    final dateFmt = DateFormat('yyyy-MM-dd HH:mm');
+    final bytes = BytesBuilder();
+    final max = width.maxChars;
+
+    void addRaw(List<int> cmd) => bytes.add(cmd);
+    void addLine(String text) {
+      bytes.add(latin1.encode(text));
+      bytes.add(cmdLineFeed);
+    }
+
+    String padRow(String left, String right) {
+      final totalSpace = max - left.length - right.length;
+      if (totalSpace < 1) {
+        return '$left $right';
+      }
+      return left + (' ' * totalSpace) + right;
+    }
+
+    String divider([String char = '-']) => char * max;
+
+    // 1. Initialize
+    addRaw(cmdInit);
+
+    // 2. Header
+    addRaw(cmdAlignCenter);
+    addRaw(cmdBoldOn);
+    addRaw(cmdDoubleSize);
+    addLine('OMNILUXE');
+    addRaw(cmdNormalSize);
+    addLine(report.isZReport ? 'REGISTER CLOSEOUT (Z-REPORT)' : 'MID-SHIFT AUDIT (X-REPORT)');
+    addRaw(cmdBoldOff);
+    addLine(report.storeName.toUpperCase());
+    addLine(divider('='));
+
+    // 3. Shift Metadata
+    addRaw(cmdAlignLeft);
+    addLine(padRow('Terminal:', report.terminalCode));
+    addLine(padRow('Cashier:', report.cashierName));
+    addLine(padRow('Opened At:', dateFmt.format(report.openedAt)));
+    if (report.closedAt != null) {
+      addLine(padRow('Closed At:', dateFmt.format(report.closedAt!)));
+    }
+    addLine(padRow('Status:', report.status));
+    addLine(divider('-'));
+
+    // 4. Financial Totals
+    addRaw(cmdBoldOn);
+    addLine('FINANCIAL SUMMARY:');
+    addRaw(cmdBoldOff);
+    addLine(padRow('Opening Cash Float:', currency.format(report.openingFloat)));
+    addLine(padRow('Gross Sales Total:', currency.format(report.grossSales)));
+    addLine(padRow('  - Cash Sales:', currency.format(report.cashSales)));
+    addLine(padRow('  - Card / mPOS Sales:', currency.format(report.cardSales)));
+    if (report.giftCardSales > 0) {
+      addLine(padRow('  - Gift Card Sales:', currency.format(report.giftCardSales)));
+    }
+    addLine(padRow('Discounts Given:', '-${currency.format(report.discountTotal)}'));
+    addLine(padRow('Refunds Deducted:', '-${currency.format(report.refundTotal)}'));
+    addLine(padRow('Total Transactions:', '${report.transactionsCount} bills'));
+    addLine(divider('-'));
+
+    // 5. Drawer Reconciliation
+    addRaw(cmdBoldOn);
+    addLine('DRAWER RECONCILIATION:');
+    addLine(padRow('Expected Drawer Cash:', 'LKR ${currency.format(report.expectedCash)}'));
+    if (report.actualClosingCash != null) {
+      addLine(padRow('Counted Closing Cash:', 'LKR ${currency.format(report.actualClosingCash!)}'));
+    }
+    if (report.discrepancy != null) {
+      final disc = report.discrepancy!;
+      final discLabel = disc >= 0 ? '+${currency.format(disc)} (OVER)' : '${currency.format(disc)} (SHORT)';
+      addLine(padRow('Discrepancy (Over/Short):', discLabel));
+    }
+    addRaw(cmdBoldOff);
+    addLine(divider('='));
+
+    // 6. Signatures & Footer
+    addRaw(cmdAlignCenter);
+    addRaw(cmdLineFeed);
+    addLine('Cashier Signature: __________________');
+    addRaw(cmdLineFeed);
+    addLine('Manager Signature: __________________');
+    addRaw(cmdLineFeed);
+    addLine('Generated via OmniLuxe Mobile POS');
+    addRaw(cmdLineFeed);
+    addRaw(cmdLineFeed);
+
+    // 7. Cut
+    addRaw(cmdCut);
+
+    final resultBytes = bytes.toBytes();
+    printAuditLog.add(
+      'ESC/POS Shift Report [${report.isZReport ? "Z-Report" : "X-Report"}] -> Terminal: ${report.terminalCode}, Bytes: ${resultBytes.length}',
     );
 
     return resultBytes;

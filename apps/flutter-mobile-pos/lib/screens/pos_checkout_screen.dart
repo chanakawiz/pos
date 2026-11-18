@@ -9,6 +9,7 @@ import '../providers/pos_cart_provider.dart';
 import 'barcode_scanner_dialog.dart';
 import 'held_bills_dialog.dart';
 import 'payment_tender_sheet.dart';
+import 'sync_status_ribbon.dart';
 
 class PosCheckoutScreen extends ConsumerStatefulWidget {
   const PosCheckoutScreen({super.key});
@@ -370,36 +371,43 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
           const SizedBox(width: 6),
         ],
       ),
-      body: isWide
-          ? Row(
-              children: [
-                Expanded(flex: 6, child: _buildCatalogSection(catalogState)),
-                Container(width: 1, color: PosTheme.dividerDark),
-                Expanded(flex: 4, child: _buildCartSection(cartState)),
-              ],
-            )
-          : Stack(
-              children: [
-                _buildCatalogSection(catalogState),
-                if (_showCartSheet)
-                  GestureDetector(
-                    onTap: () => setState(() => _showCartSheet = false),
-                    child: Container(color: Colors.black.withOpacity(0.6)),
+      body: Column(
+        children: [
+          const SyncStatusRibbon(),
+          Expanded(
+            child: isWide
+                ? Row(
+                    children: [
+                      Expanded(flex: 6, child: _buildCatalogSection(catalogState)),
+                      Container(width: 1, color: PosTheme.dividerDark),
+                      Expanded(flex: 4, child: _buildCartSection(cartState)),
+                    ],
+                  )
+                : Stack(
+                    children: [
+                      _buildCatalogSection(catalogState),
+                      if (_showCartSheet)
+                        GestureDetector(
+                          onTap: () => setState(() => _showCartSheet = false),
+                          child: Container(color: Colors.black.withOpacity(0.6)),
+                        ),
+                      if (_showCartSheet)
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.75,
+                            decoration: const BoxDecoration(
+                              color: PosTheme.surfaceDark,
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                            ),
+                            child: _buildCartSection(cartState, isDrawer: true),
+                          ),
+                        ),
+                    ],
                   ),
-                if (_showCartSheet)
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.75,
-                      decoration: const BoxDecoration(
-                        color: PosTheme.surfaceDark,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      ),
-                      child: _buildCartSection(cartState, isDrawer: true),
-                    ),
-                  ),
-              ],
-            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: isWide
           ? null
           : _buildMobileBottomBar(cartState),
