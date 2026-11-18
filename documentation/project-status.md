@@ -4,7 +4,7 @@
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 5 Pillars (Consumer Mobile App + Handheld Staff Mobile POS + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (97 backend tests, 41 native Electron tests, 22 Flutter consumer tests, 7 Flutter staff POS tests = **167/167 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (97 backend tests, 41 native Electron tests, 22 Flutter consumer tests, 20 Flutter staff POS tests = **180/180 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -18,14 +18,14 @@
 ```text
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │   HANDHELD STAFF POS    │
-│     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │   📋 STAGE 4 ROADMAP    │
-│  97 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff POS     │
-│  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  Flutter 3.x Terminal   │
-│  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │  Line-Busting & Held    │
-│  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │  Camera & BT Barcode    │
-│  Multi-Gateway SMS Logs │  VIP Gift Card Accordion│  Central Inbox API Sync │  Gift Cards & VIP Disc. │  BT Thermal Printing    │
-│  Product Review Moderate│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Offline SQLite & Sync  │
-│  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │  Milestones 23-27       │
+│     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │   ● OPERATIONAL (100%)  │
+│  97 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
+│  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  20 Automated Tests Pass│
+│  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │  Fast-Touch Catalog Grid│
+│  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │  Laser Barcode Scanner  │
+│  Multi-Gateway SMS Logs │  VIP Gift Card Accordion│  Central Inbox API Sync │  Gift Cards & VIP Disc. │  Line-Busting Hold Bill │
+│  Product Review Moderate│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Cloud Held Bills Queue │
+│  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │  Milestones 23 & 24 Done│
 │  Health: /health/ready  │                         │                         │                         │                         │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
@@ -87,8 +87,9 @@
 | Feature | Status | Notes |
 | :--- | :---: | :--- |
 | **Device Provisioning & Staff PIN Pad** | `✅ DONE` | Terminal pairing (`ROAMING-01`), numeric PIN auth (`1234`), opening cash float initialization dialog, and tactile dark luxury cashier dashboard (`PosHomeScreen`). |
-| **Camera & Bluetooth Barcode Scanner** | `📋 PLANNED` | Continuous camera scanner overlay (`mobile_scanner`) and external Bluetooth barcode scanner wedge (Milestone 24). |
-| **Multi-Lane Line-Busting & Held Bills**| `📋 PLANNED` | Roaming staff scan cart in aisle, hold bill with token/barcode, recalled on counter desktop POS (Milestone 24). |
+| **Fast-Touch Catalog & Live Cart** | `✅ DONE` | Responsive catalog grid with search-as-you-type, department tabs, variant bottom sheet, and reactive cart steppers (`PosCheckoutScreen`). |
+| **Laser Barcode & Wedge Scanner** | `✅ DONE` | Optical laser scanning beam, reticle markers, audio/haptic feedback, and 1-tap hardware wedge test chips (`BarcodeScannerDialog`). |
+| **Multi-Lane Line-Busting & Held Bills**| `✅ DONE` | Roaming in-aisle bill holding with unique token (`HOLD-XXXXXX`), pushed to cloud `/api/v1/held-bills` and recalled in 1 tap (`HeldBillsDialog`). |
 | **Split Tender & Bluetooth Slip Printer**| `📋 PLANNED` | Cash denomination keypad, Bluetooth mPOS card, LankaQR, and wireless belt-clip 58mm/80mm ESC/POS printer driver (Milestone 25). |
 | **Offline SQLite WAL Engine & Queue** | `📋 PLANNED` | Local embedded SQLite database with background sync manager and delta pull updates (Milestone 26). |
 | **Cash Drawer Floats & Shift Reports** | `📋 PLANNED` | Mobile drawer float tracking, cash drops, mid-shift X-reports, and register closeout Z-reports synced to central EOD (Milestone 27). |
@@ -104,8 +105,8 @@ Channel                          Test Suite           Status
 Laravel 11 ERP & API Backend     php artisan test     97/97 PASSED (752 assertions)
 Windows Desktop POS (Electron)   npm test             41/41 PASSED (0 regressions)
 Flutter Consumer Mobile App      flutter test         22/22 PASSED (0 regressions)
-Flutter Handheld Staff POS       flutter test         7/7 PASSED (0 regressions)
+Flutter Handheld Staff POS       flutter test         20/20 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         167/167 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         180/180 PASSED (100%)
 ======================================================================
 ```

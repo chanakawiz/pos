@@ -14,6 +14,7 @@ class DeviceSession {
   final double openingFloat;
   final DateTime? openedAt;
   final bool isPaired;
+  final String? apiToken;
 
   const DeviceSession({
     this.apiUrl = 'http://127.0.0.1:8000',
@@ -31,9 +32,12 @@ class DeviceSession {
     this.openingFloat = 0.00,
     this.openedAt,
     this.isPaired = true,
+    this.apiToken,
   });
 
   bool get hasActiveShift => cashSessionUuid != null;
+  String get deviceUuid => deviceCode;
+  String get terminalCode => deviceCode;
 
   DeviceSession copyWith({
     String? apiUrl,

@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../core/theme/pos_theme.dart';
 import '../providers/pos_auth_provider.dart';
 import 'staff_pin_screen.dart';
+import 'pos_checkout_screen.dart';
+import 'held_bills_dialog.dart';
 
 class PosHomeScreen extends ConsumerWidget {
   const PosHomeScreen({super.key});
@@ -225,14 +227,8 @@ class PosHomeScreen extends ConsumerWidget {
                       accentColor: PosTheme.primaryGold,
                       isHighlighted: true,
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: PosTheme.forestGreen,
-                            content: Text(
-                              'Checkout Cart initialized on ${session.deviceCode}',
-                              style: GoogleFonts.inter(color: PosTheme.primaryGold),
-                            ),
-                          ),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const PosCheckoutScreen()),
                         );
                       },
                     ),
@@ -246,14 +242,10 @@ class PosHomeScreen extends ConsumerWidget {
                       icon: Icons.pause_circle_outline_rounded,
                       accentColor: PosTheme.accentGreen,
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: PosTheme.surface,
-                            content: Text(
-                              'Syncing with Central Held Bills API at ${session.apiUrl}...',
-                              style: GoogleFonts.inter(color: PosTheme.textPrimary),
-                            ),
-                          ),
+                        showDialog(
+                          context: context,
+                          barrierColor: Colors.black.withOpacity(0.75),
+                          builder: (_) => const HeldBillsDialog(),
                         );
                       },
                     ),

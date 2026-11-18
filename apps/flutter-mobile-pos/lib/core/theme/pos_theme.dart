@@ -17,6 +17,16 @@ class PosTheme {
   static const Color accentAmber = Color(0xFFF59E0B);
   static const Color accentRed = Color(0xFFEF4444);
 
+  // Ergonomic Aliases
+  static const Color backgroundDark = background;
+  static const Color surfaceDark = surface;
+  static const Color cardDark = card;
+  static const Color dividerDark = border;
+  static const Color textWhite = textPrimary;
+  static const Color statusSuccess = accentGreen;
+  static const Color statusWarning = accentAmber;
+  static const Color statusError = accentRed;
+
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
