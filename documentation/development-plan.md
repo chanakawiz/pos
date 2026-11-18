@@ -462,12 +462,78 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 23: Handheld Flutter Mobile POS Architecture, Terminal Device Provisioning & Staff PIN Auth (`apps/flutter-mobile-pos`) (`📋 PLANNED`)
+- [ ] **Handheld Flutter Mobile POS App Foundation**:
+  - Create dedicated Flutter mobile POS terminal project in `apps/flutter-mobile-pos` using Flutter 3.27+ with Dart 3.6+.
+  - Clean feature-first architecture with Riverpod state management (`pos_auth_provider`, `pos_cart_provider`, `pos_catalog_provider`, `pos_shift_provider`, `pos_hardware_provider`).
+  - High-contrast, tactile Staff POS Dark/Light Hybrid theme optimized for 6" handhelds (Sunmi/PAX/Elo devices) and 10"–12" store associate tablets.
+- [ ] **Hardware Device Provisioning & Counter Pairing**:
+  - Device enrollment flow linking device UUID/code (e.g., `ROAMING-LANE-01`, `BOUTIQUE-FLOOR-02`) to physical store locations via `POST /api/v1/devices/pair`.
+  - Sanctum API token exchange with device code headers and secure encrypted hardware keystore storage.
+- [ ] **Cashier Numeric PIN Pad & Shift Session Initialization**:
+  - Fast numeric PIN pad (`1234`) with instant biometric fallback (Face ID / Fingerprint on compatible Android/iOS hardware).
+  - Direct integration with `POST /api/v1/cash-sessions/open` requiring opening cash float entry before unlocking checkout.
+  - Automatic cashier timeout / screen lock after configurable inactivity (30s / 60s / 120s) for counter security.
+
+---
+
+### Milestone 24: Mobile POS Fast-Touch Catalog, Continuous Camera/Bluetooth Barcoding & Line-Busting (`📋 PLANNED`)
+- [ ] **Ultra-Fast Mobile Catalog & Department Switcher**:
+  - Responsive product card grid and list views with international luxury brand chips, instant search-as-you-type (<20ms local filter), and department quick tabs.
+  - Variant selection bottom sheet for apparel sizing (S, M, L, XL), fragrance volumes (50ml, 100ml), and tech storage capacities.
+  - Real-time stock badge overlays with live cross-branch inventory lookup (`/api/v1/products/{id}/cross-store-stock`).
+- [ ] **Continuous Camera Viewfinder & Bluetooth HID Barcode Scanner**:
+  - Integrated `mobile_scanner` / continuous camera scanner overlay with haptic/audio confirmation beep.
+  - Native Bluetooth barcode scanner wedge support (SPP and HID keyboard modes) parsing EAN-13, UPC-A, Code128, and QR codes with instant line-item addition.
+- [ ] **Multi-Lane Line-Busting & Held Bills Sync**:
+  - Line-busting queue management: Roaming floor associates can scan a customer's basket in the aisle and tap **"Hold for Counter"**.
+  - Held bill is pushed to `/api/v1/held-bills` with a 4-digit token or QR barcode slip.
+  - Counter cashier on Desktop POS (`apps/windows-pos`) scans the token to recall the cart and finalize payment in seconds.
+
+---
+
+### Milestone 25: Handheld Checkout, Payment Tender, Bluetooth ESC/POS Printing & SMS Bills (`📋 PLANNED`)
+- [ ] **Omnichannel Mobile Payment Tender Modal**:
+  - Split tender options: **Cash** (with quick bill denomination buttons: LKR 1000, 5000, exact change calculator), **Card / mPOS** (Bluetooth terminal pairing / external terminal reference), **VIP Gift Card** (voucher barcode scan & balance deduction), and **LankaQR / Dynamic QR Code**.
+  - Automated VIP customer attachment with real-time loyalty point balance lookup, tier discount application (Silver, Gold Elite, Black Diamond), and point redemption slider.
+- [ ] **Bluetooth & Network ESC/POS Thermal Receipt Driver**:
+  - Built-in ESC/POS receipt generation engine supporting 58mm portable belt clip printers and 80mm wireless counter printers (Bluetooth SPP/BLE and TCP WiFi port 9100).
+  - High-definition monochrome raster logo rendering, bilingual text, tax breakdown, and item warranty serials.
+- [ ] **Instant SMS E-Receipt & Paperless Checkout**:
+  - 1-tap phone number input dialog for digital SMS receipts dispatched through central `SmsService` (`/api/v1/sales/{uuid}/resend-sms`).
+
+---
+
+### Milestone 26: Mobile POS Offline SQLite WAL Durability & Bidirectional Delta Sync (`📋 PLANNED`)
+- [ ] **Local Embedded SQLite Database (`sqflite`)**:
+  - Complete offline schema mirroring desktop POS: `products`, `categories`, `cash_sessions`, `sales`, `sale_items`, `payments`, `held_bills`, and `sync_queue`.
+  - Transaction-safe local sales creation generating RFC4122 v4 UUIDs offline.
+- [ ] **Resilient Offline-to-Online Sync Queue**:
+  - Background sync manager detecting network availability and batch-pushing offline sales to `/api/v1/sync/push` with retry idempotency.
+  - Catalog delta sync querying `/api/v1/sync/pull` to receive updated stock levels, price revisions, and deactivated items.
+  - Visual offline/online connection ribbon with pending sync queue badge.
+
+---
+
+### Milestone 27: Mobile POS Cash Drawer Float, Shift Management, X/Z Reports & EOD (`📋 PLANNED`)
+- [ ] **In-App Cash Session Ledger & Mid-Day Drops**:
+  - Real-time drawer balance widget displaying current cash at risk, total card transactions, and total discounts.
+  - Cash Drop / Drawer Float Addition modal recording petty cash movements with supervisor authorization.
+- [ ] **Mobile X-Report & Shift Closeout Z-Report**:
+  - Mid-shift **X-Report** inquiry screen and thermal slip printout without closing the active drawer.
+  - Shift closing workflow: Cash count input screen, automated variance/discrepancy computation against expected cash, and official **Z-Report** generation (`/api/v1/cash-sessions/close`).
+- [ ] **Integration with Automated EOD Closeout Engine**:
+  - Support for central `pos:eod-closeout` scheduler, notifying mobile staff if their register remains open at end of business day.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |
 | :--- | :--- | :--- | :--- |
 | **Web Store** | Laravel 11 Blade + Alpine.js | TailwindCSS (Editorial Light) | Google Fonts Outfit & Inter |
-| **Mobile App** | Flutter 3.x (iOS & Android) | Pure Custom Material 3 Light | Riverpod, Google Fonts, SQLite |
+| **Consumer Mobile App** | Flutter 3.x (iOS & Android) | Pure Custom Material 3 Light | Riverpod, Google Fonts, SQLite |
+| **Handheld Mobile POS** | Flutter 3.x (Handheld & Tablet) | Cashier Dark/Light Hybrid POS | Riverpod, mobile_scanner, blue_thermal_printer, sqflite |
 | **Desktop POS** | Electron + React 18 + Vite | Vanilla Tailwind Light/Dark Palette | Web Audio API, ESC/POS generator |
 | **Backend ERP** | Laravel 11 + Filament v3 | Filament Custom Admin Panel | Spatie Permission, Sanctum, MySQL |
 
@@ -483,9 +549,9 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
-## 4. Current Execution Roadmap (3-Stage Ordered Delivery)
+## 4. Current Execution Roadmap (4-Stage Ordered Delivery)
 
-As requested, development progresses sequentially across the 3 core platform channels:
+As requested, development progresses sequentially across the core platform channels:
 
 ### 🌟 Stage 1: Web Storefront Deep-Dive & Commerce (`backend/laravel-api`) — `✅ COMPLETED`
 > **Consolidation**: The Web Storefront is combined directly inside `backend/laravel-api`, running from the single project and identical MySQL database (`smartshop_pos`). Zero submodule overhead, zero duplicated models.
@@ -514,5 +580,19 @@ As requested, development progresses sequentially across the 3 core platform cha
 - [x] Enforce zero-leakage security (zero staff PIN login or counter hardware pairing on consumer mobile).
 - [x] End-to-end catalog browsing, cart steppers, guest mode, orders ledger, and VIP card.
 - [x] 100% test pass rate across all 22 Flutter automated tests (`flutter test`).
+
+### 🛒 Stage 4: Dedicated Handheld Flutter Mobile POS System (`apps/flutter-mobile-pos`) — `📋 NEXT UP`
+> **Roaming Staff & Handheld Counter Terminal**: Dedicated staff POS application for roaming associates, popup shops, trunk shows, and line-busting.
+- [ ] Scaffold dedicated Flutter Mobile POS application in `apps/flutter-mobile-pos`.
+- [ ] Staff PIN pad authentication (`1234`), biometric unlock, and terminal device code binding (`ROAMING-01`).
+- [ ] Continuous camera barcode scanning viewfinder (`mobile_scanner`) and Bluetooth scanner wedge.
+- [ ] Fast-touch luxury catalog with variant selectors and real-time cross-store stock inspection.
+- [ ] Handheld line-busting: Scan items in aisle, hold bill with QR/token, and retrieve on counter POS.
+- [ ] Split tender modal (Cash with quick denominations, Bluetooth mPOS card, LankaQR, VIP Gift Cards).
+- [ ] Bluetooth SPP/BLE portable thermal printer driver (58mm/80mm) and instant SMS e-receipt dispatch.
+- [ ] Offline SQLite WAL database with background sync queue (`/api/v1/sync/push` & `/api/v1/sync/pull`).
+- [ ] Mobile shift management: Drawer float entry, petty cash drops, X-reports, and Z-report closeout.
+- [ ] 100% test pass rate across Flutter unit, provider, and widget test suites.
+
 
 

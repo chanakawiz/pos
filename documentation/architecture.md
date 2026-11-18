@@ -8,35 +8,39 @@
 > **Customer Access**: Guest Explorer Mode + Multi-Step VIP Onboarding  
 
 ---
-
 ## 1. Executive Omnichannel Architecture
 
-OmniLuxe Store connects four specialized application layers into a unified real-time retail engine:
+OmniLuxe Store connects five specialized application layers into a unified real-time retail engine:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                      OMNILUXE STORE MULTI-PLATFORM ECOSYSTEM                           │
 ├───────────────────────────────────────────┬────────────────────────────────────────────┤
-│         1. CONSUMER ONLINE CHANNELS       │         2. IN-STORE CASHIER POS TERMINAL   │
+│         1. CONSUMER ONLINE CHANNELS       │         2. IN-STORE CASHIER POS TERMINALS  │
 │                                           │                                            │
-│  A. Web Storefront (Blade / Alpine / CSS) │  Dedicated Desktop POS (Electron / React)  │
-│     • Routes: /, /shop, /login, /account  │  • Windows & macOS counter terminals       │
-│     • OmniLuxe Privilege digital hub      │  • Cashier PIN quick authentication (1234) │
-│     • Public verifiable SMS e-receipts    │  • Barcode scanner wedge (<60ms burst)     │
-│                                           │  • Thermal ESC/POS slip (80mm / 58mm)      │
-│  B. Mobile App (Flutter 3.x / Riverpod)   │  • RJ11 cash drawer kickout pulse          │
-│     • iOS & Android flagship shopping     │  • Multi-lane cloud held bills             │
-│     • 5-Tab luxury customer journey       │  • Offline SQLite WAL local durability     │
-│     • Animated gold monogram splash       │  • Register device pairing (COUNTER-01)    │
-│     • Offline order archiving in SQLite   │                                            │
+│  A. Web Storefront (Blade / Alpine / CSS) │  A. Dedicated Desktop POS (Electron/React) │
+│     • Routes: /, /shop, /login, /account  │     • Windows & macOS counter terminals    │
+│     • OmniLuxe Privilege digital hub      │     • Cashier PIN authentication (1234)    │
+│     • Public verifiable SMS e-receipts    │     • Barcode scanner wedge (<60ms burst)  │
+│                                           │     • Thermal ESC/POS slip (80mm / 58mm)   │
+│  B. Mobile App (Flutter 3.x / Riverpod)   │     • RJ11 cash drawer kickout pulse       │
+│     • iOS & Android flagship shopping     │     • Multi-lane cloud held bills          │
+│     • 5-Tab luxury customer journey       │     • Offline SQLite WAL local durability  │
+│     • Animated gold monogram splash       │                                            │
+│     • Offline order archiving in SQLite   │  B. Handheld Mobile POS (Flutter 3.x)      │
+│                                           │     • Roaming associates & line-busting    │
+│                                           │     • Camera & Bluetooth barcode scanner   │
+│                                           │     • Portable Bluetooth thermal printer   │
+│                                           │     • Mobile cash session & shift closeout │
 ├───────────────────────────────────────────┴────────────────────────────────────────────┤
 │                       3. CENTRAL CLOUD ERP & BACKEND API                               │
 │                       (Laravel 11 / MySQL 8 / Redis at Port 8000)                      │
 │                                                                                        │
 │  • RESTful API Gateway (/api/v1) with Sanctum authentication & Spatie RBAC             │
 │  • Filament v3 ERP Admin Control Room (/admin) for catalog, inventory, and POs         │
-│  • Real-time stock movement ledger with atomic reservations on web & POS sales         │
+│  • Real-time stock movement ledger with atomic reservations on web, mobile & POS sales │
 │  • Customer CRM, VIP loyalty ledger, and phone number privacy masking                  │
+│  • Automated Nightly EOD Closeout Scheduler & Multi-Lane Z-Report Engine               │
 │  • Verified SMS E-Receipt Engine (Notify.lk, Twilio, Dialog, Mobitel, Mock drivers)    │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -52,18 +56,50 @@ flowchart TB
         CustomerMobile["Consumer Mobile Shopping App\n(Flutter iOS & Android • Riverpod • SQLite)"]
     end
 
-    subgraph InStoreStaff["In-Store Staff Channels"]
-        DesktopPOS["Dedicated In-Store Cashier POS\n(Electron • React 18 • TypeScript • better-sqlite3)"]
+    subgraph InStoreStaff["In-Store Staff Channels (Counter & Roaming)"]
+        DesktopPOS["Dedicated Desktop Cashier POS\n(Electron • React 18 • TypeScript • better-sqlite3)"]
         CounterHardware["Counter Peripherals\n(Barcode Gun • 80mm Thermal Printer • RJ11 Cash Drawer)"]
         DesktopPOS --- CounterHardware
+
+        HandheldPOS["Handheld Mobile Staff POS\n(Flutter 3.x • Camera/Bluetooth Scanner • Mobile Printer)"]
+        MobilePeripherals["Mobile Hardware\n(Belt-Clip Bluetooth ESC/POS • Handheld Camera Scanner)"]
+        HandheldPOS --- MobilePeripherals
+
+        DesktopPOS <-->|Line-Busting & Held Bills Sync| HandheldPOS
     end
 
     subgraph CentralEngine["Central Cloud ERP & REST Engine (Laravel 11)"]
         APIGateway["REST API Gateway (/api/v1)\nSanctum Token Auth • Device Headers"]
         FilamentAdmin["Filament v3 ERP Admin Panel (/admin)\nMulti-Store • POs • Shifts • Audit Ledgers"]
         InventoryLedger["Atomic Inventory & Movement Ledger\nReal-Time Decrement • Safety Stock • Serial Tracking"]
-        BillingEngine["Billing, Invoicing & Digital E-Receipt Engine"]
+        BillingEngine["Billing, Invoicing, EOD Z-Reports & Digital E-Receipts"]
         CustomerCRM["Customer CRM & VIP Loyalty Club\nPhone Masking • Points Engine (1 Pt = Rs. 10)"]
+        SmsEngine["SMS E-Receipt Gateway Engine\nNotify.lk • Twilio • Dialog • Mobitel Driver"]
+    end
+
+    subgraph StorageLayer["Data Persistence & Queues"]
+        MasterMySQL[("MySQL 8+ Primary Database\n26 Core Migrations • UUIDs")]
+        RedisQueue[("Redis Cache, Sessions & Queues")]
+    end
+
+    CustomerWeb --> CentralEngine
+    CustomerMobile <-->|REST API (/api/v1)| APIGateway
+    DesktopPOS <-->|Bidirectional Offline Sync| APIGateway
+    HandheldPOS <-->|Bidirectional Offline Sync| APIGateway
+
+    APIGateway --> BillingEngine
+    APIGateway --> InventoryLedger
+    APIGateway --> CustomerCRM
+    FilamentAdmin --> InventoryLedger
+    FilamentAdmin --> BillingEngine
+
+    BillingEngine --> SmsEngine
+    SmsEngine -.->|Verified SMS E-Receipt| Consumers
+    SmsEngine -.->|SMS Bill Link| InStoreStaff
+
+    CentralEngine --> MasterMySQL
+    CentralEngine --> RedisQueue
+```RM & VIP Loyalty Club\nPhone Masking • Points Engine (1 Pt = Rs. 10)"]
         SmsEngine["SMS E-Receipt Gateway Engine\nNotify.lk • Twilio • Dialog • Mobitel Driver"]
     end
 
@@ -140,6 +176,20 @@ flowchart TB
   * Multi-store catalog and serialized inventory ledger (`stock_movements`).
   * Atomic inventory reservation guaranteeing zero overselling across web, mobile, and counter channels.
   * Pluggable SMS gateway dispatching tamper-evident digital bill links.
+  * Automated Nightly EOD Closeout scheduler (`pos:eod-closeout`) generating consolidated Z-Reports.
+
+### 3.5 Handheld Mobile Cashier POS (`apps/flutter-mobile-pos`)
+* **Technology**: Flutter 3.27+ with Dart 3.6+, Flutter Riverpod state management.
+* **Architecture Pattern**: Feature-driven offline-first architecture with persistent background sync (`pos_sync_provider`, `pos_shift_provider`, `pos_cart_provider`).
+* **Persistence**: Local SQLite database via `sqflite` (WAL mode) mirroring catalog, active shifts, offline sales, and held bills.
+* **Key Persona**: Floor sales associates, roaming cashiers, trunk show operators, and curbside fulfillment concierges.
+* **Key Features**:
+  * **Device Enrollment & Staff PIN Authentication**: Hardware device pairing with physical store (`ROAMING-LANE-01`), numeric PIN pad (`1234`), and biometric unlock.
+  * **Continuous Camera & Bluetooth Barcode Scanning**: Instant optical recognition via `mobile_scanner` continuous viewfinder and external Bluetooth ring/gun scanners.
+  * **Multi-Lane Line-Busting**: Roaming staff scan customers in the aisle, tap **"Hold for Counter"**, generating a 4-digit token or barcode slip recallable on Desktop POS.
+  * **Handheld Split Tender & Loyalty**: Cash with denomination buttons, Bluetooth mPOS card terminal, LankaQR, and VIP gift card redemption with automated tier discount calculation.
+  * **Portable Bluetooth ESC/POS Printing**: Direct wireless thermal receipt printing on 58mm/80mm belt-clip printers, plus instant SMS e-receipt dispatch.
+  * **Mobile Shift Management & Z-Reports**: Drawer opening float, cash drops, mid-shift X-reports, and register closeout Z-reports synchronized with central EOD reconciliation.
 
 ---
 

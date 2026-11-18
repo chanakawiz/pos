@@ -1,9 +1,9 @@
 # OmniLuxe Store Omnichannel Retail Ecosystem — Master Architectural Blueprint
 
-> **System Scope**: Consumer E-Commerce Web Store + Consumer Mobile App (Flutter) + Dedicated Desktop Cashier POS (Windows/Mac) + Central ERP & Filament v3 Admin + Real-Time Omnichannel Inventory + SMS Digital E-Receipts
+> **System Scope**: Consumer E-Commerce Web Store + Consumer Mobile App (Flutter) + Handheld Staff Mobile POS (Flutter) + Dedicated Desktop Cashier POS (Windows/Mac) + Central ERP & Filament v3 Admin + Real-Time Omnichannel Inventory + SMS Digital E-Receipts
 > **System Name**: OmniLuxe Store (`omniluxe-store`)
-> **Document Version**: 3.1.0
-> **Target Business Profile**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Luxury Automobili & High-Value Assets)
+> **Document Version**: 3.2.0
+> **Target Business Profile**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Luxury Fragrances & Cosmetics, High-Value Assets)
 > **Commercial Readiness**: Turnkey Solution Ready for Commercial Licensing & Deployment to Established Retail Enterprises
 
 ---
@@ -13,11 +13,12 @@
 OmniLuxe Store is an enterprise-grade omnichannel retail platform designed for **premier multi-department retail chains, luxury fashion houses, flagship electronics stores, and high-value asset dealers**.
 
 Unlike basic point-of-sale systems built for small corner groceries or simple kiosks, OmniLuxe Store delivers a unified multi-channel retail infrastructure that connects:
-1. **Consumer Mobile Shopping App (Flutter iOS & Android)**: An editorial, dark luxury mobile store mirroring the web experience. Shoppers discover collections, review variant matrices (sizes, storage, colors), manage their bag, checkout with online card/COD, and receive verified SMS digital e-receipts and warranty cards.
-2. **Customizable E-Commerce Web Storefront (`apps/web-store` & Central Web Store)**: High-converting luxury web storefront providing instant ordering, real-time stock availability, and automated sync with central ERP inventory.
-3. **Dedicated In-Store Cashier POS (Windows & macOS Desktop)**: A counter checkout terminal designed exclusively for store cashiers and staff, featuring barcode gun scanning, thermal ESC/POS receipt printing, cash drawer kickout, customer-facing pole display, staff shifts (X/Z reports), and offline SQLite durability.
-4. **Central Cloud ERP & Filament v3 Admin (`/admin`)**: Unified multi-branch control panel for catalog management, stock movement ledgers, purchase orders, vendor procurement, role-based permissions, and commercial analytics.
-5. **Customer Protection & Verified SMS E-Receipts Gateway**: Modular driver interface (supporting Notify.lk, Twilio, Dialog, Mobitel, and Mock modes) that dispatches instant digital bill summaries and tamper-evident warranty links to customers via SMS.
+1. **Consumer Mobile Shopping App (Flutter iOS & Android — `apps/mobile-pos`)**: An editorial, luxury mobile store mirroring the web experience. Shoppers discover collections, review variant matrices (sizes, storage, colors), manage their cart, checkout with online card/COD, and receive verified SMS digital e-receipts and warranty cards.
+2. **Customizable E-Commerce Web Storefront (`backend/laravel-api`)**: High-converting luxury web storefront providing instant ordering, real-time stock availability, and automated sync with central ERP inventory.
+3. **Dedicated In-Store Cashier POS (Windows & macOS Desktop — `apps/windows-pos`)**: A counter checkout terminal designed exclusively for store cashiers and staff, featuring barcode gun scanning, thermal ESC/POS receipt printing, cash drawer kickout, customer-facing pole display, staff shifts (X/Z reports), and offline SQLite durability.
+4. **Handheld Staff Mobile POS Terminal (Flutter Android & iOS — `apps/flutter-mobile-pos`)**: A portable cashier terminal for roaming sales associates, popup boutiques, curbside pickup, and aisle line-busting, featuring camera/Bluetooth barcode scanning, Bluetooth belt-clip thermal receipt printing, mobile drawer floats, and offline sync.
+5. **Central Cloud ERP & Filament v3 Admin (`/admin`)**: Unified multi-branch control panel for catalog management, stock movement ledgers, purchase orders, vendor procurement, role-based permissions, automated nightly EOD closeouts, and commercial analytics.
+6. **Customer Protection & Verified SMS E-Receipts Gateway**: Modular driver interface (supporting Notify.lk, Twilio, Dialog Axiata eSMS, and Mock modes) that dispatches instant digital bill summaries, courier tracking links, and tamper-evident warranty receipts to customers via SMS.
 
 ---
 
@@ -26,24 +27,25 @@ Unlike basic point-of-sale systems built for small corner groceries or simple ki
 ```mermaid
 flowchart TB
     subgraph Consumers["Customer Channels (Omnichannel Shoppers)"]
-        CustomerWeb["OmniLuxe E-Commerce Web Store\n(Next-Gen Dark Storefront • Real-Time Stock)"]
-        CustomerMobile["Consumer Mobile App (Flutter)\n(iOS / Android • Discover • Bag • Orders • E-Receipts)"]
+        CustomerWeb["OmniLuxe E-Commerce Web Store\n(Editorial Light Luxury • Real-Time Stock)"]
+        CustomerMobile["Consumer Mobile App (Flutter)\n(iOS / Android • Discover • Cart • Orders • E-Receipts)"]
         InStoreCustomer["In-Store Boutique Shopper\n(SMS Verified Bill • Warranty Link • Click & Collect)"]
     end
 
     subgraph Frontends["Frontend Experience Layer"]
         WebStoreApp["Web Storefront (Blade / Alpine / Tailwind)\nEditorial Lookbook • Cart • Checkout"]
-        FlutterApp["Consumer Mobile App (Flutter Riverpod)\nDark Luxury Theme • Variant Picker • Offline Orders"]
-        DesktopPOS["Dedicated In-Store Cashier POS (Electron / React)\nWindows / Mac • Barcode Gun • Thermal Slip • Cash Drawer"]
+        FlutterConsumerApp["Consumer Mobile App (Flutter Riverpod)\nLight Luxury Theme • Variant Picker • Offline Orders"]
+        DesktopPOS["Dedicated Desktop Cashier POS (Electron / React)\nWindows / Mac • Barcode Gun • Thermal Slip • Cash Drawer"]
+        HandheldPOS["Handheld Mobile Staff POS (Flutter Riverpod)\nAndroid / iOS • Camera Barcode • Bluetooth Thermal • Line-Busting"]
     end
 
     subgraph CentralBackend["Central ERP & Core Engine (Laravel 11)"]
         APIGateway["REST API Gateway (/api/v1)"]
         FilamentAdmin["Filament v3 ERP Admin Panel (/admin)\nCatalog • Multi-Store Inventory • POs • Shifts • Audit"]
         InventoryLedger["Real-Time Inventory & Movement Ledger\nAtomic Reservation • Low-Stock Alerts • Serial Tracking"]
-        BillingEngine["Billing, Invoicing & Digital E-Receipt Engine"]
-        CustomerEngine["Customer CRM, Loyalty & Privacy Protection\nPhone Masking • Encrypted Ledgers"]
-        SmsEngine["SMS E-Receipt Gateway Engine\nNotify.lk • Twilio • Dialog • Mobitel Driver"]
+        BillingEngine["Billing, Invoicing, EOD Z-Reports & Digital E-Receipts"]
+        CustomerEngine["Customer CRM, Loyalty & Privacy Protection\nPhone Masking • Points Engine (1 Pt = Rs. 10)"]
+        SmsEngine["SMS E-Receipt Gateway Engine\nNotify.lk • Twilio • Dialog • Mock Driver"]
     end
 
     subgraph Persistence["Storage & Queues"]
@@ -52,12 +54,15 @@ flowchart TB
     end
 
     CustomerWeb --> WebStoreApp
-    CustomerMobile --> FlutterApp
+    CustomerMobile --> FlutterConsumerApp
     InStoreCustomer <--> DesktopPOS
+    InStoreCustomer <--> HandheldPOS
+    DesktopPOS <-->|Line-Busting & Held Bills Sync| HandheldPOS
 
     WebStoreApp --> CentralBackend
-    FlutterApp <-->|REST API & Mobile Sync| APIGateway
+    FlutterConsumerApp <-->|REST API & Mobile Sync| APIGateway
     DesktopPOS <-->|Bidirectional Offline Sync| APIGateway
+    HandheldPOS <-->|Bidirectional Offline Sync| APIGateway
 
     APIGateway --> BillingEngine
     APIGateway --> InventoryLedger

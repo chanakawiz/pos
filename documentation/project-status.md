@@ -2,7 +2,7 @@
 
 > **Audit Date**: 2026-11-18  
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
-> **System Architecture**: 4 Pillars (Consumer Mobile App + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
+> **System Architecture**: 5 Pillars (Consumer Mobile App + Handheld Staff Mobile POS + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
 > **Overall Health**: Healthy, Fully Synced & Serving (97 backend tests, 41 native Electron tests, 22 Flutter automated tests = **160/160 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
@@ -16,18 +16,18 @@
 ## 1. System Health Dashboard
 
 ```text
-┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
-│     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │
-│     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │
-│  97 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│
-│  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │
-│  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │
-│  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │
-│  Multi-Gateway SMS Logs │  VIP Gift Card Accordion│  Central Inbox API Sync │  Gift Cards & VIP Disc. │
-│  Product Review Moderate│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │
-│  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │
-│  Health: /health/ready  │                         │                         │                         │
-└─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
+┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
+│     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │   HANDHELD STAFF POS    │
+│     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │   📋 STAGE 4 ROADMAP    │
+│  97 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff POS     │
+│  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  Flutter 3.x Terminal   │
+│  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │  Line-Busting & Held    │
+│  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │  Camera & BT Barcode    │
+│  Multi-Gateway SMS Logs │  VIP Gift Card Accordion│  Central Inbox API Sync │  Gift Cards & VIP Disc. │  BT Thermal Printing    │
+│  Product Review Moderate│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Offline SQLite & Sync  │
+│  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │  Milestones 23-27       │
+│  Health: /health/ready  │                         │                         │                         │                         │
+└─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
 ---
@@ -82,6 +82,16 @@
 | **Gift Card Tender & Tier Discounts** | `✅ DONE` | Instant voucher verification in `PaymentModal.tsx` and automated VIP tier discount deduction upon customer attachment. |
 | **Durable Offline Storage & Sync** | `✅ DONE` | Native SQLite WAL database with idempotent queue push (`/api/v1/sync/push`) and delta pull (`/api/v1/sync/pull`). |
 | **Automated Test Suite** | `✅ DONE` | 41/41 native Electron tests pass (`npm test`). |
+
+### 2.5 Handheld Staff Mobile POS (`apps/flutter-mobile-pos`)
+| Feature | Status | Notes |
+| :--- | :---: | :--- |
+| **Device Provisioning & Staff PIN Pad** | `📋 PLANNED` | Terminal pairing (`ROAMING-01`), numeric PIN auth (`1234`), and opening cash float initialization (Milestone 23). |
+| **Camera & Bluetooth Barcode Scanner** | `📋 PLANNED` | Continuous camera scanner overlay (`mobile_scanner`) and external Bluetooth barcode scanner wedge (Milestone 24). |
+| **Multi-Lane Line-Busting & Held Bills**| `📋 PLANNED` | Roaming staff scan cart in aisle, hold bill with token/barcode, recalled on counter desktop POS (Milestone 24). |
+| **Split Tender & Bluetooth Slip Printer**| `📋 PLANNED` | Cash denomination keypad, Bluetooth mPOS card, LankaQR, and wireless belt-clip 58mm/80mm ESC/POS printer driver (Milestone 25). |
+| **Offline SQLite WAL Engine & Queue** | `📋 PLANNED` | Local embedded SQLite database with background sync manager and delta pull updates (Milestone 26). |
+| **Cash Drawer Floats & Shift Reports** | `📋 PLANNED` | Mobile drawer float tracking, cash drops, mid-shift X-reports, and register closeout Z-reports synced to central EOD (Milestone 27). |
 
 ---
 
