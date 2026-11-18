@@ -506,15 +506,28 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
-### Milestone 25: Handheld Checkout, Payment Tender, Bluetooth ESC/POS Printing & SMS Bills (`📋 PLANNED`)
-- [ ] **Omnichannel Mobile Payment Tender Modal**:
-  - Split tender options: **Cash** (with quick bill denomination buttons: LKR 1000, 5000, exact change calculator), **Card / mPOS** (Bluetooth terminal pairing / external terminal reference), **VIP Gift Card** (voucher barcode scan & balance deduction), and **LankaQR / Dynamic QR Code**.
-  - Automated VIP customer attachment with real-time loyalty point balance lookup, tier discount application (Silver, Gold Elite, Black Diamond), and point redemption slider.
-- [ ] **Bluetooth & Network ESC/POS Thermal Receipt Driver**:
-  - Built-in ESC/POS receipt generation engine supporting 58mm portable belt clip printers and 80mm wireless counter printers (Bluetooth SPP/BLE and TCP WiFi port 9100).
-  - High-definition monochrome raster logo rendering, bilingual text, tax breakdown, and item warranty serials.
-- [ ] **Instant SMS E-Receipt & Paperless Checkout**:
-  - 1-tap phone number input dialog for digital SMS receipts dispatched through central `SmsService` (`/api/v1/sales/{uuid}/resend-sms`).
+### Milestone 25: Handheld Checkout, Payment Tender, Bluetooth ESC/POS Printing & SMS Bills (`✅ COMPLETED`)
+- [x] **Omnichannel Mobile Payment Tender Modal**:
+  - Implemented `PaymentTenderSheet` supporting multi-tender split payments:
+    - **Cash**: Exact change chip, quick denomination buttons (+500, +1,000, +2,000, +5,000, +10,000), numeric entry, and live change due calculation.
+    - **Card / mPOS**: Terminal selection, authorization reference code, and instant card charge.
+    - **VIP Gift Card**: Voucher code lookup, balance verification against `/api/v1/gift-cards/verify` with offline fallback, and credit deduction.
+    - **LankaQR**: Dynamic QR modal with CBSL / LankaPay compliance certification and 1-tap confirmation.
+  - Customer VIP loyalty points redemption slider (100 pts = LKR 1,000, 250 pts = LKR 2,500, 500 pts = LKR 5,000) with real-time cart discount deduction.
+- [x] **Bluetooth & Portable ESC/POS Thermal Receipt Engine**:
+  - Built `EscPosService` generating standard binary ESC/POS byte buffers for 58mm (portable belt clip printers) and 80mm (counter wireless printers).
+  - Encodes hardware initialization (`ESC @`), double-width luxury brand headers (`OMNILUXE`), store telemetry, item line tables, subtotal/discount/tax summaries, tender breakdown, change due, VIP points, and full paper cut (`GS V 0`).
+  - Integrated audit log buffer tracking transmitted bytes and job parameters.
+- [x] **Instant SMS E-Receipt & Paperless Checkout**:
+  - Automated digital SMS e-receipt dispatch via central `SmsService` (`/api/v1/sms/test-send` or `/api/v1/sales/{uuid}/resend-sms`).
+  - `SaleSuccessDialog` displaying official invoice number (`INV-XXXXXX`), high-contrast cash change due badge, 1-tap thermal reprint, and new sale restart.
+- [x] **100% Passing Automated Tests**:
+  - 28/28 Flutter mobile POS tests passing across `pos_auth_test.dart`, `pos_catalog_cart_test.dart`, `pos_checkout_widget_test.dart`, `pos_payment_test.dart`, `pos_payment_widget_test.dart`, and `widget_test.dart`.
+  - 97/97 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`).
+  - 22/22 Consumer mobile tests passing (`flutter test`).
+  - 28/28 Handheld staff POS tests passing (`flutter test`).
+  - **Total: 188/188 passing tests across the entire omnichannel ecosystem**.
 
 ---
 

@@ -8,6 +8,7 @@ import '../providers/pos_catalog_provider.dart';
 import '../providers/pos_cart_provider.dart';
 import 'barcode_scanner_dialog.dart';
 import 'held_bills_dialog.dart';
+import 'payment_tender_sheet.dart';
 
 class PosCheckoutScreen extends ConsumerStatefulWidget {
   const PosCheckoutScreen({super.key});
@@ -20,6 +21,15 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
   final TextEditingController _searchController = TextEditingController();
   final NumberFormat _currency = NumberFormat.currency(symbol: 'LKR ', decimalDigits: 0);
   bool _showCartSheet = false;
+
+  void _openPaymentTender() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const PaymentTenderSheet(),
+    );
+  }
 
   @override
   void dispose() {
@@ -860,20 +870,7 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                       ),
-                      onPressed: cartState.isEmpty
-                          ? null
-                          : () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: PosTheme.primaryGold,
-                                  behavior: SnackBarBehavior.floating,
-                                  content: Text(
-                                    'Proceeding to Payment (${_currency.format(cartState.total)})',
-                                    style: const TextStyle(color: Color(0xFF111413), fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                              );
-                            },
+                      onPressed: cartState.isEmpty ? null : _openPaymentTender,
                     ),
                   ),
                 ],
@@ -925,15 +922,26 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
               ],
             ),
           ),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: PosTheme.textWhite,
+              side: BorderSide(color: PosTheme.dividerDark),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => setState(() => _showCartSheet = true),
+            child: const Text('CART', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+          ),
+          const SizedBox(width: 8),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: PosTheme.primaryGold,
               foregroundColor: const Color(0xFF111413),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            onPressed: () => setState(() => _showCartSheet = true),
-            child: const Text('VIEW CART', style: TextStyle(fontWeight: FontWeight.w800)),
+            onPressed: cartState.isEmpty ? null : _openPaymentTender,
+            child: const Text('CHARGE', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
           ),
         ],
       ),
