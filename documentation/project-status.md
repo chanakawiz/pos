@@ -4,7 +4,7 @@
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 4 Pillars (Consumer Mobile App + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (90 backend tests, 41 native Electron tests, 22 Flutter automated tests = **153/153 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (97 backend tests, 41 native Electron tests, 22 Flutter automated tests = **160/160 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -19,13 +19,14 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │
 │     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │
-│  90 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│
+│  97 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│
 │  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │
 │  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │
 │  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │
 │  Multi-Gateway SMS Logs │  VIP Gift Card Accordion│  Central Inbox API Sync │  Gift Cards & VIP Disc. │
 │  Product Review Moderate│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │
-│  Health: /health/ready  │  Digital SMS E-Receipts │                         │                         │
+│  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │
+│  Health: /health/ready  │                         │                         │                         │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -40,12 +41,13 @@
 | **Counter Device Registration** | `✅ DONE` | Seeded devices `COUNTER-01` (Flagship Lane 01), `COUNTER-02` (Express Lane 02), `COUNTER-03` (Kandy Galleria), `COUNTER-04` (Galle Fort). |
 | **Catalog & Multi-Branch Inventory** | `✅ DONE` | International luxury brands across Colombo Flagship, Kandy Galleria, and Galle Fort with atomic reservations and cross-branch stock inquiry. |
 | **Customer Product Reviews & Moderation** | `✅ DONE` | `ReviewService` with verified purchaser detection against historical `SaleItem` records, rating breakdown aggregates, public REST APIs (`/api/v1/products/{id}/reviews`), and Filament moderation panel (`ReviewResource`) with quick approve/reject actions. |
+| **Automated EOD Closeout & Z-Reports** | `✅ DONE` | `EodCloseoutService` with automated register status audits, daily cash/card/discount consolidation, automated session closure, `pos:eod-closeout` scheduler running nightly at 23:59, executive SMS digests to store managers, and Filament ERP control panel (`EodReportResource`). |
 | **VIP Gift Card & Store Credit Engine** | `✅ DONE` | `GiftCardService` with atomic redemption (`lockForUpdate`), public balance verification, cashier tender, and Filament admin management under *Sales & Fulfillment*. |
 | **Automated Loyalty Tier Engine** | `✅ DONE` | `LoyaltyTierService` with Silver (1.0x), Gold Elite (1.5x / 5% discount), and Black Diamond (2.0x / 10% discount) tiers automatically progressing on spend with SMS congratulatory alerts. |
 | **Multi-Gateway SMS & E-Receipts Engine** | `✅ DONE` | `SmsService` with Notify.lk, Twilio, Dialog Axiata eSMS, Log, and Mock drivers, E.164 normalization, privacy masking, automated POS/web sale receipts, courier dispatch tracking, and Filament delivery logs (`SmsLogResource`). |
 | **Order Tracking & Returns Portal** | `✅ DONE` | Public self-service tracking at `/track/{invoice}`, customer return request submissions, courier telemetry, and concierge review. |
 | **Multi-Branch Dashboards** | `✅ DONE` | `BranchAnalyticsService` with cross-branch revenue/margin comparison, cashier velocity/discrepancy tracking, and stock aging transfer recommendations. |
-| **Filament v3 Admin Panel** | `✅ DONE` | Full enterprise control room at `http://127.0.0.1:8000/admin` with dedicated `BranchPerformance` page, `SmsLogResource`, `ReviewResource`, and custom analytics widgets. |
+| **Filament v3 Admin Panel** | `✅ DONE` | Full enterprise control room at `http://127.0.0.1:8000/admin` with dedicated `BranchPerformance` page, `SmsLogResource`, `ReviewResource`, `EodReportResource`, and custom analytics widgets. |
 | **Production Health Checks** | `✅ DONE` | High-frequency liveness `/health/live` and deep readiness probe `/health/ready` testing MySQL latency, cache responsiveness, and Reverb status. |
 
 ### 2.2 Web Storefront (`backend/laravel-api`)
@@ -89,10 +91,10 @@
 ======================================================================
 Channel                          Test Suite           Status
 ======================================================================
-Laravel 11 ERP & API Backend     php artisan test     90/90 PASSED (699 assertions)
+Laravel 11 ERP & API Backend     php artisan test     97/97 PASSED (752 assertions)
 Windows Desktop POS (Electron)   npm test             41/41 PASSED (0 regressions)
 Flutter Mobile Consumer App      flutter test         22/22 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         153/153 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         160/160 PASSED (100%)
 ======================================================================
 ```

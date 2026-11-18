@@ -431,6 +431,37 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 22: Automated End-of-Day (EOD) Closeout & Scheduled Z-Report Dispatcher (`✅ COMPLETED`)
+- [x] **Consolidated EOD Reports Schema & Eloquent Model**:
+  - Migration `2026_11_18_000003_create_eod_reports_table.php` establishing `eod_reports` with fields: `uuid`, `store_id`, `report_date`, `generated_by`, `closed_sessions_count`, `total_opening_float`, `total_cash_sales`, `total_card_sales`, `total_gift_card_sales`, `gross_sales`, `total_discounts`, `total_refunds`, `net_sales`, `expected_cash`, `actual_closing_cash`, `net_discrepancy`, `is_automated`, `breakdown_json`, `notes`, and timestamps.
+  - Eloquent model `EodReport` with relationships to `Store` and `User` (`generatedBy`), array casting for lane breakdown, and scopes (`forStore`, `forDate`).
+- [x] **Business Service Layer (`EodCloseoutService`)**:
+  - `getRegisterStatus`: Real-time audit of open register sessions across stores, detecting elapsed hours, individual cash drawer balances, and total cash at risk.
+  - `calculateDailySummary`: Consolidated financial aggregation across all counter lanes for any chosen date (gross, discounts, net sales, cash/card/gift card tender splits, refunds, drawer float, and net variance).
+  - `performCloseout`: Transaction-safe drawer closure with counted balances, discrepancy logging, automated Z-report creation, and executive SMS alert dispatch.
+  - `dispatchEodSms`: Dispatches concise executive SMS digest to store managers with store gross sales, payment splits, closed register counts, and balanced status.
+- [x] **Nightly Scheduler & Artisan Command (`pos:eod-closeout`)**:
+  - Console command `php artisan pos:eod-closeout` supporting `--store=`, `--force`, `--dry-run`, and `--notify` options with clean ANSI table output.
+  - Automatically scheduled in `routes/console.php` to run nightly at 23:59 without overlapping (`omniluxe-nightly-eod-closeout`).
+- [x] **Omnichannel REST APIs (`/api/v1/eod`)**:
+  - `GET /api/v1/eod/status`: Real-time status of registers and cash at risk.
+  - `GET /api/v1/eod/summary`: Detailed multi-lane Z-report summary for current date or historical query.
+  - `POST /api/v1/eod/closeout`: 1-click immediate store reconciliation and drawer closure endpoint.
+  - `GET /api/v1/eod/history`: Paginated archive of past consolidated Z-reports.
+  - `POST /api/v1/eod/{uuid}/resend-sms`: On-demand manager SMS re-dispatch endpoint.
+- [x] **Filament ERP Control Room (`EodReportResource`)**:
+  - Located under *POS & Registers* with date, store, gross sales, payment splits, closed register badges, variance highlights, and automated indicator icons.
+  - Interactive "Run EOD Reconciliation" modal action in `ListEodReports` with store picker, force toggle, notes, and SMS trigger.
+  - Row action "Resend SMS" allowing managers to dispatch Z-report digests on demand.
+- [x] **100% Passing Automated Tests**:
+  - 7/7 tests in `EodCloseoutTest.php` passing all assertions (register status, daily sales aggregation, session closure, SMS dispatch, artisan command dry-run & execute, REST APIs, resend SMS).
+  - 97/97 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`) and Vite build verified.
+  - 22/22 Flutter mobile tests passing (`flutter test`).
+  - **Total: 160/160 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |

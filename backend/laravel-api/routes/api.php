@@ -88,6 +88,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/cash-sessions/x-report', [CashSessionController::class, 'xReport']);
         Route::post('/cash-sessions/close', [CashSessionController::class, 'close']);
 
+        // Automated End-of-Day (EOD) Closeout & Z-Reports
+        Route::get('/eod/status', [\App\Http\Controllers\Api\v1\EodController::class, 'status']);
+        Route::get('/eod/summary', [\App\Http\Controllers\Api\v1\EodController::class, 'summary']);
+        Route::post('/eod/closeout', [\App\Http\Controllers\Api\v1\EodController::class, 'closeout']);
+        Route::get('/eod/history', [\App\Http\Controllers\Api\v1\EodController::class, 'history']);
+        Route::post('/eod/{uuid}/resend-sms', [\App\Http\Controllers\Api\v1\EodController::class, 'resendSms']);
+
         // Supply Chain — Suppliers
         Route::get('/suppliers', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'suppliers']);
         Route::post('/suppliers', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'storeSupplier']);
