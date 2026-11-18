@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [WebStoreController::class, 'index'])->name('store.index');
 Route::get('/shop', [WebStoreController::class, 'index'])->name('store.shop');
 Route::get('/product/{id}', [WebStoreController::class, 'show'])->name('store.product');
+Route::post('/product/{id}/review', [WebStoreController::class, 'submitReview'])->name('store.product.review');
+Route::post('/review/{uuid}/helpful', [WebStoreController::class, 'voteReviewHelpful'])->name('store.review.helpful');
 Route::post('/checkout', [WebStoreController::class, 'checkout'])->name('store.checkout');
 Route::get('/receipt/{invoice}', [WebStoreController::class, 'receipt'])->name('store.receipt');
 

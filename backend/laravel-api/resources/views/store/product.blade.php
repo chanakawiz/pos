@@ -67,8 +67,21 @@
         <!-- Product Details (Right 6 Cols) -->
         <div class="lg:col-span-6 space-y-6">
             <div>
-                <div class="text-xs uppercase tracking-widest font-semibold text-forest mb-2">
-                    {{ $product->category->name ?? 'Premier Collection' }}
+                <div class="flex items-center justify-between gap-4 mb-2">
+                    <div class="text-xs uppercase tracking-widest font-semibold text-forest">
+                        {{ $product->category->name ?? 'Premier Collection' }}
+                    </div>
+                    @if(!empty($reviewSummary))
+                        <a href="#customer-reviews" class="inline-flex items-center gap-1.5 text-xs text-sage hover:text-forest transition-colors">
+                            <span class="text-goldLuxury text-sm">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <span>{{ $i <= round($reviewSummary['average_rating']) ? '★' : '☆' }}</span>
+                                @endfor
+                            </span>
+                            <span class="font-bold text-ink">{{ number_format($reviewSummary['average_rating'], 1) }}</span>
+                            <span class="text-[11px]">({{ $reviewSummary['reviews_count'] }} {{ \Illuminate\Support\Str::plural('review', $reviewSummary['reviews_count']) }})</span>
+                        </a>
+                    @endif
                 </div>
                 <h1 class="text-3xl sm:text-4xl font-serif font-extrabold text-ink leading-tight">
                     {{ $product->name }}
@@ -241,6 +254,214 @@
                     <span>Masked Mobile & Encrypted Storage</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Customer Reviews & Verified Buyer Ratings Section -->
+    <div id="customer-reviews" x-data="{ showForm: false, selectedRating: 5 }" class="mt-20 pt-12 border-t border-hairline space-y-10">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <span class="text-xs uppercase tracking-widest font-semibold text-forest">Authentic Customer Feedback</span>
+                <h2 class="text-2xl sm:text-3xl font-serif font-extrabold text-ink mt-1">Reviews & Ratings</h2>
+                <p class="text-xs text-sage mt-1">Verified purchaser feedback from physical boutique counters and web store orders.</p>
+            </div>
+
+            <button
+                type="button"
+                @click="showForm = !showForm"
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-forest text-white hover:bg-forest/90 font-display font-bold text-xs shadow-sm transition-all self-start md:self-auto cursor-pointer">
+                <span x-text="showForm ? 'Close Form' : 'Write a Review'"></span>
+                <span>★</span>
+            </button>
+        </div>
+
+        <!-- Rating Summary Card -->
+        <div class="bg-cream rounded-3xl p-6 sm:p-8 border border-hairline grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            <!-- Left: Average Score -->
+            <div class="md:col-span-4 text-center md:text-left md:border-r border-hairline md:pr-8">
+                <div class="text-5xl font-serif font-extrabold text-ink">
+                    {{ number_format($reviewSummary['average_rating'] ?? 5.0, 1) }}
+                </div>
+                <div class="flex items-center justify-center md:justify-start text-goldLuxury text-lg my-1.5">
+                    @for($i = 1; $i <= 5; $i++)
+                        <span>{{ $i <= round($reviewSummary['average_rating'] ?? 5.0) ? '★' : '☆' }}</span>
+                    @endfor
+                </div>
+                <div class="text-xs text-sage">
+                    Based on {{ $reviewSummary['reviews_count'] ?? 0 }} {{ \Illuminate\Support\Str::plural('review', $reviewSummary['reviews_count'] ?? 0) }}
+                </div>
+                @if(($reviewSummary['verified_count'] ?? 0) > 0)
+                    <div class="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-300">
+                        <svg class="w-3 h-3 text-emerald-700" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        {{ $reviewSummary['verified_percentage'] ?? 100 }}% Verified Buyers
+                    </div>
+                @endif
+            </div>
+
+            <!-- Right: 5-Star Distribution Bars -->
+            <div class="md:col-span-8 space-y-2">
+                @foreach([5, 4, 3, 2, 1] as $star)
+                    @php
+                        $count = $reviewSummary['distribution'][$star] ?? 0;
+                        $pct = $reviewSummary['distribution_percentages'][$star] ?? 0;
+                    @endphp
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="w-12 font-medium text-ink shrink-0">{{ $star }} Star</span>
+                        <div class="flex-1 h-2 rounded-full bg-paper border border-hairline overflow-hidden">
+                            <div class="h-full bg-goldLuxury rounded-full transition-all duration-500" style="width: {{ $pct }}%"></div>
+                        </div>
+                        <span class="w-10 text-right text-sage text-[11px] shrink-0">{{ $count }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Write a Review Form (Collapsible) -->
+        <div x-show="showForm" x-transition.opacity.duration.200ms class="bg-paper p-6 sm:p-8 rounded-3xl border border-hairline shadow-sm space-y-6">
+            <div class="border-b border-hairline pb-4">
+                <h3 class="text-lg font-serif font-bold text-ink">Share Your Product Experience</h3>
+                <p class="text-xs text-sage mt-0.5">Your honest review helps our luxury client community and informs our curation team.</p>
+            </div>
+
+            <form action="{{ route('store.product.review', $product->id) }}" method="POST" class="space-y-5">
+                @csrf
+
+                <!-- Rating Selector -->
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-2">Overall Rating *</label>
+                    <div class="flex items-center gap-2">
+                        <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
+                            <button
+                                type="button"
+                                @click="selectedRating = star"
+                                class="text-2xl transition-transform hover:scale-125 focus:outline-none cursor-pointer"
+                                :class="star <= selectedRating ? 'text-goldLuxury' : 'text-hairline'">
+                                ★
+                            </button>
+                        </template>
+                        <span class="text-xs font-semibold text-sage ml-2" x-text="selectedRating + ' out of 5 stars'"></span>
+                    </div>
+                    <input type="hidden" name="rating" :value="selectedRating">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-ink mb-1.5">Your Name *</label>
+                        <input
+                            type="text"
+                            name="customer_name"
+                            value="{{ auth()->user()?->name ?? '' }}"
+                            placeholder="e.g. Devon Lane"
+                            required
+                            class="w-full px-4 py-2.5 rounded-xl bg-cream border border-hairline text-ink text-xs focus:outline-none focus:border-forest transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-ink mb-1.5">Email (For Purchase Verification)</label>
+                        <input
+                            type="email"
+                            name="customer_email"
+                            value="{{ auth()->user()?->email ?? '' }}"
+                            placeholder="e.g. devon@omniluxe.store"
+                            class="w-full px-4 py-2.5 rounded-xl bg-cream border border-hairline text-ink text-xs focus:outline-none focus:border-forest transition-colors">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1.5">Review Headline</label>
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="e.g. Flawless craftsmanship, exceptional delivery"
+                        class="w-full px-4 py-2.5 rounded-xl bg-cream border border-hairline text-ink text-xs focus:outline-none focus:border-forest transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1.5">Your Review *</label>
+                    <textarea
+                        name="comment"
+                        rows="4"
+                        placeholder="Detail your impressions regarding the design, materials, performance, and boutique packaging..."
+                        required
+                        class="w-full px-4 py-2.5 rounded-xl bg-cream border border-hairline text-ink text-xs focus:outline-none focus:border-forest transition-colors"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button
+                        type="button"
+                        @click="showForm = false"
+                        class="px-5 py-2.5 rounded-full border border-hairline text-ink hover:bg-cream text-xs font-semibold transition-colors">
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="px-6 py-2.5 rounded-full bg-forest text-white hover:bg-forest/90 font-display font-bold text-xs shadow-sm transition-all cursor-pointer">
+                        Publish Review
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Reviews Feed -->
+        <div class="space-y-4">
+            @forelse($reviews ?? [] as $rev)
+                <div class="bg-paper p-6 rounded-3xl border border-hairline shadow-2xs space-y-3">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-ink text-sm">{{ $rev->customer_name }}</span>
+                                @if($rev->is_verified_purchase)
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-goldLuxury bg-cream px-2 py-0.5 rounded-full border border-goldLuxury/30">
+                                        <svg class="w-3 h-3 text-goldLuxury" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        Verified Buyer
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="text-[11px] text-sage mt-0.5">{{ $rev->created_at->format('M d, Y') }}</div>
+                        </div>
+
+                        <div class="text-goldLuxury text-sm">
+                            @for($i = 1; $i <= 5; $i++)
+                                <span>{{ $i <= $rev->rating ? '★' : '☆' }}</span>
+                            @endfor
+                        </div>
+                    </div>
+
+                    @if($rev->title)
+                        <h4 class="font-serif font-bold text-ink text-sm">{{ $rev->title }}</h4>
+                    @endif
+
+                    <p class="text-xs text-ink/80 leading-relaxed font-sans">{{ $rev->comment }}</p>
+
+                    <div class="pt-2 flex items-center justify-between text-xs text-sage border-t border-hairline/60">
+                        <form action="{{ route('store.review.helpful', $rev->uuid) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center gap-1.5 text-xs text-sage hover:text-forest transition-colors cursor-pointer">
+                                <span>👍 Helpful</span>
+                                @if($rev->helpful_votes > 0)
+                                    <span class="font-bold text-ink">({{ $rev->helpful_votes }})</span>
+                                @endif
+                            </button>
+                        </form>
+                        <span class="text-[10px]">OmniLuxe Authenticated Review</span>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-12 bg-cream/60 rounded-3xl border border-hairline p-6">
+                    <div class="text-3xl text-goldLuxury mb-2">★</div>
+                    <h4 class="font-serif font-bold text-ink text-base">Be the First to Review</h4>
+                    <p class="text-xs text-sage mt-1 max-w-sm mx-auto">Share your impression of the {{ $product->name }} with fellow clients.</p>
+                    <button
+                        type="button"
+                        @click="showForm = true"
+                        class="mt-4 px-5 py-2 rounded-full bg-forest text-white text-xs font-bold transition-all shadow-xs">
+                        Write a Review
+                    </button>
+                </div>
+            @endforelse
         </div>
     </div>
 </div>

@@ -59,15 +59,51 @@ class WebStoreController extends Controller
     /**
      * Show single product details.
      */
-    public function show($id, \App\Services\StockTransferService $transferService)
+    public function show($id, \App\Services\StockTransferService $transferService, \App\Services\ReviewService $reviewService)
     {
-        $product = Product::with(['category', 'brand', 'variants', 'inventories'])
+        $product = Product::with(['category', 'brand', 'variants', 'inventories', 'approvedReviews'])
             ->findOrFail($id);
 
         $store = Store::first();
         $boutiqueStocks = $transferService->getCrossStoreStock($product->id);
+        $reviewSummary = $reviewService->getSummary($product);
+        $reviews = $product->approvedReviews()->latest('id')->take(20)->get();
 
-        return view('store.product', compact('product', 'store', 'boutiqueStocks'));
+        return view('store.product', compact('product', 'store', 'boutiqueStocks', 'reviewSummary', 'reviews'));
+    }
+
+    /**
+     * Submit a customer review from web storefront.
+     */
+    public function submitReview(Request $request, $id, \App\Services\ReviewService $reviewService)
+    {
+        $product = Product::findOrFail($id);
+
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'title' => 'nullable|string|max:150',
+            'comment' => 'required|string|min:5|max:2000',
+            'customer_name' => 'nullable|string|max:100',
+            'customer_email' => 'nullable|email|max:150',
+        ]);
+
+        $currentUser = \Illuminate\Support\Facades\Auth::user();
+        $customer = $currentUser ? Customer::where('email', $currentUser->email)->first() : null;
+
+        $reviewService->submitReview($product, $validated, $customer);
+
+        return back()->with('success', 'Thank you! Your product review has been submitted.');
+    }
+
+    /**
+     * Cast helpful vote from web storefront.
+     */
+    public function voteReviewHelpful(string $uuid, \App\Services\ReviewService $reviewService)
+    {
+        $review = \App\Models\ProductReview::where('uuid', $uuid)->firstOrFail();
+        $reviewService->voteHelpful($review);
+
+        return back()->with('success', 'Thank you for your feedback.');
     }
 
     /**

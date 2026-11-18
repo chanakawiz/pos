@@ -33,6 +33,11 @@ Route::prefix('v1')->group(function () {
     // VIP Loyalty Tier System
     Route::get('/loyalty/tiers', [\App\Http\Controllers\Api\v1\CustomerController::class, 'tiers']);
 
+    // Customer Product Reviews & Verified Ratings
+    Route::get('/products/{identifier}/reviews', [\App\Http\Controllers\Api\v1\ReviewController::class, 'index']);
+    Route::post('/products/{identifier}/reviews', [\App\Http\Controllers\Api\v1\ReviewController::class, 'store']);
+    Route::post('/reviews/{uuid}/helpful', [\App\Http\Controllers\Api\v1\ReviewController::class, 'voteHelpful']);
+
     // Production Health Check & Audits
     Route::get('/health/live', [\App\Http\Controllers\HealthController::class, 'live']);
     Route::get('/health/ready', [\App\Http\Controllers\HealthController::class, 'ready']);
