@@ -58,8 +58,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/sales', [SaleController::class, 'index']);
         Route::get('/sales/{uuid}', [SaleController::class, 'show']);
         Route::post('/sales/{uuid}/refund', [\App\Http\Controllers\Api\v1\RefundController::class, 'store']);
+        Route::post('/sales/{uuid}/resend-sms', [\App\Http\Controllers\Api\v1\SmsController::class, 'resendReceipt']);
         Route::get('/refunds', [\App\Http\Controllers\Api\v1\RefundController::class, 'index']);
         Route::get('/refunds/{uuid}', [\App\Http\Controllers\Api\v1\RefundController::class, 'show']);
+
+        // Omnichannel SMS Delivery Logs & Telemetry
+        Route::get('/sms/logs', [\App\Http\Controllers\Api\v1\SmsController::class, 'logs']);
+        Route::post('/sms/test-send', [\App\Http\Controllers\Api\v1\SmsController::class, 'testSend']);
 
         // Customers & Loyalty
         Route::get('/customers', [\App\Http\Controllers\Api\v1\CustomerController::class, 'index']);

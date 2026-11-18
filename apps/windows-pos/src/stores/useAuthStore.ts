@@ -24,10 +24,12 @@ interface AuthState {
   checkAuth: () => Promise<void>;
 }
 
+const DEFAULT_DEVICE_UUID = '74f5d81c-0c7e-48f4-8f1b-163bb8bece79';
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: cachedUser(),
   token: localStorage.getItem('pos_token'),
-  deviceUuid: localStorage.getItem('pos_device_uuid') || import.meta.env.VITE_DEVICE_UUID || '',
+  deviceUuid: localStorage.getItem('pos_device_uuid') || import.meta.env.VITE_DEVICE_UUID || DEFAULT_DEVICE_UUID,
   isLoading: false,
   error: null,
 

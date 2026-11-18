@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { usePosStore } from '../stores/usePosStore';
-import { Printer, Check, X, ArrowRight, Barcode as BarcodeIcon } from 'lucide-react';
+import { api } from '../services/api';
+import { Printer, Check, X, ArrowRight, Barcode as BarcodeIcon, MessageSquare, Send } from 'lucide-react';
 
 type ReceiptLanguage = 'bilingual' | 'si' | 'en';
 
@@ -9,6 +10,9 @@ export const ReceiptModal: React.FC = () => {
   const lang = (language as ReceiptLanguage) || 'en';
   const [isPrinting, setIsPrinting] = useState(false);
   const [printFeedback, setPrintFeedback] = useState<string | null>(null);
+  const [smsPhone, setSmsPhone] = useState<string>((lastCompletedSale as any)?.customer?.phone || '');
+  const [isSendingSms, setIsSendingSms] = useState(false);
+  const [smsFeedback, setSmsFeedback] = useState<string | null>(null);
   const printLock = useRef(false);
 
   if (!lastCompletedSale) return null;
@@ -45,6 +49,21 @@ export const ReceiptModal: React.FC = () => {
     } finally {
       printLock.current = false;
       setIsPrinting(false);
+    }
+  };
+
+  const handleSendSms = async () => {
+    if (isSendingSms || !smsPhone.trim()) return;
+    setIsSendingSms(true);
+    setSmsFeedback(null);
+    try {
+      const saleId = (lastCompletedSale as any).uuid || (lastCompletedSale as any).transaction_uuid || invoice_number;
+      const res = await api.sendSmsReceipt(saleId, smsPhone.trim());
+      setSmsFeedback(res.message || 'Digital e-receipt SMS dispatched successfully!');
+    } catch (err: any) {
+      setSmsFeedback(err.response?.data?.message || 'Failed to dispatch SMS receipt. Check network.');
+    } finally {
+      setIsSendingSms(false);
     }
   };
 
@@ -225,6 +244,32 @@ export const ReceiptModal: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* SMS Digital E-Receipt Dispatch */}
+        <div className="px-4 py-2.5 bg-slate-950/70 border-t border-slate-800 flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <input
+              type="text"
+              placeholder="Customer mobile for SMS e-receipt (e.g. 0771234567)"
+              value={smsPhone}
+              onChange={(e) => setSmsPhone(e.target.value)}
+              className="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+            />
+            <button
+              type="button"
+              onClick={handleSendSms}
+              disabled={isSendingSms || !smsPhone.trim()}
+              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-emerald-600/30"
+            >
+              <Send className="w-3 h-3" />
+              <span>{isSendingSms ? 'Sending…' : 'Send SMS'}</span>
+            </button>
+          </div>
+          {smsFeedback && (
+            <p className="text-[11px] text-emerald-400 font-medium pl-5">{smsFeedback}</p>
+          )}
         </div>
 
         {/* Modal Actions */}

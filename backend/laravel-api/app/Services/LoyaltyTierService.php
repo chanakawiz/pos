@@ -9,8 +9,11 @@ use Illuminate\Support\Facades\DB;
 class LoyaltyTierService
 {
     public function __construct(
-        protected CustomerNotifier $customerNotifier
-    ) {}
+        protected CustomerNotifier $customerNotifier,
+        protected ?SmsService $smsService = null
+    ) {
+        $this->smsService = $smsService ?: app(SmsService::class);
+    }
 
     /**
      * Determine VIP loyalty tier based on cumulative spend and point accumulation.
@@ -81,6 +84,8 @@ class LoyaltyTierService
                         'invoice_number' => $sale?->invoice_number,
                     ]
                 );
+
+                $this->smsService?->sendVipTierUpgrade($lockedCustomer, $oldTier, $newTier);
             }
 
             $lockedCustomer->total_spend = $newSpend;

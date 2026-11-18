@@ -371,6 +371,34 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 20: Omnichannel Multi-Gateway SMS E-Receipts & Delivery Alerts (`✅ COMPLETED`)
+- [x] **Multi-Driver SMS Gateway Engine (`config/sms.php` & `SmsService`)**:
+  - Architecture supporting driver connectors: `NotifyLkDriver` (Sri Lanka telecom gateway), `TwilioDriver` (international), `DialogEsmsDriver` (Dialog Axiata eSMS), `LogDriver` (local development), and `MockDriver` (in-memory testing).
+  - Phone normalization engine converting Sri Lankan local numbers (`077...`, `77...`, `9477...`) to standard E.164 (`+9477...`) and foreign international formats.
+  - Privacy masking engine formatting numbers (e.g. `+94 77 •••• 567`) for secure displays, receipts, and public tracking.
+  - Database audit ledger via migration `2026_11_18_000001_create_sms_logs_table.php` and `SmsLog` model tracking delivery status, gateway references, costs, and error messages.
+- [x] **Automated Omnichannel Event Dispatches**:
+  - **In-Store Desktop POS & Web Store Sales**: `BillingService::processSale()` automatically dispatches digital e-receipt SMS with permanent URL (`/receipt/{invoice}`) and helpline contacts upon sale finalization.
+  - **Courier Order Dispatch**: `OrderTrackingService::updateFulfillment()` automatically dispatches SMS with courier name, tracking number, and live tracking URL (`/track/{invoice}`).
+  - **Order Delivery**: Automated delivery confirmation SMS with digital warranty lookup link.
+  - **VIP Loyalty Tier Upgrades**: `LoyaltyTierService::processSaleSpend()` automatically dispatches congratulatory SMS detailing newly unlocked VIP tier (Gold Elite / Black Diamond) and automatic privilege discount perks.
+- [x] **REST APIs & Cashier Desktop POS Integration**:
+  - `POST /api/v1/sales/{uuid}/resend-sms`: Allows cashiers or customers to trigger or re-send digital SMS e-receipts to any provided mobile number.
+  - `GET /api/v1/sms/logs`: Paginated audit log retrieval with store and status filtering.
+  - `POST /api/v1/sms/test-send`: Gateway connectivity test endpoint for administrators.
+  - `ReceiptModal.tsx` in `apps/windows-pos`: Instant mobile input bar allowing cashiers to dispatch digital SMS e-receipts with real-time feedback.
+- [x] **Filament ERP Control Room (`SmsLogResource`)**:
+  - Located under *Settings & System* with search, event badges (`POS E-Receipt`, `Web Store Order`, `Courier Dispatch`, `VIP Tier Upgrade`), gateway driver badges, status filtering, and 1-click **Resend SMS** and **Test Gateway Dispatch** action modals.
+  - Added direct `SMS Receipt` modal action to `SaleResource` in Filament.
+- [x] **100% Passing Automated Tests**:
+  - 9/9 tests in `SmsGatewayTest.php` passing all assertions (phone normalization, privacy masking, mock dispatches, failure handling, sale receipts, courier tracking, VIP upgrade, resend API, logs API, test send API).
+  - 83/83 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`) and Vite build verified.
+  - 22/22 Flutter mobile tests passing (`flutter test`).
+  - **Total: 146/146 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |

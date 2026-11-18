@@ -180,7 +180,7 @@ Verification: `flutter analyze` passes with 0 issues; `flutter test` passes with
 | **SEC-001** | Screen-Level Customer Privacy Masking | P0 | `✅ DONE` | Mask customer phone numbers (e.g. `077 **** 567`) in checkout and queue displays to prevent shoulder-surfing. |
 | **SEC-002** | SMS E-Receipt Service Architecture | P0 | `✅ DONE` | `SmsService` driver architecture supporting digital bill generation, thank-you messages, and receipt links. |
 | **SEC-003** | Checkout SMS Bill Toggle & Mobile Capture | P0 | `✅ DONE` | Toggle switch in POS `PaymentDialog` with customer mobile input and automatic e-receipt dispatch. |
-| **SEC-004** | SMS Gateway Provider Integrations | P1 | `⏳ PENDING` | Live API driver connectors for Notify.lk, Twilio, Dialog, and Mobitel (gateway credentials can be configured per merchant). |
+| **SEC-004** | SMS Gateway Provider Integrations | P1 | `✅ DONE` | Live API driver connectors for Notify.lk, Twilio, Dialog Axiata eSMS, Log, and Mock drivers with E.164 normalization, privacy masking, and automatic dispatches on sales, dispatches, and VIP upgrades. |
 | **SEC-005** | Customer Data Protection & GDPR Compliance | P1 | `✅ DONE` | Cryptographic data hashing for customer ledgers and phone masking on public receipt capabilities. |
 
 ---

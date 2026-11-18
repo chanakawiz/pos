@@ -240,6 +240,33 @@ class SaleResource extends Resource
                     })
                     ->visible(fn (Sale $record): bool => $record->fulfillment_status === 'dispatched'),
 
+                Tables\Actions\Action::make('send_sms_receipt')
+                    ->label('SMS Receipt')
+                    ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                    ->color('info')
+                    ->form([
+                        Forms\Components\TextInput::make('phone')
+                            ->label('Recipient Phone Number')
+                            ->default(fn (Sale $record) => $record->customer?->phone ?? ($record->delivery_phone ?? ''))
+                            ->required(),
+                    ])
+                    ->action(function (Sale $record, array $data, \App\Services\SmsService $smsService) {
+                        $log = $smsService->sendSaleReceipt($record, $data['phone']);
+                        if ($log && $log->status === 'sent') {
+                            Notification::make()
+                                ->title('SMS Receipt Dispatched')
+                                ->body("Sent to {$log->masked_phone} (Ref: {$log->gateway_reference})")
+                                ->success()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title('SMS Dispatch Failed')
+                                ->body($log?->error_message ?: 'Failed to dispatch SMS')
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

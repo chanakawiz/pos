@@ -17,7 +17,7 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  const deviceUuid = localStorage.getItem('pos_device_uuid') || import.meta.env.VITE_DEVICE_UUID;
+  const deviceUuid = localStorage.getItem('pos_device_uuid') || import.meta.env.VITE_DEVICE_UUID || '74f5d81c-0c7e-48f4-8f1b-163bb8bece79';
   if (deviceUuid) {
     config.headers['X-Device-UUID'] = deviceUuid;
   }
@@ -76,6 +76,10 @@ export const api = {
   },
   getRefunds: async (params?: { search?: string }) => {
     const res = await apiClient.get('/refunds', { params });
+    return res.data;
+  },
+  sendSmsReceipt: async (saleUuid: string, phone?: string) => {
+    const res = await apiClient.post(`/sales/${saleUuid}/resend-sms`, { phone });
     return res.data;
   },
 

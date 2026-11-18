@@ -25,7 +25,10 @@ class BillingService
         protected CustomerNotifier $customerNotifier,
         protected InventoryBroadcaster $inventoryBroadcaster,
         protected LoyaltyTierService $loyaltyTierService,
-    ) {}
+        protected ?SmsService $smsService = null,
+    ) {
+        $this->smsService = $smsService ?: app(SmsService::class);
+    }
 
     /**
      * Process and commit a sale transaction.
@@ -188,6 +191,9 @@ class BillingService
 
             // Real-Time Reverb WebSocket private customer notification + background FCM push
             $this->customerNotifier->orderConfirmed($sale);
+
+            // Omnichannel SMS digital e-receipt dispatch
+            $this->smsService?->sendSaleReceipt($sale);
 
             // Real-time stock availability broadcast across Reverb
             $productIds = collect($saleItemsToInsert)->pluck('product.id')->filter()->all();

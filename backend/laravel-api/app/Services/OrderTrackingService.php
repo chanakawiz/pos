@@ -14,10 +14,14 @@ use InvalidArgumentException;
 class OrderTrackingService
 {
     protected ?CustomerNotifier $customerNotifier;
+    protected ?SmsService $smsService;
 
-    public function __construct(?CustomerNotifier $customerNotifier = null)
-    {
+    public function __construct(
+        ?CustomerNotifier $customerNotifier = null,
+        ?SmsService $smsService = null
+    ) {
         $this->customerNotifier = $customerNotifier ?? app(CustomerNotifier::class);
+        $this->smsService = $smsService ?? app(SmsService::class);
     }
     /**
      * Find an order by invoice number, tracking number, or UUID.
@@ -150,13 +154,17 @@ class OrderTrackingService
 
         $sale->save();
 
-        // Trigger real-time customer dispatch / delivery alerts
-        if ($sale->customer) {
-            if ($status === 'dispatched') {
+        // Trigger real-time customer dispatch / delivery alerts & SMS notifications
+        if ($status === 'dispatched') {
+            if ($sale->customer) {
                 $this->customerNotifier?->orderDispatched($sale);
-            } elseif ($status === 'delivered') {
+            }
+            $this->smsService?->sendOrderDispatched($sale, $sale->courier_name ?? 'Priority Dispatch', $sale->tracking_number ?? 'N/A');
+        } elseif ($status === 'delivered') {
+            if ($sale->customer) {
                 $this->customerNotifier?->orderDelivered($sale);
             }
+            $this->smsService?->sendOrderDelivered($sale);
         }
 
         return $sale->fresh(['store', 'customer', 'items.product', 'paymentTransactions', 'returnRequests']);

@@ -1,10 +1,10 @@
 # OmniLuxe Store POS & Omnichannel Retail Platform — Current Project Status
 
-> **Audit Date**: 2026-11-01  
+> **Audit Date**: 2026-11-18  
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 4 Pillars (Consumer Mobile App + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (70 backend tests, 41 native Electron tests, 22 Flutter automated tests = **133/133 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (83 backend tests, 41 native Electron tests, 22 Flutter automated tests = **146/146 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -19,11 +19,12 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │
 │     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │
-│  70 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│
+│  83 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│
 │  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │
 │  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │
 │  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │
-│  Health: /health/ready  │  VIP Gift Card Accordion│  Central Inbox API Sync │  Gift Cards & VIP Disc. │
+│  Multi-Gateway SMS Logs │  VIP Gift Card Accordion│  Central Inbox API Sync │  Gift Cards & VIP Disc. │
+│  Health: /health/ready  │  Digital SMS E-Receipts │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -38,10 +39,11 @@
 | **Counter Device Registration** | `✅ DONE` | Seeded devices `COUNTER-01` (Flagship Lane 01), `COUNTER-02` (Express Lane 02), `COUNTER-03` (Kandy Galleria), `COUNTER-04` (Galle Fort). |
 | **Catalog & Multi-Branch Inventory** | `✅ DONE` | International luxury brands across Colombo Flagship, Kandy Galleria, and Galle Fort with atomic reservations and cross-branch stock inquiry. |
 | **VIP Gift Card & Store Credit Engine** | `✅ DONE` | `GiftCardService` with atomic redemption (`lockForUpdate`), public balance verification, cashier tender, and Filament admin management under *Sales & Fulfillment*. |
-| **Automated Loyalty Tier Engine** | `✅ DONE` | `LoyaltyTierService` with Silver (1.0x), Gold Elite (1.5x / 5% discount), and Black Diamond (2.0x / 10% discount) tiers automatically progressing on spend. |
+| **Automated Loyalty Tier Engine** | `✅ DONE` | `LoyaltyTierService` with Silver (1.0x), Gold Elite (1.5x / 5% discount), and Black Diamond (2.0x / 10% discount) tiers automatically progressing on spend with SMS congratulatory alerts. |
+| **Multi-Gateway SMS & E-Receipts Engine** | `✅ DONE` | `SmsService` with Notify.lk, Twilio, Dialog Axiata eSMS, Log, and Mock drivers, E.164 normalization, privacy masking, automated POS/web sale receipts, courier dispatch tracking, and Filament delivery logs (`SmsLogResource`). |
 | **Order Tracking & Returns Portal** | `✅ DONE` | Public self-service tracking at `/track/{invoice}`, customer return request submissions, courier telemetry, and concierge review. |
 | **Multi-Branch Dashboards** | `✅ DONE` | `BranchAnalyticsService` with cross-branch revenue/margin comparison, cashier velocity/discrepancy tracking, and stock aging transfer recommendations. |
-| **Filament v3 Admin Panel** | `✅ DONE` | Full enterprise control room at `http://127.0.0.1:8000/admin` with dedicated `BranchPerformance` page and custom analytics widgets. |
+| **Filament v3 Admin Panel** | `✅ DONE` | Full enterprise control room at `http://127.0.0.1:8000/admin` with dedicated `BranchPerformance` page, `SmsLogResource`, and custom analytics widgets. |
 | **Production Health Checks** | `✅ DONE` | High-frequency liveness `/health/live` and deep readiness probe `/health/ready` testing MySQL latency, cache responsiveness, and Reverb status. |
 
 ### 2.2 Web Storefront (`backend/laravel-api`)
@@ -53,6 +55,7 @@
 | **Cart Drawer & Gift Card Accordion**| `✅ DONE` | Slide-over cart drawer with gift card / voucher balance deduction and subtotal reactivity. |
 | **Order Tracking & RMA Portal** | `✅ DONE` | Interactive order lookup, live fulfillment progress stepper, and 14-day exchange/return claim wizard. |
 | **Reverb WebSocket Notifications** | `✅ DONE` | Instant floating toast notification alerts for new order dispatches and VIP rewards. |
+| **PWA & Offline Concierge Mode** | `✅ DONE` | Manifest.json, service worker caching (`omniluxe-cache-v1`), and offline fallback at `/offline`. |
 
 ### 2.3 Consumer Mobile Shopping App (`apps/mobile-pos`)
 | Feature | Status | Notes |
@@ -67,8 +70,9 @@
 ### 2.4 Dedicated In-Store Cashier POS (`apps/windows-pos`)
 | Feature | Status | Notes |
 | :--- | :---: | :--- |
-| **Electron & React 18 Counter Terminal** | `✅ DONE` | In-store register checkout station for cashiers and counter staff. |
+| **Electron & React 18 Counter Terminal** | `✅ DONE` | In-store register checkout station for cashiers and counter staff with resilient device UUID fallback. |
 | **Hardware Barcode & ESC/POS Engine** | `✅ DONE` | Fast HID wedge listener (<60ms), 80mm/58mm thermal receipt printing, and RJ11 cash drawer kick. |
+| **Instant SMS E-Receipt Dispatch Bar** | `✅ DONE` | Dedicated mobile input in `ReceiptModal.tsx` allowing cashiers to dispatch digital SMS e-receipts with real-time delivery confirmation. |
 | **Cross-Branch Stock Lookup Modal** | `✅ DONE` | Alt+S hotkey opening cross-store stock inspection across Colombo, Kandy, and Galle branches. |
 | **Gift Card Tender & Tier Discounts** | `✅ DONE` | Instant voucher verification in `PaymentModal.tsx` and automated VIP tier discount deduction upon customer attachment. |
 | **Durable Offline Storage & Sync** | `✅ DONE` | Native SQLite WAL database with idempotent queue push (`/api/v1/sync/push`) and delta pull (`/api/v1/sync/pull`). |
@@ -82,10 +86,10 @@
 ======================================================================
 Channel                          Test Suite           Status
 ======================================================================
-Laravel 11 ERP & API Backend     php artisan test     70/70 PASSED (566 assertions)
+Laravel 11 ERP & API Backend     php artisan test     83/83 PASSED (651 assertions)
 Windows Desktop POS (Electron)   npm test             41/41 PASSED (0 regressions)
 Flutter Mobile Consumer App      flutter test         22/22 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         133/133 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         146/146 PASSED (100%)
 ======================================================================
 ```
