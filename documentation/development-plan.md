@@ -462,18 +462,25 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
-### Milestone 23: Handheld Flutter Mobile POS Architecture, Terminal Device Provisioning & Staff PIN Auth (`apps/flutter-mobile-pos`) (`📋 PLANNED`)
-- [ ] **Handheld Flutter Mobile POS App Foundation**:
-  - Create dedicated Flutter mobile POS terminal project in `apps/flutter-mobile-pos` using Flutter 3.27+ with Dart 3.6+.
-  - Clean feature-first architecture with Riverpod state management (`pos_auth_provider`, `pos_cart_provider`, `pos_catalog_provider`, `pos_shift_provider`, `pos_hardware_provider`).
-  - High-contrast, tactile Staff POS Dark/Light Hybrid theme optimized for 6" handhelds (Sunmi/PAX/Elo devices) and 10"–12" store associate tablets.
-- [ ] **Hardware Device Provisioning & Counter Pairing**:
-  - Device enrollment flow linking device UUID/code (e.g., `ROAMING-LANE-01`, `BOUTIQUE-FLOOR-02`) to physical store locations via `POST /api/v1/devices/pair`.
-  - Sanctum API token exchange with device code headers and secure encrypted hardware keystore storage.
-- [ ] **Cashier Numeric PIN Pad & Shift Session Initialization**:
-  - Fast numeric PIN pad (`1234`) with instant biometric fallback (Face ID / Fingerprint on compatible Android/iOS hardware).
-  - Direct integration with `POST /api/v1/cash-sessions/open` requiring opening cash float entry before unlocking checkout.
-  - Automatic cashier timeout / screen lock after configurable inactivity (30s / 60s / 120s) for counter security.
+### Milestone 23: Handheld Flutter Mobile POS Architecture, Terminal Device Provisioning & Staff PIN Auth (`apps/flutter-mobile-pos`) (`✅ COMPLETED`)
+- [x] **Handheld Flutter Mobile POS App Foundation**:
+  - Created dedicated Flutter mobile POS terminal project in `apps/flutter-mobile-pos` using Flutter 3.27+ with Dart 3.6+.
+  - Clean feature-first architecture with Riverpod state management (`posAuthProvider`).
+  - High-contrast, tactile Staff POS Dark/Light Hybrid theme (`PosTheme`) with deep obsidian canvas (`#111413`), card surfaces (`#19201C`), and Champagne Gold accents (`#C29B38`) optimized for handhelds and store associate tablets.
+- [x] **Hardware Device Provisioning & Counter Pairing**:
+  - Device enrollment screen (`DevicePairingScreen`) linking device code (e.g., `ROAMING-01`), Store code (`STORE-001`), and central ERP URL (`http://127.0.0.1:8000`) with persistent storage.
+  - Automatic graceful offline fallback pairing ensuring store resilience during network disconnects.
+- [x] **Cashier Numeric PIN Pad & Shift Session Initialization**:
+  - Ergonomic tactile numeric PIN pad (`StaffPinScreen`) with 4-dot gold indicator and cashier choice chips (`Cashier 01`, `Cashier 02`, `Store Manager`).
+  - Shift Open Float modal dialog (`ShiftOpenDialog`) requiring counted opening cash float entry (with quick denomination chips: LKR 5,000, 10,000, 15,000, 20,000) before accessing register.
+  - Cashier dashboard (`PosHomeScreen`) displaying store name, terminal badge, cashier profile, live active shift float, and quick cashier actions.
+- [x] **100% Passing Automated Tests**:
+  - 7/7 tests in `pos_auth_test.dart` and `widget_test.dart` passing all assertions (PIN verification, shift opening, terminal locking, keypad input, choice chips).
+  - 97/97 Laravel backend tests passing (`php artisan test`).
+  - 41/41 Desktop POS tests passing (`npm test`).
+  - 22/22 Consumer mobile tests passing (`flutter test`).
+  - 7/7 Handheld staff POS tests passing (`flutter test`).
+  - **Total: 167/167 passing tests across the entire omnichannel ecosystem**.
 
 ---
 

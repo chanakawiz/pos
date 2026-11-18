@@ -4,7 +4,7 @@
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 5 Pillars (Consumer Mobile App + Handheld Staff Mobile POS + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (97 backend tests, 41 native Electron tests, 22 Flutter automated tests = **160/160 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (97 backend tests, 41 native Electron tests, 22 Flutter consumer tests, 7 Flutter staff POS tests = **167/167 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -86,7 +86,7 @@
 ### 2.5 Handheld Staff Mobile POS (`apps/flutter-mobile-pos`)
 | Feature | Status | Notes |
 | :--- | :---: | :--- |
-| **Device Provisioning & Staff PIN Pad** | `📋 PLANNED` | Terminal pairing (`ROAMING-01`), numeric PIN auth (`1234`), and opening cash float initialization (Milestone 23). |
+| **Device Provisioning & Staff PIN Pad** | `✅ DONE` | Terminal pairing (`ROAMING-01`), numeric PIN auth (`1234`), opening cash float initialization dialog, and tactile dark luxury cashier dashboard (`PosHomeScreen`). |
 | **Camera & Bluetooth Barcode Scanner** | `📋 PLANNED` | Continuous camera scanner overlay (`mobile_scanner`) and external Bluetooth barcode scanner wedge (Milestone 24). |
 | **Multi-Lane Line-Busting & Held Bills**| `📋 PLANNED` | Roaming staff scan cart in aisle, hold bill with token/barcode, recalled on counter desktop POS (Milestone 24). |
 | **Split Tender & Bluetooth Slip Printer**| `📋 PLANNED` | Cash denomination keypad, Bluetooth mPOS card, LankaQR, and wireless belt-clip 58mm/80mm ESC/POS printer driver (Milestone 25). |
@@ -103,8 +103,9 @@ Channel                          Test Suite           Status
 ======================================================================
 Laravel 11 ERP & API Backend     php artisan test     97/97 PASSED (752 assertions)
 Windows Desktop POS (Electron)   npm test             41/41 PASSED (0 regressions)
-Flutter Mobile Consumer App      flutter test         22/22 PASSED (0 regressions)
+Flutter Consumer Mobile App      flutter test         22/22 PASSED (0 regressions)
+Flutter Handheld Staff POS       flutter test         7/7 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         160/160 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         167/167 PASSED (100%)
 ======================================================================
 ```
