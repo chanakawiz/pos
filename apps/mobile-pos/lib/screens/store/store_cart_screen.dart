@@ -247,6 +247,72 @@ class StoreCartScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Promo Code & VIP Gift Card Quick Bar
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.forest,
+                                  side: const BorderSide(color: AppColors.border),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onPressed: () => _showPromoOrGiftDialog(context, ref, isGiftCard: false),
+                                icon: const Icon(Icons.local_offer_outlined, size: 15),
+                                label: Text(
+                                  cart.promoCode ?? 'Add Promo Code',
+                                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.gold,
+                                  side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onPressed: () => _showPromoOrGiftDialog(context, ref, isGiftCard: true),
+                                icon: const Icon(Icons.card_giftcard_outlined, size: 15),
+                                label: Text(
+                                  cart.giftCardCode ?? 'VIP Gift Card',
+                                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (cart.promoCode != null || cart.giftCardCode != null) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              if (cart.promoCode != null)
+                                InputChip(
+                                  backgroundColor: AppColors.cream,
+                                  label: Text(
+                                    '${cart.promoCode} (-${currencyFormatter.format(cart.promoDiscount)})',
+                                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.forest),
+                                  ),
+                                  onDeleted: () => ref.read(cartProvider.notifier).clearPromoCode(),
+                                ),
+                              if (cart.giftCardCode != null)
+                                InputChip(
+                                  backgroundColor: AppColors.cream,
+                                  label: Text(
+                                    '${cart.giftCardCode} (-${currencyFormatter.format(cart.giftCardApplied)})',
+                                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.gold),
+                                  ),
+                                  onDeleted: () => ref.read(cartProvider.notifier).clearGiftCard(),
+                                ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -267,6 +333,30 @@ class StoreCartScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
+                        if (cart.totalSavings > 0) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Promo & Gift Card Savings',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: AppColors.forest,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                '-${currencyFormatter.format(cart.totalSavings)}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.forest,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 6),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -288,7 +378,29 @@ class StoreCartScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total Payable',
+                              style: GoogleFonts.outfit(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              currencyFormatter.format(cart.grandTotal),
+                              style: GoogleFonts.outfit(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.forest,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -324,6 +436,84 @@ class StoreCartScreen extends ConsumerWidget {
                 ),
               ],
             ),
+    );
+  }
+
+  void _showPromoOrGiftDialog(BuildContext context, WidgetRef ref, {required bool isGiftCard}) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.border),
+        ),
+        title: Text(
+          isGiftCard ? 'Apply VIP Gift Card' : 'Apply Seasonal Promo Code',
+          style: GoogleFonts.outfit(color: AppColors.forest, fontWeight: FontWeight.bold, fontSize: 17),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: ctrl,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                hintText: isGiftCard ? 'GC-XXXX-XXXX-XXXX' : 'e.g. LUXE15 or WELCOME2500',
+                filled: true,
+                fillColor: AppColors.cream,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            if (!isGiftCard) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 6,
+                children: ['LUXE15', 'WELCOME2500', 'FLASH20']
+                    .map(
+                      (code) => ActionChip(
+                        backgroundColor: AppColors.cream,
+                        label: Text(code, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.forest)),
+                        onPressed: () => ctrl.text = code,
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.forest, foregroundColor: Colors.white),
+            onPressed: () async {
+              final value = ctrl.text.trim();
+              Navigator.pop(ctx);
+              if (value.isEmpty) return;
+              final notifier = ref.read(cartProvider.notifier);
+              final ok = isGiftCard ? await notifier.applyGiftCard(value) : await notifier.applyPromoCode(value);
+              if (!context.mounted) return;
+              final latest = ref.read(cartProvider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: ok ? AppColors.forest : AppColors.danger,
+                  content: Text(
+                    ok
+                        ? (isGiftCard ? 'Gift card ${latest.giftCardCode} applied!' : 'Promo ${latest.promoCode} applied!')
+                        : (latest.discountError ?? 'Could not apply code.'),
+                  ),
+                ),
+              );
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
     );
   }
 

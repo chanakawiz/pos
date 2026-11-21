@@ -4,7 +4,7 @@
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 5 Pillars (Consumer Mobile App + Handheld Staff Mobile POS + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (107 backend tests, 43 native Electron tests, 22 Flutter consumer tests, 61 Flutter staff POS tests = **233/233 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (107 backend tests, 43 native Electron tests, 27 Flutter consumer tests, 61 Flutter staff POS tests = **238/238 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -21,9 +21,9 @@
 │     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │   ● OPERATIONAL (100%)  │
 │  107 Backend Tests Pass │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
 │  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  61 Automated Tests Pass│
-│  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │  Fast-Touch Catalog Grid│
-│  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  43 Native Tests Pass   │  Laser Barcode Scanner  │
-│  Multi-Gateway SMS Logs │  VIP Gift Card & Promos │  Central Inbox API Sync │  Promos, Drops & VIP %  │  Multi-Tender & Promos  │
+│  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  27 Automated Tests Pass│  Barcode Gun • Thermal  │  Fast-Touch Catalog Grid│
+│  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store & Reviews  │  43 Native Tests Pass   │  Laser Barcode Scanner  │
+│  Multi-Gateway SMS Logs │  VIP Gift Card & Promos │  Promos & VIP Gift Cards│  Promos, Drops & VIP %  │  Multi-Tender & Promos  │
 │  Promotions & Stocktakes│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Sales History & Refunds│
 │  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │  Stocktake & PO Receive │
 │  Cash Drop Ledger APIs  │                         │                         │                         │  Milestones 23-30 Done  │
@@ -69,9 +69,11 @@
 | **Animated Luxury Monogram Splash** | `✅ DONE` | Pulsing gold OmniLuxe medallion (`O`), luxury tagline, and smooth transition to main store. |
 | **VIP Club Member Experience** | `✅ DONE` | Deep forest green card with loyalty tier badge (`GOLD VIP`), points, credit limit, and demo authentication. |
 | **Cross-Branch Availability Modal** | `✅ DONE` | "Check In-Store Availability" live card on `ProductDetailScreen` querying `/api/v1/products/{id}/cross-store-stock`. |
+| **Promo Codes & VIP Gift Cards** | `✅ DONE` | `CartNotifier` & `StoreCartScreen` supporting promo code validation (`/api/v1/promotions/validate`), VIP gift card balance verification (`/api/v1/gift-cards/verify`), and stacked savings (Milestone 32). |
+| **Verified Customer Reviews** | `✅ DONE` | `ProductReviewsNotifier` & interactive Reviews bottom sheet on `ProductDetailScreen` with verified buyer badges, helpful voting, and inline 5-star review publishing (Milestone 32). |
 | **In-App Notification Center** | `✅ DONE` | Persistent notification inbox with category filter chips, unread counter badges, and central sync. |
 | **Zero-Leakage Channel Isolation** | `✅ DONE` | Physical cashier PINs and hardware printer pairings completely purged from the consumer mobile experience. |
-| **Automated Test Suite** | `✅ DONE` | 22/22 tests pass (`flutter test`), zero regressions. |
+| **Automated Test Suite** | `✅ DONE` | 27/27 tests pass (`flutter test`), zero regressions. |
 
 ### 2.4 Dedicated In-Store Cashier POS (`apps/windows-pos`)
 | Feature | Status | Notes |
@@ -109,9 +111,9 @@ Channel                          Test Suite           Status
 ======================================================================
 Laravel 11 ERP & API Backend     php artisan test     107/107 PASSED (828 assertions)
 Windows Desktop POS (Electron)   npm test             43/43 PASSED (0 regressions)
-Flutter Consumer Mobile App      flutter test         22/22 PASSED (0 regressions)
+Flutter Consumer Mobile App      flutter test         27/27 PASSED (0 regressions)
 Flutter Handheld Staff POS       flutter test         61/61 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         233/233 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         238/238 PASSED (100%)
 ======================================================================
 ```

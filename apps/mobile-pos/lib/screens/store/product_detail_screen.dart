@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/network/api_client.dart';
 import '../../data/models/product.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/product_reviews_provider.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final ProductModel product;
@@ -528,6 +529,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 16),
+
+                  // Verified Customer Reviews & Star Ratings Preview Card
+                  _buildReviewsPreviewCard(context),
+
                   const SizedBox(height: 40),
                 ],
               ),
@@ -644,6 +650,312 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  String get _reviewIdentifier => widget.product.id?.toString() ?? widget.product.uuid;
+
+  Widget _buildReviewsPreviewCard(BuildContext context) {
+    final reviewsState = ref.watch(productReviewsProvider(_reviewIdentifier));
+
+    return InkWell(
+      onTap: () => _showReviewsBottomSheet(context),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border, width: 1.2),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.star_rounded, size: 22, color: AppColors.gold),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Customer Reviews (${reviewsState.averageRating} ★)',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${reviewsState.verifiedPercentage}% VERIFIED',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${reviewsState.count} authenticated client reviews • Tap to read or write a review',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showReviewsBottomSheet(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final titleCtrl = TextEditingController();
+    final commentCtrl = TextEditingController();
+    int selectedRating = 5;
+    bool showWriteForm = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final reviewsState = ref.watch(productReviewsProvider(_reviewIdentifier));
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                return DraggableScrollableSheet(
+                  initialChildSize: 0.78,
+                  minChildSize: 0.5,
+                  maxChildSize: 0.94,
+                  expand: false,
+                  builder: (_, scrollCtrl) {
+                    return Padding(
+                      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+                      child: ListView(
+                        controller: scrollCtrl,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'VERIFIED CLIENT REVIEWS',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.2,
+                                      color: AppColors.gold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${reviewsState.averageRating} ★ (${reviewsState.count} reviews)',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.forest,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () => setModalState(() => showWriteForm = !showWriteForm),
+                                child: Text(showWriteForm ? 'Close' : 'Write Review'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          if (showWriteForm) ...[
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              margin: const EdgeInsets.only(bottom: 14),
+                              decoration: BoxDecoration(
+                                color: AppColors.card,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Row(
+                                    children: List.generate(5, (i) {
+                                      final star = i + 1;
+                                      return IconButton(
+                                        icon: Icon(
+                                          star <= selectedRating ? Icons.star_rounded : Icons.star_border_rounded,
+                                          color: AppColors.gold,
+                                        ),
+                                        onPressed: () => setModalState(() => selectedRating = star),
+                                      );
+                                    }),
+                                  ),
+                                  TextField(
+                                    controller: nameCtrl,
+                                    decoration: const InputDecoration(labelText: 'Your Name *', isDense: true),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextField(
+                                    controller: titleCtrl,
+                                    decoration: const InputDecoration(labelText: 'Headline (Optional)', isDense: true),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextField(
+                                    controller: commentCtrl,
+                                    maxLines: 3,
+                                    decoration: const InputDecoration(labelText: 'Your Review *', isDense: true),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.forest,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: reviewsState.isSubmitting
+                                        ? null
+                                        : () async {
+                                            final ok = await ref
+                                                .read(productReviewsProvider(_reviewIdentifier).notifier)
+                                                .submitReview(
+                                                  customerName: nameCtrl.text,
+                                                  rating: selectedRating,
+                                                  title: titleCtrl.text,
+                                                  comment: commentCtrl.text,
+                                                );
+                                            if (ok) {
+                                              nameCtrl.clear();
+                                              titleCtrl.clear();
+                                              commentCtrl.clear();
+                                              setModalState(() => showWriteForm = false);
+                                            }
+                                          },
+                                    child: const Text('Publish Verified Review'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          ...reviewsState.reviews.map(
+                            (rev) => Container(
+                              padding: const EdgeInsets.all(14),
+                              margin: const EdgeInsets.only(bottom: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.card,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            rev.customerName,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          if (rev.isVerifiedPurchase) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.gold.withValues(alpha: 0.14),
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: const Text(
+                                                'Verified Buyer',
+                                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.gold),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      Text(
+                                        '${'★' * rev.rating}${'☆' * (5 - rev.rating)}',
+                                        style: const TextStyle(color: AppColors.gold, fontSize: 13),
+                                      ),
+                                    ],
+                                  ),
+                                  if (rev.title != null && rev.title!.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      rev.title!,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    rev.comment,
+                                    style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  InkWell(
+                                    onTap: () => ref
+                                        .read(productReviewsProvider(_reviewIdentifier).notifier)
+                                        .voteHelpful(rev.uuid),
+                                    child: Text(
+                                      '👍 Helpful (${rev.helpfulVotes})',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.forest,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 

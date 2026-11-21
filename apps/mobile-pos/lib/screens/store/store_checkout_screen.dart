@@ -70,7 +70,7 @@ class _StoreCheckoutScreenState extends ConsumerState<StoreCheckoutScreen> {
         storeUuid: 'store-colombo-flagship',
         deviceUuid: 'mobile-app-client',
         subtotal: cart.subtotal,
-        discountAmount: cart.billDiscount,
+        discountAmount: cart.totalSavings,
         taxAmount: cart.taxTotal,
         totalAmount: totalSnapshot,
         paidAmount: totalSnapshot,

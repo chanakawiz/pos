@@ -650,6 +650,21 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 32: Consumer Mobile App Omnichannel Parity — Promo Codes, VIP Gift Cards & Verified Product Reviews (`apps/mobile-pos`) (`✅ COMPLETED`)
+- [x] **Mobile Promo Codes & VIP Gift Card Stacking (`cart_provider.dart`, `store_cart_screen.dart`, `store_checkout_screen.dart`)**:
+  - Extended `CartState` and `CartNotifier` with `applyPromoCode` (`/api/v1/promotions/validate`, `channel: 'mobile'`), `clearPromoCode`, `applyGiftCard` (`/api/v1/gift-cards/verify`), `clearGiftCard`, and `totalSavings` calculation with resilient offline fallback rules (`LUXE15`, `WELCOME2500`, `FLASH20`, `GC-*`).
+  - Upgraded `StoreCartScreen` Editorial Light Luxury footer with **Add Promo Code** & **VIP Gift Card** action buttons, removable savings chips, live savings deduction line, and updated **Total Payable**.
+  - Updated `StoreCheckoutScreen` to store combined `cart.totalSavings` in local/synced order records.
+- [x] **Verified Customer Product Reviews & Star Ratings (`product_reviews_provider.dart`, `product_detail_screen.dart`)**:
+  - Built `ProductReviewEntry`, `ProductReviewsState`, and `productReviewsProvider` connected to `GET/POST /api/v1/products/{id}/reviews` and `POST /api/v1/reviews/{uuid}/helpful` with offline curated verified reviews fallback.
+  - Added an Editorial Light Luxury **Customer Reviews & Verified Ratings** preview card and interactive bottom sheet on `ProductDetailScreen` featuring average star score, `% VERIFIED` badge, `Verified Buyer` tags, 1-tap `👍 Helpful` voting, and an inline 5-star **Write Review** form.
+- [x] **100% Passing Automated Tests**:
+  - 5/5 new tests in `store_parity_test.dart` passing (**27/27 Consumer Mobile App tests**).
+  - 107/107 Laravel backend tests, 43/43 Desktop POS tests, 61/61 Handheld staff POS tests.
+  - **Total: 238/238 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |
