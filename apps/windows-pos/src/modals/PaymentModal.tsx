@@ -14,7 +14,7 @@ import { roundMoney } from '../../electron/money';
 import { openCashDrawer } from '../services/hardware';
 
 export const PaymentModal: React.FC = () => {
-  const { items, customer, billDiscount, getGrandTotal, clearCart } = useCartStore();
+  const { items, customer, billDiscount, promoCode, promoDiscount, getGrandTotal, clearCart } = useCartStore();
   const { closeModal, openModal, setLastCompletedSale } = usePosStore();
 
   const grandTotal = getGrandTotal();
@@ -100,7 +100,8 @@ export const PaymentModal: React.FC = () => {
       });
       const subtotal = roundMoney(saleItems.reduce((sum, item) => sum + item.subtotal, 0));
       const taxAmount = roundMoney(saleItems.reduce((sum, item) => sum + item.tax_amount, 0));
-      const totalAmount = roundMoney(Math.max(0, subtotal + taxAmount - billDiscount));
+      const combinedDiscount = roundMoney(billDiscount + promoDiscount);
+      const totalAmount = roundMoney(Math.max(0, subtotal + taxAmount - combinedDiscount));
       const paidAmount = paymentMethod === 'cash' ? tenderedAmount : totalAmount;
       if (!Number.isFinite(paidAmount) || paidAmount < totalAmount) throw new Error('Insufficient payment.');
 
@@ -125,7 +126,9 @@ export const PaymentModal: React.FC = () => {
         invoice_number: `POS-${transactionUuid.current}`,
         cashier_uuid: user.uuid,
         customer_uuid: customer?.uuid,
-        discount_amount: billDiscount,
+        discount_amount: combinedDiscount,
+        promotion_code: promoCode || undefined,
+        channel: 'pos',
         sold_at: soldAt,
         subtotal,
         tax_amount: taxAmount,

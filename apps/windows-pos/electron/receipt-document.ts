@@ -48,6 +48,8 @@ export function validatePrintRequest(value: unknown): PrintRequest {
       opened_at: text(report.opened_at), closed_at: optionalText(report.closed_at), report_generated_at: optionalText(report.report_generated_at),
       opening_float: money(report.opening_float), cash_sales: money(report.cash_sales), card_sales: money(report.card_sales),
       gross_sales: money(report.gross_sales), discount_total: money(report.discount_total), refund_total: money(report.refund_total),
+      cash_in_total: report.cash_in_total === undefined ? undefined : money(report.cash_in_total),
+      cash_drop_total: report.cash_drop_total === undefined ? undefined : money(report.cash_drop_total),
       transactions_count: money(report.transactions_count),
       expected_cash_in_drawer: report.expected_cash_in_drawer === undefined ? undefined : money(report.expected_cash_in_drawer, true),
       expected_cash: report.expected_cash === undefined ? undefined : money(report.expected_cash, true),
@@ -98,7 +100,7 @@ export function buildReceiptHtml(request: PrintRequest, profile: PrinterProfile,
     const r = request.report;
     const format = (value: number) => value.toFixed(2);
     body = `<header><h1>${esc(r.store_name)}</h1><h2>${request.reportType}-REPORT</h2></header>${row('Session', r.session_uuid)}${row('Cashier', r.cashier_name)}${row('Opened', printableDate(r.opened_at))}${row(request.reportType === 'Z' ? 'Closed' : 'Generated', printableDate(r.closed_at || r.report_generated_at || ''))}
-      <main>${row('Transactions', String(r.transactions_count))}${row('Opening float', format(r.opening_float))}${row('Cash sales', format(r.cash_sales))}${row('Card sales', format(r.card_sales))}${row('Gross sales', format(r.gross_sales))}${row('Discounts', format(r.discount_total))}${row('Refunds', format(r.refund_total))}${row('Expected cash', format(r.expected_cash_in_drawer ?? r.expected_cash!), true)}${r.actual_closing_cash !== undefined ? row('Counted cash', format(r.actual_closing_cash)) : ''}${r.discrepancy !== undefined ? row('Variance', format(r.discrepancy)) : ''}</main>${r.notes ? `<footer>${esc(r.notes)}</footer>` : ''}`;
+      <main>${row('Transactions', String(r.transactions_count))}${row('Opening float', format(r.opening_float))}${row('Cash sales', format(r.cash_sales))}${row('Card sales', format(r.card_sales))}${row('Gross sales', format(r.gross_sales))}${row('Discounts', format(r.discount_total))}${row('Refunds', format(r.refund_total))}${r.cash_in_total ? row('Float pay-ins', `+${format(r.cash_in_total)}`) : ''}${r.cash_drop_total ? row('Safe drops / petty', `-${format(r.cash_drop_total)}`) : ''}${row('Expected cash', format(r.expected_cash_in_drawer ?? r.expected_cash!), true)}${r.actual_closing_cash !== undefined ? row('Counted cash', format(r.actual_closing_cash)) : ''}${r.discrepancy !== undefined ? row('Variance', format(r.discrepancy)) : ''}</main>${r.notes ? `<footer>${esc(r.notes)}</footer>` : ''}`;
   } else {
     const r = request.receipt;
     body = `<header><h1>${esc(r.store_name)}</h1><h2>REFUND RECEIPT</h2></header>${row('Refund', r.refund_number)}${row('Invoice', r.invoice_number)}${row('Cashier', r.cashier_name)}${row('Date', printableDate(r.refunded_at))}${row('Amount refunded', r.total_refunded.toFixed(2), true)}<footer>${esc(r.reason)}</footer>`;

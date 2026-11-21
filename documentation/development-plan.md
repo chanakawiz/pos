@@ -633,6 +633,23 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 31: Desktop Cashier POS Omnichannel Parity — Promo Codes, Cash Drops & Shift Movement Printing (`apps/windows-pos`) (`✅ COMPLETED`)
+- [x] **Omnichannel Promo / Coupon Checkout on Desktop Counter (`Cart.tsx`, `useCartStore.ts`, `PaymentModal.tsx`)**:
+  - Extended `useCartStore` with `promoCode`, `promoLabel`, `promoDiscount`, `applyPromotion`, and `clearPromotion`, integrating live coupon discount deduction into `getTotalDiscount()` and `getGrandTotal()`.
+  - Added interactive Promo / Coupon Code bar in `Cart.tsx` validating against `POST /api/v1/promotions/validate` (`channel: 'pos'`) with removable emerald applied discount pill.
+  - Extended `OfflineSale` (`electron/storage-types.ts`) and `PaymentModal.tsx` to preserve `promotion_code` and `channel` cleanly through SQLite WAL persistence and ERP sync so coupon redemptions increment atomically.
+- [x] **Counter Safe Cash Drops, Petty Cash & X/Z-Report Printing (`CashSessionModal.tsx`, `receipt-document.ts`, `printer-types.ts`)**:
+  - Added `getCashMovements()` and `recordCashMovement()` to `src/services/api.ts` connected to `/api/v1/cash-sessions/movements`.
+  - Upgraded `CashSessionModal.tsx` with `Float Pay-Ins` and `Safe Drops / Petty` KPI cards, collapsible drawer movement form (`Safe Drop`, `Petty Cash`, `Float Pay-In`), live `expected_cash` recalculation, and chronological shift drawer movements ledger.
+  - Updated `ShiftPrintReport` (`electron/printer-types.ts`) and thermal raster builder (`electron/receipt-document.ts`) to validate and print `Float pay-ins` and `Safe drops / petty` rows on 58mm/80mm X-Reports and Z-Reports.
+- [x] **100% Passing Automated Tests & Production Build**:
+  - Added native Electron tests in `printer.test.ts` (shift X/Z report pay-in/drop validation & HTML rendering) and `offline-store.test.ts` (SQLite persistence of `promotion_code` & `channel`).
+  - **43/43 Desktop POS native Electron tests passing** (`npm test`) and Vite/TypeScript production build clean (`npm run build:all`).
+  - 107/107 Laravel backend tests, 22/22 Consumer mobile tests, 61/61 Handheld staff POS tests.
+  - **Total: 233/233 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |

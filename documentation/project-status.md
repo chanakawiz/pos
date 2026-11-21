@@ -4,7 +4,7 @@
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 5 Pillars (Consumer Mobile App + Handheld Staff Mobile POS + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (107 backend tests, 41 native Electron tests, 22 Flutter consumer tests, 61 Flutter staff POS tests = **231/231 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (107 backend tests, 43 native Electron tests, 22 Flutter consumer tests, 61 Flutter staff POS tests = **233/233 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -22,8 +22,8 @@
 │  107 Backend Tests Pass │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
 │  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  61 Automated Tests Pass│
 │  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │  Fast-Touch Catalog Grid│
-│  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │  Laser Barcode Scanner  │
-│  Multi-Gateway SMS Logs │  VIP Gift Card & Promos │  Central Inbox API Sync │  Gift Cards & VIP Disc. │  Multi-Tender & Promos  │
+│  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  43 Native Tests Pass   │  Laser Barcode Scanner  │
+│  Multi-Gateway SMS Logs │  VIP Gift Card & Promos │  Central Inbox API Sync │  Promos, Drops & VIP %  │  Multi-Tender & Promos  │
 │  Promotions & Stocktakes│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Sales History & Refunds│
 │  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │  Stocktake & PO Receive │
 │  Cash Drop Ledger APIs  │                         │                         │                         │  Milestones 23-30 Done  │
@@ -80,9 +80,10 @@
 | **Hardware Barcode & ESC/POS Engine** | `✅ DONE` | Fast HID wedge listener (<60ms), 80mm/58mm thermal receipt printing, and RJ11 cash drawer kick. |
 | **Instant SMS E-Receipt Dispatch Bar** | `✅ DONE` | Dedicated mobile input in `ReceiptModal.tsx` allowing cashiers to dispatch digital SMS e-receipts with real-time delivery confirmation. |
 | **Cross-Branch Stock Lookup Modal** | `✅ DONE` | Alt+S hotkey opening cross-store stock inspection across Colombo, Kandy, and Galle branches. |
-| **Gift Card Tender & Tier Discounts** | `✅ DONE` | Instant voucher verification in `PaymentModal.tsx` and automated VIP tier discount deduction upon customer attachment. |
-| **Durable Offline Storage & Sync** | `✅ DONE` | Native SQLite WAL database with idempotent queue push (`/api/v1/sync/push`) and delta pull (`/api/v1/sync/pull`). |
-| **Automated Test Suite** | `✅ DONE` | 41/41 native Electron tests pass (`npm test`). |
+| **Gift Card, Promo & Tier Discounts** | `✅ DONE` | Instant voucher verification in `PaymentModal.tsx`, live Promo/Coupon bar in `Cart.tsx` (`/api/v1/promotions/validate`), and automated VIP tier discount deduction upon customer attachment (Milestone 31). |
+| **Safe Cash Drops & X/Z Printing** | `✅ DONE` | Integrated Safe Cash Drops, Petty Cash, and Float Pay-Ins in `CashSessionModal.tsx` (`/api/v1/cash-sessions/movements`) with pay-in/drop rows rendered on 58mm/80mm thermal X/Z-Reports (Milestone 31). |
+| **Durable Offline Storage & Sync** | `✅ DONE` | Native SQLite WAL database preserving `promotion_code` & `channel` with idempotent queue push (`/api/v1/sync/push`) and delta pull (`/api/v1/sync/pull`). |
+| **Automated Test Suite** | `✅ DONE` | 43/43 native Electron tests pass (`npm test`). |
 
 ### 2.5 Handheld Staff Mobile POS (`apps/flutter-mobile-pos`)
 | Feature | Status | Notes |
@@ -107,10 +108,10 @@
 Channel                          Test Suite           Status
 ======================================================================
 Laravel 11 ERP & API Backend     php artisan test     107/107 PASSED (828 assertions)
-Windows Desktop POS (Electron)   npm test             41/41 PASSED (0 regressions)
+Windows Desktop POS (Electron)   npm test             43/43 PASSED (0 regressions)
 Flutter Consumer Mobile App      flutter test         22/22 PASSED (0 regressions)
 Flutter Handheld Staff POS       flutter test         61/61 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         231/231 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         233/233 PASSED (100%)
 ======================================================================
 ```

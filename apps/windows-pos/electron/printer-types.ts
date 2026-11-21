@@ -43,6 +43,8 @@ export interface ShiftPrintReport {
   gross_sales: number;
   discount_total: number;
   refund_total: number;
+  cash_in_total?: number;
+  cash_drop_total?: number;
   transactions_count: number;
   expected_cash_in_drawer?: number;
   expected_cash?: number;

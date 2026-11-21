@@ -80,6 +80,8 @@ export interface OfflineSale {
   device_uuid?: string;
   subtotal?: number;
   discount_amount?: number;
+  promotion_code?: string;
+  channel?: string;
   tax_amount?: number;
   total_amount?: number;
   paid_amount?: number;

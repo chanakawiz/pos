@@ -189,3 +189,34 @@ test('missing configuration and disabled drawers cannot produce a false success'
 test('Windows printer queues fail visibly on unsupported platforms', { skip: process.platform === 'win32' }, async () => {
   await assert.rejects(sendWindows('Printer', Buffer.from('receipt'), 1000), /only on Windows/);
 });
+
+test('shift X/Z report HTML validates and renders float pay-ins and safe cash drops', () => {
+  const validated = validatePrintRequest({
+    kind: 'shift',
+    reportType: 'Z',
+    report: {
+      session_uuid: 'sess-drop-1',
+      store_name: 'OmniLuxe Flagship',
+      cashier_name: 'Cashier 01',
+      opened_at: '2026-11-21T09:00:00Z',
+      closed_at: '2026-11-21T20:00:00Z',
+      opening_float: 15000,
+      cash_sales: 25000,
+      card_sales: 40000,
+      gross_sales: 65000,
+      discount_total: 2500,
+      refund_total: 0,
+      cash_in_total: 5000,
+      cash_drop_total: 10000,
+      transactions_count: 14,
+      expected_cash: 35000,
+      actual_closing_cash: 35000,
+      discrepancy: 0,
+    },
+  });
+  const html = buildReceiptHtml(validated, profile(), '');
+  assert.match(html, /Float pay-ins/);
+  assert.match(html, /\+5000\.00/);
+  assert.match(html, /Safe drops \/ petty/);
+  assert.match(html, /-10000\.00/);
+});

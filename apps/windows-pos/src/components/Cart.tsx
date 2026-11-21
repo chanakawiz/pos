@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect } from 'react';
-import { ShoppingBag, Trash2, UserPlus, Minus, Plus, Tag, PauseCircle, ArrowRight, Star, X, ShieldCheck } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ShoppingBag, Trash2, UserPlus, Minus, Plus, Tag, PauseCircle, ArrowRight, Star, X, ShieldCheck, Ticket } from 'lucide-react';
 import { useCartStore } from '../stores/useCartStore';
 import { usePosStore } from '../stores/usePosStore';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -12,17 +12,26 @@ export const Cart: React.FC = () => {
     customer,
     heldBills,
     billDiscount,
+    promoCode,
+    promoLabel,
+    promoDiscount,
     updateQuantity,
     updateSerial,
     removeItem,
     clearCart,
     holdCurrentBill,
     setBillDiscount,
+    applyPromotion,
+    clearPromotion,
     getSubtotal,
     getTaxTotal,
     getTotalDiscount,
     getGrandTotal,
   } = useCartStore();
+
+  const [promoInput, setPromoInput] = useState('');
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
   const { openModal, language } = usePosStore();
   const currency = useAuthStore((state) => state.user?.store?.currency_symbol || '$');
@@ -354,6 +363,87 @@ export const Cart: React.FC = () => {
             </div>
             <span className="text-[10px] underline">View / Resume</span>
           </button>
+        )}
+
+        {/* Promo / Coupon Code Bar */}
+        {items.length > 0 && (
+          <div className="space-y-1.5">
+            {promoCode ? (
+              <div className="flex items-center justify-between px-3 py-1.5 bg-emerald-950/60 border border-emerald-700/50 rounded-xl text-emerald-300 text-xs">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Ticket className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="font-mono font-bold truncate">
+                    {promoCode} {promoLabel ? `(${promoLabel})` : ''}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="font-mono font-bold">-{currency}{promoDiscount.toFixed(2)}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearPromotion();
+                      setPromoError(null);
+                    }}
+                    className="text-emerald-300 hover:text-rose-400 cursor-pointer"
+                    title="Remove Promo Code"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                  placeholder="Promo / Coupon code (e.g. LUXE15)"
+                  className="flex-1 bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white placeholder-slate-500 outline-none"
+                />
+                <button
+                  type="button"
+                  disabled={isApplyingPromo || !promoInput.trim()}
+                  onClick={async () => {
+                    const clean = promoInput.trim().toUpperCase();
+                    if (!clean) return;
+                    setIsApplyingPromo(true);
+                    setPromoError(null);
+                    try {
+                      const res = await api.validatePromotion({
+                        code: clean,
+                        subtotal,
+                        channel: 'pos',
+                        customer_uuid: customer?.uuid,
+                        vip_tier: customer?.vip_tier,
+                        items: items.map((i) => ({
+                          quantity: i.quantity,
+                          unit_price: i.unitPrice,
+                        })),
+                      });
+                      if (res.status === 'success' && res.data) {
+                        applyPromotion({
+                          code: res.data.code,
+                          label: res.data.discount_label || res.data.name,
+                          discountAmount: Number(res.data.discount_amount) || 0,
+                        });
+                        setPromoInput('');
+                      } else {
+                        setPromoError(res.message || 'Invalid promo code.');
+                      }
+                    } catch (err: any) {
+                      setPromoError(err.response?.data?.message || 'Unable to validate promo code.');
+                    } finally {
+                      setIsApplyingPromo(false);
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  {isApplyingPromo ? '...' : 'Apply'}
+                </button>
+              </div>
+            )}
+            {promoError && <p className="text-[11px] text-rose-400 font-medium">{promoError}</p>}
+          </div>
         )}
 
         {/* Breakdown */}

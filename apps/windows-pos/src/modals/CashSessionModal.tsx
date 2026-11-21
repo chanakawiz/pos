@@ -29,6 +29,12 @@ export const CashSessionModal: React.FC = () => {
   const [notes, setNotes] = useState<string>('');
   const [printFeedback, setPrintFeedback] = useState<string | null>(null);
   const [closedReport, setClosedReport] = useState<ShiftPrintReport | null>(null);
+  const [movements, setMovements] = useState<any[]>([]);
+  const [showMovementForm, setShowMovementForm] = useState<boolean>(false);
+  const [movementType, setMovementType] = useState<'cash_out' | 'petty_cash' | 'cash_in'>('cash_out');
+  const [movementAmount, setMovementAmount] = useState<string>('');
+  const [movementReason, setMovementReason] = useState<string>('Mid-Shift Safe Drop');
+  const [isRecordingMovement, setIsRecordingMovement] = useState<boolean>(false);
 
   const loadSession = async () => {
     setIsLoading(true);
@@ -38,14 +44,41 @@ export const CashSessionModal: React.FC = () => {
         setActiveSession(res);
         setCashSession(res.session);
         setClosingCounted(res.summary?.expected_cash?.toFixed(2) || '');
+        try {
+          const movRes = await api.getCashMovements();
+          if (Array.isArray(movRes.data)) setMovements(movRes.data);
+        } catch {
+          setMovements([]);
+        }
       } else {
         setActiveSession(null);
         setCashSession(null);
+        setMovements([]);
       }
     } catch {
       setActiveSession(null);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRecordMovement = async () => {
+    const amt = parseFloat(movementAmount);
+    if (!Number.isFinite(amt) || amt <= 0 || !movementReason.trim()) return;
+    setIsRecordingMovement(true);
+    try {
+      await api.recordCashMovement({
+        type: movementType,
+        amount: amt,
+        reason: movementReason.trim(),
+      });
+      setMovementAmount('');
+      setShowMovementForm(false);
+      await loadSession();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to record cash movement.');
+    } finally {
+      setIsRecordingMovement(false);
     }
   };
 
@@ -208,22 +241,45 @@ export const CashSessionModal: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {(Number(summary.cash_in_total || 0) > 0 || Number(summary.cash_drop_total || 0) > 0) && (
+                  <>
+                    <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+                      <span className="text-[11px] text-emerald-400">Float Pay-Ins</span>
+                      <div className="text-base font-bold font-mono text-emerald-400 mt-0.5">
+                        +${Number(summary.cash_in_total || 0).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+                      <span className="text-[11px] text-amber-400">Safe Drops / Petty</span>
+                      <div className="text-base font-bold font-mono text-amber-400 mt-0.5">
+                        -${Number(summary.cash_drop_total || 0).toFixed(2)}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Expected Drawer Total */}
               <div className="bg-indigo-950/30 border border-indigo-900/50 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                   <span className="text-xs text-indigo-300 font-semibold">Expected Cash in Drawer</span>
-                  <p className="text-[10px] text-slate-400 mt-0.5">(Float + Cash Sales - Cash Refunds)</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">(Float + Cash Sales + Pay-Ins - Drops - Refunds)</p>
                 </div>
                 <div className="text-2xl font-black font-mono text-indigo-400">
                   ${Number(expected).toFixed(2)}
                 </div>
               </div>
 
-              {/* Mid-Shift Audit Action: Print X-Report */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-xs text-slate-400">Mid-Shift Inspection:</span>
+              {/* Mid-Shift Audit Actions: Cash Drop & Print X-Report */}
+              <div className="flex flex-wrap justify-between items-center gap-2 py-1">
+                <button
+                  type="button"
+                  onClick={() => setShowMovementForm(!showMovementForm)}
+                  className="px-3.5 py-2 bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 text-xs font-semibold rounded-xl border border-amber-700/50 transition-colors cursor-pointer"
+                >
+                  {showMovementForm ? 'Close Cash Drop Form' : '+ Safe Drop / Petty Cash'}
+                </button>
                 <button
                   onClick={handlePrintXReport}
                   disabled={isPrintingX}
@@ -233,6 +289,83 @@ export const CashSessionModal: React.FC = () => {
                   <span>Print X-Report (Audit)</span>
                 </button>
               </div>
+
+              {showMovementForm && (
+                <div className="p-3.5 bg-slate-950/80 border border-amber-800/40 rounded-2xl space-y-3">
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {([
+                      ['cash_out', 'Safe Drop'],
+                      ['petty_cash', 'Petty Cash'],
+                      ['cash_in', 'Float Pay-In'],
+                    ] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setMovementType(key);
+                          setMovementReason(
+                            key === 'cash_in'
+                              ? 'Change Float Replenishment'
+                              : key === 'petty_cash'
+                              ? 'Store Petty Expense'
+                              : 'Mid-Shift Safe Drop'
+                          );
+                        }}
+                        className={`py-1.5 rounded-lg text-[11px] font-bold border cursor-pointer ${
+                          movementType === key
+                            ? 'bg-amber-500 text-slate-950 border-amber-400'
+                            : 'bg-slate-900 text-slate-300 border-slate-700'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="Amount ($)"
+                      value={movementAmount}
+                      onChange={(e) => setMovementAmount(e.target.value)}
+                      className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white outline-none"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Reason / Voucher note"
+                      value={movementReason}
+                      onChange={(e) => setMovementReason(e.target.value)}
+                      className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isRecordingMovement || !(parseFloat(movementAmount) > 0)}
+                    onClick={handleRecordMovement}
+                    className="w-full py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold text-xs rounded-xl cursor-pointer"
+                  >
+                    {isRecordingMovement ? 'Recording...' : 'Record Drawer Movement'}
+                  </button>
+                </div>
+              )}
+
+              {movements.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Shift Drawer Movements ({movements.length})
+                  </span>
+                  <div className="space-y-1 max-h-28 overflow-y-auto">
+                    {movements.map((m) => (
+                      <div key={m.uuid || m.id} className="flex items-center justify-between text-[11px] bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <span className="text-slate-300 truncate pr-2">{m.reason} ({m.reference})</span>
+                        <span className={`font-mono font-bold ${m.type === 'cash_in' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          {m.type === 'cash_in' ? '+' : '-'}${Number(m.amount).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="pt-2 border-t border-slate-800">
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">

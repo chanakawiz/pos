@@ -20,6 +20,9 @@ interface CartCustomer {
 interface CartState {
   items: CartItem[];
   billDiscount: number;
+  promoCode: string | null;
+  promoLabel: string | null;
+  promoDiscount: number;
   customer: CartCustomer | null;
   heldBills: { id: string; timestamp: string; note: string; items: CartItem[]; subtotal: number }[];
 
@@ -30,6 +33,8 @@ interface CartState {
   updateSerial: (productId: number, serial: string) => void;
   updateDiscount: (productId: number, discountAmount: number) => void;
   setBillDiscount: (amount: number) => void;
+  applyPromotion: (promo: { code: string; label: string; discountAmount: number }) => void;
+  clearPromotion: () => void;
   setCustomer: (customer: CartCustomer | null) => void;
   clearCart: () => void;
   holdCurrentBill: (note?: string) => void;
@@ -47,6 +52,9 @@ interface CartState {
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   billDiscount: 0,
+  promoCode: null,
+  promoLabel: null,
+  promoDiscount: 0,
   customer: null,
   heldBills: [],
 
@@ -163,6 +171,18 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({ billDiscount: Math.max(0, amount) });
   },
 
+  applyPromotion: ({ code, label, discountAmount }) => {
+    set({
+      promoCode: code.trim().toUpperCase(),
+      promoLabel: label,
+      promoDiscount: roundMoney(Math.max(0, discountAmount)),
+    });
+  },
+
+  clearPromotion: () => {
+    set({ promoCode: null, promoLabel: null, promoDiscount: 0 });
+  },
+
   setCustomer: (customer) => {
     set((state) => {
       let billDiscount = state.billDiscount;
@@ -174,7 +194,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     });
   },
 
-  clearCart: () => set({ items: [], billDiscount: 0, customer: null }),
+  clearCart: () => set({ items: [], billDiscount: 0, promoCode: null, promoLabel: null, promoDiscount: 0, customer: null }),
 
   holdCurrentBill: (note = 'Quick Hold') => {
     const { items, getGrandTotal } = get();
@@ -192,6 +212,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       heldBills: [heldItem, ...state.heldBills],
       items: [],
       billDiscount: 0,
+      promoCode: null,
+      promoLabel: null,
+      promoDiscount: 0,
       customer: null,
     }));
   },
@@ -230,13 +253,13 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   getTotalDiscount: () => {
     const itemDiscounts = get().items.reduce((sum, item) => sum + item.discountAmount, 0);
-    return itemDiscounts + get().billDiscount;
+    return roundMoney(itemDiscounts + get().billDiscount + get().promoDiscount);
   },
 
   getGrandTotal: () => {
     const subtotal = get().getSubtotal();
     const tax = get().getTaxTotal();
-    const billDisc = get().billDiscount;
+    const billDisc = get().billDiscount + get().promoDiscount;
     return roundMoney(Math.max(0, subtotal + tax - billDisc));
   },
 }));

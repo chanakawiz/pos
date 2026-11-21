@@ -269,3 +269,20 @@ test('sync caps batches at 50 and counts sales created during the request', asyn
   }));
   assert.deepEqual(result, { syncedCount: 50, pendingCount: 2, hasFailures: false });
 });
+
+test('offline sales preserve omnichannel promotion_code and channel across SQLite persistence', (t) => {
+  const { open, scope } = fixture(t);
+  const store = open();
+  const promoSale = {
+    ...sale(),
+    discount_amount: 1500,
+    promotion_code: 'LUXE15',
+    channel: 'pos',
+  };
+  store.saveSale(scope, promoSale);
+  const loaded = store.getSales(scope, true);
+  assert.equal(loaded.length, 1);
+  assert.equal(loaded[0].promotion_code, 'LUXE15');
+  assert.equal(loaded[0].channel, 'pos');
+  assert.equal(loaded[0].discount_amount, 1500);
+});

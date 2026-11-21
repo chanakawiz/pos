@@ -118,6 +118,20 @@ export const api = {
     const res = await apiClient.post('/cash-sessions/close', data);
     return res.data;
   },
+  getCashMovements: async () => {
+    const res = await apiClient.get('/cash-sessions/movements');
+    return res.data;
+  },
+  recordCashMovement: async (data: {
+    type: 'cash_in' | 'cash_out' | 'petty_cash';
+    amount: number;
+    reason: string;
+    reference?: string;
+    notes?: string;
+  }) => {
+    const res = await apiClient.post('/cash-sessions/movements', data);
+    return res.data;
+  },
 
   // Held Bills
   getHeldBills: async () => {
@@ -154,6 +168,26 @@ export const api = {
   },
   redeemGiftCard: async (payload: { code: string; amount: number; sale_uuid?: string; notes?: string }) => {
     const res = await apiClient.post('/gift-cards/redeem', payload);
+    return res.data;
+  },
+
+  // Omnichannel Promotions & Coupons
+  getActivePromotions: async (channel: 'pos' | 'web' | 'mobile' = 'pos') => {
+    const res = await apiClient.get('/promotions/active', { params: { channel } });
+    return res.data;
+  },
+  validatePromotion: async (payload: {
+    code: string;
+    subtotal: number;
+    channel?: 'pos' | 'web' | 'mobile';
+    customer_uuid?: string;
+    vip_tier?: string;
+    items?: { quantity: number; unit_price: number; category_id?: number }[];
+  }) => {
+    const res = await apiClient.post('/promotions/validate', {
+      channel: 'pos',
+      ...payload,
+    });
     return res.data;
   },
 };
