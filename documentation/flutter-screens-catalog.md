@@ -1,17 +1,17 @@
-# OmniLuxe Store — Flutter Mobile App Screens Catalog & Architecture
+# OmniLuxe Store — Flutter Mobile Apps Screens Catalog & Architecture
 
-> **Application**: OmniLuxe Store Consumer Mobile App (`apps/mobile-pos`)  
+> **Applications**: 
+> 1. **Consumer Mobile Shopping App**: `apps/mobile-pos` (Light Editorial Luxury)
+> 2. **Handheld Staff Mobile POS**: `apps/flutter-mobile-pos` (High-Contrast Dark Luxury Roaming Terminal)  
 > **Target Framework**: Flutter 3.27+ / Dart 3.6+  
 > **State Management**: Flutter Riverpod (`StateNotifierProvider`)  
-> **Local Persistence**: SQLite (`sqflite`) for offline catalog caching and order history  
-> **Design Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Sage `#7B846D`, Champagne Gold `#C29B38`)  
-> **Retail Profile**: High-End Multi-Department Lifestyle & Fashion Retail Store (Women, Men, Kids, Footwear, Beauty & Fragrance, Tech)  
-> **Push Notifications**: Firebase Cloud Messaging (FCM) + In-App Unread Alerts Center  
-> **Authentication Modes**: Guest Explorer Mode (Instant browse & checkout) + Multi-Step VIP Onboarding  
+> **Local Persistence**: SQLite (`sqflite` with WAL Durability)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
-> **Document Version**: 3.0.0  
+> **Document Version**: 3.5.0  
 
 ---
+
+# PART 1: Consumer Mobile Shopping App (`apps/mobile-pos`)
 
 ## 1. Application Screen Hierarchy & Navigation Flow
 
@@ -247,13 +247,189 @@ flowchart TD
 
 ---
 
-### In-Store Operational & Cashier Modules (Isolated from Consumer Journeys)
-> **Security & Zero-Leakage Policy**: The following operational screens are isolated strictly for in-store staff counter devices (`apps/windows-pos`) and are **completely invisible and inaccessible** from the consumer shopping mobile application:
-- [`ReceiptScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/mobile-pos/lib/screens/receipt/receipt_screen.dart): Thermal receipt preview and print sharing.
-- [`SettingsScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/mobile-pos/lib/screens/settings/settings_screen.dart): Hardware config, ESC/POS printer pairing, cash drawer pulse commands.
-- [`PairingScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/mobile-pos/lib/screens/auth/pairing_screen.dart): Counter register UUID registration (`COUNTER-01`).
-- [`LoginScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/mobile-pos/lib/screens/auth/login_screen.dart): Cashier numeric PIN login (`1234`).
-- [`PosScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/mobile-pos/lib/screens/pos/pos_screen.dart): Desktop/tablet high-throughput cashier counter POS.
-- [`CashSessionDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/mobile-pos/lib/screens/session/cash_session_dialog.dart): Shift opening/closing, float entry, and X/Z reports.
-- [`BarcodeScannerDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/mobile-pos/lib/screens/scanner/barcode_scanner_dialog.dart): Hardware scanner listener & camera wedge.
-- [`PaymentDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/mobile-pos/lib/screens/checkout/payment_dialog.dart): Split-tender multi-currency cashier finalization.
+# PART 2: Handheld Staff Mobile POS (`apps/flutter-mobile-pos`)
+
+> **Application**: OmniLuxe Handheld Staff POS (`apps/flutter-mobile-pos`)  
+> **Target Framework**: Flutter 3.27+ / Dart 3.6+  
+> **State Management**: Flutter Riverpod (`StateNotifierProvider`)  
+> **Target Hardware**: Handheld Rugged Mobile Terminals, Tablets, Smartphones  
+> **Design Theme**: High-Contrast Dark Luxury POS Terminal (Background `#111413`, Surface `#19201C`, Card `#1F2722`, Border `#2E3B34`, Accent Amber `#F59E0B`, Primary Gold `#C29B38`, Accent Green `#10B981`)  
+> **Peripherals**: Built-in Camera Laser Viewfinder (`mobile_scanner`), Bluetooth ESC/POS Printers (58mm/80mm), Bluetooth Barcode Wedge, Physical Cash Drawer RJ11 / Mobile Cash Belt  
+> **Offline Durability**: Local SQLite WAL Database (`PosDatabaseService`) + Delta Sync Queue (`PosSyncProvider`)  
+
+```mermaid
+flowchart TD
+    Pairing["1. DevicePairingScreen\n(device_pairing_screen.dart)\nAPI URL • Store • Terminal UUID"]
+    StaffPin["2. StaffPinScreen\n(staff_pin_screen.dart)\nNumeric Touch Keypad (PIN 1234)"]
+    ShiftOpen["3. ShiftOpenDialog\n(shift_open_dialog.dart)\nOpening Cash Float Entry (LKR 15,000)"]
+    PosHome["4. PosHomeScreen\n(pos_home_screen.dart)\nShift Overview • Actions • Sync Ribbon"]
+    
+    Pairing -->|Provisioned| StaffPin
+    StaffPin -->|Auth Success| ShiftOpen
+    ShiftOpen -->|Shift Active| PosHome
+
+    subgraph StaffWorkflow["Staff POS Workflows"]
+        CheckoutScreen["5. PosCheckoutScreen\n(pos_checkout_screen.dart)\nFast-Touch Catalog • Cart Steppers"]
+        BarcodeScan["6. BarcodeScannerDialog\n(barcode_scanner_dialog.dart)\nCamera Laser Reticle & Hardware Wedge"]
+        HeldBills["7. HeldBillsDialog\n(held_bills_dialog.dart)\nAisle Line-Busting • Hold & Recall"]
+        PaymentTender["8. PaymentTenderSheet\n(payment_tender_sheet.dart)\nMulti-Tender Split Pay • Change Calc"]
+        SaleSuccess["9. SaleSuccessDialog\n(sale_success_dialog.dart)\nInvoice • SMS Receipt • Thermal Reprint"]
+        ShiftClose["10. ShiftCloseDialog\n(shift_close_dialog.dart)\nCash Count • Discrepancy • Z-Report"]
+    end
+
+    PosHome -->|New Register Sale| CheckoutScreen
+    PosHome -->|Line-Busting Recall| HeldBills
+    PosHome -->|Mid-Shift Audit| PosHome
+    PosHome -->|Close Register| ShiftClose
+    CheckoutScreen -->|Laser Scan| BarcodeScan
+    CheckoutScreen -->|Hold Cart| HeldBills
+    CheckoutScreen -->|Tender Settlement| PaymentTender
+    PaymentTender -->|Sale Paid| SaleSuccess
+    SaleSuccess -->|New Transaction| CheckoutScreen
+    ShiftClose -->|Z-Report Done| StaffPin
+```
+
+---
+
+### Screen 15: Device Pairing & Terminal Provisioning Screen
+- **Class & File**: [`DevicePairingScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/device_pairing_screen.dart) in `lib/screens/device_pairing_screen.dart`
+- **Purpose**: First-run bootstrap screen binding the physical handheld terminal to the central ERP backend.
+- **Key UI Components**:
+  - Central ERP API Host URL input field (defaults to `http://127.0.0.1:8000`).
+  - Retail Store Outlet selector dropdown (`STORE-001 Colombo Flagship`, `STORE-002 Kandy Galleria`, `STORE-003 Galle Fort`).
+  - Terminal Device Identifier input (e.g. `ROAMING-01`, `MOBILE-02`).
+  - Live "TEST ERP CONNECTION" ping button verifying health and latency.
+  - "CONFIRM & PAIR TERMINAL" persistent action button storing config in `SharedPreferences`.
+
+---
+
+### Screen 16: Cashier Staff PIN Authentication Pad
+- **Class & File**: [`StaffPinScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/staff_pin_screen.dart) in `lib/screens/staff_pin_screen.dart`
+- **Purpose**: Rapid cashier authentication, locking, and multi-staff terminal switching.
+- **Key UI Components**:
+  - Cashier selection carousel (Cashier 01, Cashier 02, Store Manager).
+  - High-contrast PIN dot indicators (`••••`).
+  - Tactile 12-key numeric touch keypad (`1` through `9`, `C` clear, `0`, `⌫` backspace) with audio/haptic click feedback.
+  - Quick terminal unpair button with supervisor confirmation.
+  - Automated authentication logic validating against local and remote credentials (default PIN: `1234`).
+
+---
+
+### Screen 17: Shift Opening Cash Float Modal
+- **Class & File**: [`ShiftOpenDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/shift_open_dialog.dart) in `lib/screens/shift_open_dialog.dart`
+- **Purpose**: Compulsory cash drawer float initialization required before opening a cashier shift.
+- **Key UI Components**:
+  - Floating dialog with cash drawer icon and opening float title.
+  - Numeric currency input (`LKR 15,000.00`).
+  - Rapid preset chips: `LKR 10,000`, `LKR 15,000`, `LKR 20,000`, `LKR 25,000`.
+  - Shift notes field (e.g. "Morning roaming register opening").
+  - "OPEN CASHIER SHIFT" primary CTA invoking `POST /api/v1/cash-sessions/open`.
+
+---
+
+### Screen 18: Handheld POS Cashier Hub
+- **Class & File**: [`PosHomeScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/pos_home_screen.dart) in `lib/screens/pos_home_screen.dart`
+- **Purpose**: Cashier home dashboard displaying active shift telemetry, connection state, and quick workflow launchers.
+- **Key UI Components**:
+  - Top persistent [`SyncStatusRibbon`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/sync_status_ribbon.dart) indicating real-time sync state.
+  - Active Cashier identity bar with store name, device UUID, and 1-tap lock button.
+  - Active Shift card highlighting Opening Float (`LKR 15,000.00`) and "Shift Active" badge.
+  - Workflow Cards:
+    - **Register Checkout & Barcode Scanner**: Opens full touch catalog and cart.
+    - **Multi-Lane Line-Busting & Held Bills**: Opens held bills inquiry.
+    - **Mid-Shift X-Report & Cash Audit**: Opens live sales audit bottom sheet with thermal print button.
+    - **Close Register Shift (Z-Report)**: Launches shift closeout and cash reconciliation dialog.
+  - Connected ERP footer showing active API address and version.
+
+---
+
+### Screen 19: Full-Touch Register Checkout & Catalog Screen
+- **Class & File**: [`PosCheckoutScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/pos_checkout_screen.dart) in `lib/screens/pos_checkout_screen.dart`
+- **Purpose**: High-velocity in-aisle item addition, quantity adjustments, and live cart management.
+- **Key UI Components**:
+  - Department horizontal category filter tabs: *All Items, Smartphones & Tech, Designer Fashion, Footwear, Fragrances, Kids*.
+  - Search-as-you-type input with instant instant SKU / name matching.
+  - Touch catalog grid displaying product cards with stock indicator chips, brand badges, and prices.
+  - Floating optical camera barcode scanner action button.
+  - Slide-up interactive Cart Drawer showing line items, quantity steppers (`-`, `+`, trash), line item subtotal, order-level discount badge, and attached VIP customer card.
+  - Dual action bottom bar: "HOLD BILL" (line-busting) and "CHARGE LKR XXX,XXX" (proceed to tender).
+
+---
+
+### Screen 20: Optical Laser Barcode Scanner Dialog
+- **Class & File**: [`BarcodeScannerDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/barcode_scanner_dialog.dart) in `lib/screens/barcode_scanner_dialog.dart`
+- **Purpose**: Continuous camera laser scanning viewfinder and simulated hardware wedge listener.
+- **Key UI Components**:
+  - Full-screen or modal live camera viewfinder powered by `mobile_scanner`.
+  - High-contrast animated emerald laser beam scanning animation and corner reticle guides.
+  - Torch / flashlight toggle and front/back camera switcher.
+  - Quick-test barcode chip bar allowing instant testing without physical barcodes (`445566 iPhone 16`, `556677 Nike Air Max`, `667788 Chanel No.5`).
+  - Haptic feedback and automatic line-item increment on barcode decode.
+
+---
+
+### Screen 21: Line-Busting & Multi-Lane Held Bills Dialog
+- **Class & File**: [`HeldBillsDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/held_bills_dialog.dart) in `lib/screens/held_bills_dialog.dart`
+- **Purpose**: Roaming in-aisle pre-scanning, allowing staff to bag items, hold the bill with a token, and let customers pay at counter or vice-versa.
+- **Key UI Components**:
+  - Filter tabs: *Active Held Bills* and *Held on This Device*.
+  - Held order cards displaying 6-character token (`HOLD-XXXXXX`), customer name, item count, total payable, and elapsed hold time.
+  - 1-tap "RECALL TO REGISTER" action button restoring items and customer data into active cart.
+  - Manual hold note input modal for custom customer tags.
+
+---
+
+### Screen 22: Multi-Tender Split Payment Modal Sheet
+- **Class & File**: [`PaymentTenderSheet`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/payment_tender_sheet.dart) in `lib/screens/payment_tender_sheet.dart`
+- **Purpose**: Flexible split payment processing across cash, card, gift cards, and QR.
+- **Key UI Components**:
+  - Payment method selector tabs:
+    - **CASH**: Quick denomination buttons (`Exact`, `+1,000`, `+5,000`, `10,000`), numeric keypad, and live change due calculation.
+    - **CARD / mPOS**: Terminal reference input, bank authorization code, card brand selector (Visa, Mastercard, Amex).
+    - **VIP GIFT CARD**: Code scanner/input (`GC-XXXX-XXXX-XXXX`), instant live balance verification via `/api/v1/gift-cards/verify`, and partial/full store credit application.
+    - **LANKAQR**: Dynamic EMVCo QR code generator with 1-tap test settlement.
+  - Paid tenders breakdown list with delete buttons for partial tenders.
+  - Balance Remaining vs Change Due highlight card.
+  - "COMPLETE SALE" confirmation button triggering transaction settlement.
+
+---
+
+### Screen 23: Sale Success & Celebration Dialog
+- **Class & File**: [`SaleSuccessDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/sale_success_dialog.dart) in `lib/screens/sale_success_dialog.dart`
+- **Purpose**: Transaction confirmation, cash change reminder, thermal printing, and SMS dispatch.
+- **Key UI Components**:
+  - Animated emerald checkmark medallion.
+  - Official invoice reference header (`INV-XXXXXX`).
+  - Prominent Cash Change Due banner (`CHANGE DUE: LKR X,XXX.00`).
+  - Tenders summary breakdown (e.g. Cash: LKR 100,000, Card: LKR 300,000).
+  - VIP Loyalty Points earned badge (`+400 VIP Points Earned`).
+  - SMS E-Receipt mobile input with 1-tap resend.
+  - "PRINT THERMAL RECEIPT" button queuing ESC/POS binary slip to portable printer.
+  - "START NEW SALE" primary action resetting register state.
+
+---
+
+### Screen 24: Real-Time Sync Status Ribbon
+- **Class & File**: [`SyncStatusRibbon`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/sync_status_ribbon.dart) in `lib/screens/sync_status_ribbon.dart`
+- **Purpose**: Persistent non-intrusive status bar informing cashiers of cloud connectivity and pending offline queue.
+- **Key UI Components**:
+  - Green state: `CLOUD SYNC ACTIVE` when online and queue is empty.
+  - Amber state: `OFFLINE - X SALES PENDING SYNC` when disconnected.
+  - Blue state: `SYNCING X SALES...` during active batch push.
+  - 1-tap manual "SYNC NOW" action button triggering immediate flush.
+
+---
+
+### Screen 25: Shift Closeout & Z-Report Reconciliation Modal
+- **Class & File**: [`ShiftCloseDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/shift_close_dialog.dart) in `lib/screens/shift_close_dialog.dart`
+- **Purpose**: End-of-shift cash drawer count, variance calculation, and official closing Z-Report issuance.
+- **Key UI Components**:
+  - Financial Summary Card: Opening float, cash sales, card sales, gift card sales, total bills, and Expected Drawer Cash.
+  - Physical Cash Count input field with quick addition chips (`Exact`, `+1,000`, `+5,000`).
+  - Live Discrepancy indicator badge:
+    - `BALANCED (LKR 0.00)` in green.
+    - `OVER (+LKR XXX.00)` in amber.
+    - `SHORT (-LKR XXX.00)` in red.
+  - Supervisor authorization / closing notes text field.
+  - "CONFIRM COUNT & CLOSE REGISTER" action button calling `/api/v1/cash-sessions/close`.
+  - Post-closeout Z-Report success summary card with thermal slip printing and "LOCK TERMINAL" button.
