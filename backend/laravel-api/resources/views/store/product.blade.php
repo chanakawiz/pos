@@ -222,6 +222,66 @@
                 <div class="text-center text-xs text-sage pt-2">
                     🔒 Instant tamper-evident SMS bill dispatch & White-Glove courier handling.
                 </div>
+
+                <!-- Wishlist & Back-in-Stock SMS Alert Bar -->
+                <div x-data="{
+                    saved: (JSON.parse(localStorage.getItem('omniluxe_wishlist') || '[]')).includes({{ $product->id }}),
+                    showAlert: false,
+                    phone: '',
+                    alertStatus: null,
+                    submitting: false,
+                    toggleWish() {
+                        let token = localStorage.getItem('omniluxe_wish_token');
+                        if (!token) { token = 'wl-' + Math.random().toString(36).slice(2, 12); localStorage.setItem('omniluxe_wish_token', token); }
+                        fetch('/api/v1/wishlist/toggle', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify({ product_id: {{ $product->id }}, session_token: token })
+                        }).then(r => r.json()).then(d => {
+                            this.saved = !!d.saved;
+                            let arr = JSON.parse(localStorage.getItem('omniluxe_wishlist') || '[]');
+                            arr = this.saved ? [...new Set([...arr, {{ $product->id }}])] : arr.filter(id => id !== {{ $product->id }});
+                            localStorage.setItem('omniluxe_wishlist', JSON.stringify(arr));
+                        }).catch(() => {});
+                    },
+                    submitRestock() {
+                        if (!this.phone.trim()) return;
+                        this.submitting = true;
+                        fetch('/api/v1/products/{{ $product->id }}/notify-stock', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify({ phone: this.phone.trim() })
+                        }).then(r => r.json()).then(d => {
+                            this.submitting = false;
+                            this.alertStatus = d.message || 'Subscribed to SMS restock alert.';
+                            this.phone = '';
+                        }).catch(() => { this.submitting = false; });
+                    }
+                }" class="pt-2 space-y-2.5">
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" @click="toggleWish()"
+                            class="flex-1 py-2.5 px-4 rounded-xl border border-hairline bg-cream hover:bg-paper text-xs font-bold text-ink flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                            <span x-text="saved ? '♥ Saved in Wishlist' : '♡ Save to Wishlist'"></span>
+                        </button>
+                        <button type="button" @click="showAlert = !showAlert"
+                            class="flex-1 py-2.5 px-4 rounded-xl border border-goldLuxury/40 bg-paper hover:bg-cream text-xs font-bold text-forest flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                            <span>🔔 Notify Me on Restock (SMS)</span>
+                        </button>
+                    </div>
+                    <div x-show="showAlert" x-cloak class="p-3 bg-cream rounded-2xl border border-hairline space-y-2">
+                        <div class="flex gap-2">
+                            <input type="tel" x-model="phone" placeholder="Mobile for SMS alert (e.g. 077 123 4567)"
+                                class="flex-1 px-3 py-2 rounded-xl bg-paper border border-hairline text-xs text-ink focus:outline-none focus:border-forest">
+                            <button type="button" @click="submitRestock()" :disabled="submitting"
+                                class="px-4 py-2 rounded-xl bg-forest text-white text-xs font-bold disabled:opacity-50 cursor-pointer">
+                                Alert Me
+                            </button>
+                        </div>
+                        <template x-if="alertStatus">
+                            <p class="text-[11px] font-semibold text-forest" x-text="'✓ ' + alertStatus"></p>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             <!-- Collapsible Policy Badges -->

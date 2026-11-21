@@ -4,7 +4,7 @@
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 5 Pillars (Consumer Mobile App + Handheld Staff Mobile POS + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (109 backend tests, 43 native Electron tests, 27 Flutter consumer tests, 63 Flutter staff POS tests = **242/242 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (111 backend tests, 43 native Electron tests, 30 Flutter consumer tests, 63 Flutter staff POS tests = **247/247 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -19,14 +19,14 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │   HANDHELD STAFF POS    │
 │     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │   ● OPERATIONAL (100%)  │
-│  109 Backend Tests Pass │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
+│  111 Backend Tests Pass │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
 │  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  63 Automated Tests Pass│
-│  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  27 Automated Tests Pass│  Barcode Gun • Thermal  │  Fast-Touch Catalog Grid│
+│  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  30 Automated Tests Pass│  Barcode Gun • Thermal  │  Fast-Touch Catalog Grid│
 │  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store & Reviews  │  43 Native Tests Pass   │  Laser Barcode Scanner  │
 │  Multi-Gateway SMS Logs │  VIP Gift Card & Promos │  Promos & VIP Gift Cards│  Promos, Drops & VIP %  │  Multi-Tender & Promos  │
-│  Promotions & Stocktakes│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Sales History & Refunds│
-│  Commissions & EOD Jobs │  Digital SMS E-Receipts │                         │                         │  Stocktake & Leaderboard│
-│  4-Stack CI/CD Verified │                         │                         │                         │  Milestones 23-33 Done  │
+│  Promotions & Stocktakes│  Wishlist & Stock Alerts│  Wishlist & Stock Alerts│  Instant SMS E-Receipts │  Sales History & Refunds│
+│  Commissions & Wishlists│  Digital SMS E-Receipts │  Zero-Staff App Sandbox │                         │  Stocktake & Leaderboard│
+│  4-Stack CI/CD Verified │                         │                         │                         │  Milestones 23-34 Done  │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -57,6 +57,7 @@
 | **Single Master Database of Truth** | `✅ DONE` | Consolidated directly inside `backend/laravel-api` reading and writing to MySQL `smartshop_pos`. Zero submodule overhead. |
 | **Editorial Light Luxury Design** | `✅ DONE` | Soft ivory `#FBFBF9`, warm cream `#F4F2EB`, forest green `#233C32`, and deep ink text `#242B27`. |
 | **Customer Product Reviews & Star Ratings** | `✅ DONE` | Dynamic star rating summary, 5-star distribution card, verified purchaser badges, helpful vote counters, and interactive Alpine.js review submission form with instant feedback. |
+| **Wishlist & Back-in-Stock SMS Alerts** | `✅ DONE` | Editorial Light Luxury Alpine.js Save to Wishlist (♡ / ♥) toggle and collapsible Notify Me on Restock SMS registration form on `/product/{id}` triggering automated SMS & push notifications upon inventory replenishment (Milestone 34). |
 | **VIP Account & Progression Hub** | `✅ DONE` | Dynamic VIP membership card with points balance, spend progress bar towards next tier, and privilege perks overview at `/account`. |
 | **Cart Drawer & Gift Card Accordion**| `✅ DONE` | Slide-over cart drawer with gift card / voucher balance deduction and subtotal reactivity. |
 | **Order Tracking & RMA Portal** | `✅ DONE` | Interactive order lookup, live fulfillment progress stepper, and 14-day exchange/return claim wizard. |
@@ -71,9 +72,10 @@
 | **Cross-Branch Availability Modal** | `✅ DONE` | "Check In-Store Availability" live card on `ProductDetailScreen` querying `/api/v1/products/{id}/cross-store-stock`. |
 | **Promo Codes & VIP Gift Cards** | `✅ DONE` | `CartNotifier` & `StoreCartScreen` supporting promo code validation (`/api/v1/promotions/validate`), VIP gift card balance verification (`/api/v1/gift-cards/verify`), and stacked savings (Milestone 32). |
 | **Verified Customer Reviews** | `✅ DONE` | `ProductReviewsNotifier` & interactive Reviews bottom sheet on `ProductDetailScreen` with verified buyer badges, helpful voting, and inline 5-star review publishing (Milestone 32). |
+| **Wishlist & Back-in-Stock Alerts** | `✅ DONE` | `WishlistNotifier` (`wishlistProvider`), AppBar Wishlist Heart toggle, and automated SMS/Push Restock Alert registration dialog on `ProductDetailScreen` synced with `BackInStockService` (Milestone 34). |
 | **In-App Notification Center** | `✅ DONE` | Persistent notification inbox with category filter chips, unread counter badges, and central sync. |
 | **Zero-Leakage Channel Isolation** | `✅ DONE` | Physical cashier PINs and hardware printer pairings completely purged from the consumer mobile experience. |
-| **Automated Test Suite** | `✅ DONE` | 27/27 tests pass (`flutter test`), zero regressions. |
+| **Automated Test Suite** | `✅ DONE` | 30/30 tests pass (`flutter test`), zero regressions. |
 
 ### 2.4 Dedicated In-Store Cashier POS (`apps/windows-pos`)
 | Feature | Status | Notes |
@@ -110,11 +112,11 @@
 ======================================================================
 Channel                          Test Suite           Status
 ======================================================================
-Laravel 11 ERP & API Backend     php artisan test     109/109 PASSED (843 assertions)
+Laravel 11 ERP & API Backend     php artisan test     111/111 PASSED (856 assertions)
 Windows Desktop POS (Electron)   npm test             43/43 PASSED (0 regressions)
-Flutter Consumer Mobile App      flutter test         27/27 PASSED (0 regressions)
+Flutter Consumer Mobile App      flutter test         30/30 PASSED (0 regressions)
 Flutter Handheld Staff POS       flutter test         63/63 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         242/242 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         247/247 PASSED (100%)
 ======================================================================
 ```

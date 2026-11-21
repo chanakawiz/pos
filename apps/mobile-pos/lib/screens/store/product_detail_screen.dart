@@ -7,6 +7,7 @@ import '../../core/network/api_client.dart';
 import '../../data/models/product.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_reviews_provider.dart';
+import '../../providers/wishlist_provider.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final ProductModel product;
@@ -109,6 +110,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final variants = _getAvailableVariants();
+    final wishlistState = ref.watch(wishlistProvider);
+    final isWishlisted = wishlistState.isSaved(widget.product);
+    final hasRestockAlert = wishlistState.hasStockAlert(widget.product);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -125,6 +129,32 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            key: const Key('wishlist-toggle-btn'),
+            tooltip: isWishlisted ? 'Remove from Wishlist' : 'Save to Wishlist',
+            icon: Icon(
+              isWishlisted ? Icons.favorite : Icons.favorite_border,
+              color: isWishlisted ? AppColors.gold : AppColors.textSecondary,
+            ),
+            onPressed: () async {
+              final saved = await ref.read(wishlistProvider.notifier).toggleWishlist(
+                    widget.product,
+                    variantLabel: _selectedVariant,
+                  );
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppColors.forest,
+                  content: Text(
+                    saved
+                        ? 'Saved to your OmniLuxe Wishlist'
+                        : 'Removed from Wishlist',
+                  ),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.share_outlined, color: AppColors.textSecondary),
             onPressed: () {
@@ -529,6 +559,100 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 12),
+
+                  // Automated Back-in-Stock SMS / Push Alert Tile
+                  InkWell(
+                    key: const Key('restock-alert-tile'),
+                    onTap: () => _showRestockAlertDialog(context),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: hasRestockAlert
+                              ? AppColors.forest.withValues(alpha: 0.45)
+                              : AppColors.border,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.forest.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              hasRestockAlert
+                                  ? Icons.notifications_active
+                                  : Icons.notifications_none_outlined,
+                              size: 20,
+                              color: AppColors.forest,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      hasRestockAlert
+                                          ? 'Restock SMS Alert Active'
+                                          : 'Notify Me on Restock (SMS)',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    if (hasRestockAlert) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.forest.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'SUBSCRIBED',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.forest,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  hasRestockAlert
+                                      ? 'You will receive an instant SMS & push alert upon replenishment'
+                                      : 'Get an automatic SMS & push alert when new boutique stock arrives',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 16),
 
                   // Verified Customer Reviews & Star Ratings Preview Card
@@ -654,6 +778,98 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 
   String get _reviewIdentifier => widget.product.id?.toString() ?? widget.product.uuid;
+
+  void _showRestockAlertDialog(BuildContext context) {
+    final phoneCtrl = TextEditingController();
+    final nameCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Text(
+            'Back-in-Stock SMS Alert',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Enter your mobile number to receive an automated SMS & push alert as soon as ${widget.product.name} is replenished.',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                key: const Key('restock-phone-field'),
+                controller: phoneCtrl,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Mobile Number (e.g. 0771234567)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: nameCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Your Name (Optional)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              key: const Key('restock-submit-btn'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.forest,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                final ok = await ref
+                    .read(wishlistProvider.notifier)
+                    .subscribeBackInStock(
+                      product: widget.product,
+                      phone: phoneCtrl.text,
+                      customerName: nameCtrl.text,
+                    );
+                if (!ctx.mounted) return;
+                if (ok) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: AppColors.forest,
+                      content: Text(
+                        'Subscribed! We will alert you by SMS upon restock.',
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Alert Me'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildReviewsPreviewCard(BuildContext context) {
     final reviewsState = ref.watch(productReviewsProvider(_reviewIdentifier));

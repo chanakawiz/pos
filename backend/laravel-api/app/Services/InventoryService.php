@@ -95,7 +95,7 @@ class InventoryService
 
             $inventory->update(['quantity_on_hand' => $after]);
 
-            return StockMovement::create([
+            $movement = StockMovement::create([
                 'store_id' => $store->id,
                 'product_id' => $product->id,
                 'variant_id' => $variant?->id,
@@ -107,6 +107,13 @@ class InventoryService
                 'reference_uuid' => $referenceUuid,
                 'notes' => $notes,
             ]);
+
+            // Trigger automated back-in-stock SMS & customer inbox alerts when replenished from <= 0 to > 0
+            if ($before <= 0 && $after > 0) {
+                app(BackInStockService::class)->notifySubscribersOnRestock($product, $store);
+            }
+
+            return $movement;
         });
     }
 }

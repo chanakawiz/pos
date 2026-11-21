@@ -322,3 +322,12 @@
 - `GET /api/v1/commissions/leaderboard?days=30&store_id=` (Authenticated) — Ranked boutique associate sales volume, earned commissions, average ticket size, and `% of monthly target achieved`.
 - `GET /api/v1/commissions/me?days=30` (Authenticated) — Personal earnings summary, pending vs. settled commissions, target attainment, and recent commission ledger for the signed-in associate.
 - `POST /api/v1/commissions/{uuid}/pay` (Authenticated) — Settle and mark a staff commission payout as `paid`.
+
+---
+
+## 12. Customer Wishlist & Automated Back-in-Stock SMS/Push Alerts
+
+- `GET /api/v1/wishlist?session_token=` (Public / Customer) — List saved wishlist pieces for the authenticated customer or guest `session_token` (or `X-Wishlist-Token` header).
+- `POST /api/v1/wishlist/toggle` (Public / Customer) — Toggle a product (`product_id`, optional `variant_label`, `session_token` or `customer_uuid`) in/out of the shopper's wishlist.
+- `POST /api/v1/products/{identifier}/notify-stock` (Public / Customer) — Subscribe a mobile phone and/or email (`phone`, `email`, `customer_name`, optional `store_id`) to automatic SMS (`SmsService`, event `back_in_stock`) and Reverb/FCM inbox notifications triggered automatically when `InventoryService::addStock()` replenishes stock from `<= 0` to `> 0`.
+- `GET /api/v1/stock-alerts` (Authenticated) — Paginated ERP list of customer back-in-stock alert subscriptions and notification timestamps.

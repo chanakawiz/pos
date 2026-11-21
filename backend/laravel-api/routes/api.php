@@ -42,6 +42,11 @@ Route::prefix('v1')->group(function () {
     Route::post('/products/{identifier}/reviews', [\App\Http\Controllers\Api\v1\ReviewController::class, 'store']);
     Route::post('/reviews/{uuid}/helpful', [\App\Http\Controllers\Api\v1\ReviewController::class, 'voteHelpful']);
 
+    // Customer Wishlist & Automated Back-in-Stock Alerts
+    Route::get('/wishlist', [\App\Http\Controllers\Api\v1\WishlistController::class, 'index']);
+    Route::post('/wishlist/toggle', [\App\Http\Controllers\Api\v1\WishlistController::class, 'toggle']);
+    Route::post('/products/{identifier}/notify-stock', [\App\Http\Controllers\Api\v1\WishlistController::class, 'subscribeStockAlert']);
+
     // Production Health Check & Audits
     Route::get('/health/live', [\App\Http\Controllers\HealthController::class, 'live']);
     Route::get('/health/ready', [\App\Http\Controllers\HealthController::class, 'ready']);
@@ -117,6 +122,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/stocktakes/{uuid}', [\App\Http\Controllers\Api\v1\StocktakeController::class, 'show']);
         Route::post('/stocktakes/{uuid}/counts', [\App\Http\Controllers\Api\v1\StocktakeController::class, 'recordCounts']);
         Route::post('/stocktakes/{uuid}/finalize', [\App\Http\Controllers\Api\v1\StocktakeController::class, 'finalize']);
+        Route::get('/stock-alerts', [\App\Http\Controllers\Api\v1\WishlistController::class, 'alertsIndex']);
 
         // Supply Chain — Inter-Branch Stock Transfers
         Route::get('/stock-transfers', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'index']);

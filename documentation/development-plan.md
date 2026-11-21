@@ -683,6 +683,24 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 34: Customer Wishlist & Automated Back-in-Stock SMS/Push Alerts Engine (`✅ COMPLETED`)
+- [x] **Backend Wishlist & Restock Alert Subscriptions (`backend/laravel-api`)**:
+  - Migration `2026_11_21_000005_create_wishlists_and_stock_alerts_tables.php` creating `wishlist_items` (supporting both authenticated customers and guest `session_token`) and `back_in_stock_subscriptions` (tracking product, optional boutique branch, mobile phone, email, and `pending / notified / cancelled` status).
+  - Eloquent models `WishlistItem` and `BackInStockSubscription` plus domain service `BackInStockService` with deduplicated `subscribe()` and automated `notifySubscribersOnRestock()` dispatching instant SMS via `SmsService::dispatch(..., eventType: 'back_in_stock')` and persistent Reverb/FCM customer inbox alerts via `CustomerNotifier::notify()`.
+  - Hooked `InventoryService::addStock()` to automatically trigger `BackInStockService::notifySubscribersOnRestock()` whenever branch inventory transitions from `<= 0` to `> 0` (via PO receiving, stocktake adjustments, transfers, or refunds).
+  - REST APIs (`WishlistController`): Public `GET /api/v1/wishlist`, `POST /api/v1/wishlist/toggle`, `POST /api/v1/products/{identifier}/notify-stock`, and authenticated `GET /api/v1/stock-alerts`.
+  - Filament v3 `BackInStockSubscriptionResource` under *Catalog & Inventory* with status filters and 1-click **Send Restock Alert** action.
+- [x] **Web Storefront & Consumer Mobile App Integration**:
+  - Web Storefront (`resources/views/store/product.blade.php`): Editorial Light Luxury Alpine.js **Save to Wishlist (♡ / ♥)** button and collapsible **Notify Me on Restock (SMS)** subscription form.
+  - Consumer Mobile App (`apps/mobile-pos`): Built `wishlist_provider.dart` (`WishlistNotifier` & `wishlistProvider`) and upgraded `ProductDetailScreen` with an AppBar **Wishlist Heart** toggle, live **Notify Me on Restock (SMS)** tile with `SUBSCRIBED` indicator, and interactive restock alert dialog.
+- [x] **100% Passing Automated Tests**:
+  - 2/2 new tests in `WishlistAndStockAlertTest.php` passing (**111/111 Laravel backend tests**, 856 assertions).
+  - 3/3 new tests in `wishlist_stock_alert_test.dart` passing (**30/30 Consumer Mobile App tests**).
+  - 43/43 Desktop POS tests (`apps/windows-pos`) and 63/63 Handheld Staff POS tests (`apps/flutter-mobile-pos`).
+  - **Total: 247/247 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |
