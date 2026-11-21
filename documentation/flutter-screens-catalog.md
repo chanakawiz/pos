@@ -500,3 +500,12 @@ flowchart TD
 - **Key UI Components**:
   - **Stocktake Audit Tab**: Barcode scan input + quick test chips, live KPI strip (`Counted SKUs`, `Discrepancies`, `Net Var.`), expected-vs-counted steppers with variance badges (`MATCHED`, `+OVER`, `-SHORT`), and 1-tap `POST /api/v1/stocktakes` finalization.
   - **PO Receiving Tab**: Open Purchase Orders list (`GET /api/v1/purchases`), barcode carton scanner, ordered-vs-verified steppers, and 1-tap goods receipt confirmation (`POST /api/v1/purchases/{uuid}/receive`).
+
+---
+
+### Screen 32: Staff Commissions & Associate Leaderboard Screen
+- **Class & File**: [`CommissionLeaderboardScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/commission_leaderboard_screen.dart) in `lib/screens/commission_leaderboard_screen.dart`
+- **Purpose**: Real-time associate earnings transparency, monthly target motivation, and multi-boutique sales leaderboard.
+- **Key UI Components**:
+  - Personal target attainment gradient banner displaying earned LKR commissions, active commission rate badge, monthly target progress bar, and Pending vs. Settled payout chips (`/api/v1/commissions/me`).
+  - Ranked Boutique Associate Leaderboard (`#1` Gold, `#2` Silver, `#3` Bronze) showing store branch, bills closed, sales volume, and earned commission (`/api/v1/commissions/leaderboard`).

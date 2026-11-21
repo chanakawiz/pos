@@ -665,6 +665,24 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 33: Staff Sales Commissions, Associate Leaderboard & 4-Stack CI/CD Pipeline (`✅ COMPLETED`)
+- [x] **Backend Staff Commissions & Leaderboard Engine (`backend/laravel-api`)**:
+  - Migration `2026_11_21_000004_create_staff_commissions_tables.php` adding `commission_rate` and `monthly_sales_target` to `users` and creating the `staff_commissions` ledger table.
+  - Eloquent model `StaffCommission` and domain service `CommissionService` automatically accruing associate commissions on `BillingService::processSale()` and proportionally reversing/adjusting commissions on `BillingService::processRefund()`.
+  - REST APIs (`CommissionController`): `GET /api/v1/commissions/leaderboard`, `GET /api/v1/commissions/me`, and `POST /api/v1/commissions/{uuid}/pay`.
+  - Filament v3 `StaffCommissionResource` under *Analytics & Reports* with 1-click **Approve & Pay** settlement action.
+- [x] **Handheld Staff POS Associate Earnings & Leaderboard (`apps/flutter-mobile-pos`)**:
+  - Built `pos_commission_provider.dart` and `CommissionLeaderboardScreen` displaying personal earned commissions, monthly sales target progress bar, pending vs. settled payout chips, and ranked boutique associate leaderboard wired into `PosHomeScreen`.
+- [x] **4-Stack GitHub Actions CI/CD Pipeline (`.github/workflows/ci.yml`)**:
+  - Upgraded GitHub Actions workflow to automatically build and verify all 4 platform stacks on every push/PR: Laravel 11 ERP (`php artisan test`), Windows Desktop POS (`npm run build:all`, `npm test`, `lint`, `test:smoke`), Flutter Consumer Mobile App (`flutter test`), and Flutter Handheld Staff POS (`flutter test`).
+- [x] **100% Passing Automated Tests**:
+  - 2/2 new tests in `CommissionTest.php` passing (**109/109 Laravel backend tests**, 843 assertions).
+  - 2/2 new tests in `pos_commission_test.dart` passing (**63/63 Handheld Staff POS tests**).
+  - 43/43 Desktop POS tests (`apps/windows-pos`) and 27/27 Consumer mobile tests (`apps/mobile-pos`).
+  - **Total: 242/242 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |

@@ -11,6 +11,7 @@ import 'sales_history_screen.dart';
 import 'refund_dialog.dart';
 import 'branch_stock_dialog.dart';
 import 'cash_movement_dialog.dart';
+import 'commission_leaderboard_screen.dart';
 import 'inventory_ops_screen.dart';
 import 'sync_status_ribbon.dart';
 import 'shift_close_dialog.dart';
@@ -336,6 +337,21 @@ class PosHomeScreen extends ConsumerWidget {
                           context: context,
                           barrierColor: Colors.black.withValues(alpha: 0.75),
                           builder: (_) => const CashMovementDialog(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Staff Commissions & Associate Leaderboard
+                    _buildFeatureCard(
+                      context,
+                      title: 'My Commissions & Leaderboard',
+                      subtitle: 'Track earned sales commissions, monthly target attainment & boutique associate rankings.',
+                      icon: Icons.emoji_events_outlined,
+                      accentColor: PosTheme.primaryGold,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const CommissionLeaderboardScreen()),
                         );
                       },
                     ),

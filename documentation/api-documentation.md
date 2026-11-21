@@ -314,3 +314,11 @@
 
 ### 10.2 Verified Barcode PO Receiving
 - `POST /api/v1/purchases/{uuid}/receive` (Authenticated) — Accepts optional `received_items: [{ product_id, quantity }]` barcode-verified quantity overrides from handheld terminals (defaults to ordered quantities if omitted).
+
+---
+
+## 11. Staff Sales Commissions & Associate Leaderboard
+
+- `GET /api/v1/commissions/leaderboard?days=30&store_id=` (Authenticated) — Ranked boutique associate sales volume, earned commissions, average ticket size, and `% of monthly target achieved`.
+- `GET /api/v1/commissions/me?days=30` (Authenticated) — Personal earnings summary, pending vs. settled commissions, target attainment, and recent commission ledger for the signed-in associate.
+- `POST /api/v1/commissions/{uuid}/pay` (Authenticated) — Settle and mark a staff commission payout as `paid`.

@@ -216,6 +216,9 @@ class BillingService
             // Omnichannel SMS digital e-receipt dispatch
             $this->smsService?->sendSaleReceipt($sale);
 
+            // Automatic associate sales commission accrual
+            app(CommissionService::class)->recordSaleCommission($sale);
+
             // Real-time stock availability broadcast across Reverb
             $productIds = collect($saleItemsToInsert)->pluck('product.id')->filter()->all();
             $this->inventoryBroadcaster->changed($store, $productIds, 'pos');
@@ -333,6 +336,9 @@ class BillingService
             if ($allRefunded >= ((float) $sale->total_amount - 0.01)) {
                 $sale->update(['payment_status' => 'refunded']);
             }
+
+            // Proportionally adjust or reverse staff commission on refund
+            app(CommissionService::class)->reverseSaleCommission($sale, $totalRefundAmount);
 
             return $refund->load(['items.saleItem.product', 'sale.customer', 'cashier', 'store']);
         });

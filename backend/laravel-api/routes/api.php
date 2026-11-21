@@ -143,6 +143,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/reports/branch-performance', [\App\Http\Controllers\Api\v1\ReportController::class, 'branchPerformance']);
         Route::get('/reports/stock-aging', [\App\Http\Controllers\Api\v1\ReportController::class, 'stockAging']);
 
+        // Staff Sales Commissions & Associate Leaderboard
+        Route::get('/commissions/leaderboard', [\App\Http\Controllers\Api\v1\CommissionController::class, 'leaderboard']);
+        Route::get('/commissions/me', [\App\Http\Controllers\Api\v1\CommissionController::class, 'me']);
+        Route::post('/commissions/{uuid}/pay', [\App\Http\Controllers\Api\v1\CommissionController::class, 'markPaid']);
+
         // Offline Synchronization Engine
         Route::post('/sync/push', [SyncController::class, 'push']);
         Route::get('/sync/pull', [SyncController::class, 'pull']);

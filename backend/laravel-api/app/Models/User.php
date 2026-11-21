@@ -26,6 +26,8 @@ class User extends Authenticatable implements FilamentUser
         'pin_code_hash',
         'password',
         'role',
+        'commission_rate',
+        'monthly_sales_target',
         'is_active',
     ];
 
@@ -40,6 +42,8 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'commission_rate' => 'decimal:2',
+            'monthly_sales_target' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }
@@ -57,6 +61,11 @@ class User extends Authenticatable implements FilamentUser
     public function cashSessions(): HasMany
     {
         return $this->hasMany(CashSession::class, 'cashier_id');
+    }
+
+    public function commissions(): HasMany
+    {
+        return $this->hasMany(StaffCommission::class);
     }
 
     public function canAccessPanel(Panel $panel): bool

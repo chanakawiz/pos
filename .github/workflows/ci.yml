@@ -1,4 +1,4 @@
-name: SmartShop POS CI/CD Pipeline
+name: OmniLuxe Store 4-Stack CI/CD Pipeline
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend-tests:
-    name: Backend API Tests & Linting
+    name: Laravel 11 ERP & API Tests
     runs-on: ubuntu-latest
 
     services:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
+      - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -65,7 +65,7 @@ jobs:
         run: php artisan migrate --seed --force
         working-directory: backend/laravel-api
 
-      - name: Execute Automated Test Suite (Pest/PHPUnit)
+      - name: Execute Automated Backend Test Suite
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -77,7 +77,7 @@ jobs:
         working-directory: backend/laravel-api
 
   desktop-pos-build:
-    name: Windows Desktop POS Build (Electron + React)
+    name: Windows Desktop POS (Electron + React)
     runs-on: ubuntu-latest
 
     steps:
@@ -99,7 +99,7 @@ jobs:
         run: npm run build:all
         working-directory: apps/windows-pos
 
-      - name: Verify Offline Persistence & Synchronization
+      - name: Run Native Electron Test Suite
         run: npm test
         working-directory: apps/windows-pos
 
@@ -107,6 +107,52 @@ jobs:
         run: npm run lint
         working-directory: apps/windows-pos
 
-      - name: Verify Offline Cashier UI
+      - name: Verify Offline Cashier UI Smoke
         run: xvfb-run -a npm run test:smoke
         working-directory: apps/windows-pos
+
+  flutter-consumer-app:
+    name: Flutter Consumer Mobile App (apps/mobile-pos)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Pub Dependencies
+        run: flutter pub get
+        working-directory: apps/mobile-pos
+
+      - name: Run Consumer Mobile Test Suite
+        run: flutter test
+        working-directory: apps/mobile-pos
+
+  flutter-handheld-pos:
+    name: Flutter Handheld Staff POS (apps/flutter-mobile-pos)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Pub Dependencies
+        run: flutter pub get
+        working-directory: apps/flutter-mobile-pos
+
+      - name: Run Handheld Staff POS Test Suite
+        run: flutter test
+        working-directory: apps/flutter-mobile-pos
