@@ -109,11 +109,20 @@ class PurchaseController extends Controller
 
     /**
      * Receive a purchase — mark it received and automatically add inventory.
+     * Supports optional barcode-verified `received_items` overrides from handheld POS.
      */
     public function receive(Request $request, string $uuid): JsonResponse
     {
+        $validated = $request->validate([
+            'received_items' => 'nullable|array',
+            'received_items.*.product_id' => 'required_with:received_items|integer',
+            'received_items.*.quantity' => 'required_with:received_items|numeric|min:0|decimal:0,3',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
         $purchase = Purchase::with(['items.product', 'store'])
             ->where('uuid', $uuid)
+            ->orWhere('purchase_number', $uuid)
             ->firstOrFail();
 
         if ($purchase->status === 'received') {
@@ -123,15 +132,26 @@ class PurchaseController extends Controller
             ], 422);
         }
 
+        $overrides = collect($validated['received_items'] ?? [])
+            ->keyBy(fn ($row) => (int) $row['product_id']);
+
         $user = $request->user();
 
-        DB::transaction(function () use ($purchase, $user) {
+        DB::transaction(function () use ($purchase, $user, $overrides, $validated) {
             foreach ($purchase->items as $item) {
+                $qtyToReceive = $overrides->has($item->product_id)
+                    ? (float) $overrides->get($item->product_id)['quantity']
+                    : (float) $item->quantity;
+
+                if ($qtyToReceive <= 0) {
+                    continue;
+                }
+
                 $this->inventoryService->addStock(
                     store: $purchase->store,
                     product: $item->product,
                     variant: null,
-                    quantity: (float) $item->quantity,
+                    quantity: $qtyToReceive,
                     type: 'purchase',
                     referenceUuid: $purchase->uuid,
                     user: $user,
@@ -139,7 +159,12 @@ class PurchaseController extends Controller
                 );
             }
 
-            $purchase->update(['status' => 'received']);
+            $purchase->update([
+                'status' => 'received',
+                'notes' => ! empty($validated['notes'])
+                    ? trim(($purchase->notes ? $purchase->notes . ' | ' : '') . $validated['notes'])
+                    : $purchase->notes,
+            ]);
         });
 
         return response()->json([

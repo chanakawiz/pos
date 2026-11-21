@@ -614,6 +614,25 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 30: Mobile Inventory Stocktake & Barcode Purchase Order Receiving (`✅ COMPLETED`)
+- [x] **Backend Stocktake & Cycle Count Ledger (`backend/laravel-api`)**:
+  - Migration `2026_11_21_000003_create_stocktakes_tables.php` creating `stocktakes` and `stocktake_items` tables tracking expected vs. counted quantities, unit costs, quantity/value variances, and audit status (`in_progress`, `completed`, `cancelled`).
+  - Eloquent models `Stocktake` & `StocktakeItem` and domain service `StocktakeService` with `startStocktake`, `recordCounts`, and transactional `finalizeStocktake` applying non-zero adjustments via `InventoryService::addStock(..., type: 'adjustment')` and broadcasting changes over Laravel Reverb (`InventoryBroadcaster`).
+  - REST APIs (`StocktakeController`): `GET/POST /api/v1/stocktakes`, `GET /api/v1/stocktakes/{uuid}`, `POST /api/v1/stocktakes/{uuid}/counts`, `POST /api/v1/stocktakes/{uuid}/finalize` (including 1-shot mobile sync with `finalize: true`).
+  - Enhanced `PurchaseController::receive` to support barcode-verified `received_items` quantity overrides from handheld terminals.
+  - Filament v3 `StocktakeResource` under *Catalog & Inventory* with variance highlights, net LKR impact column, and 1-click **Finalize & Adjust** action.
+- [x] **Handheld Staff Mobile POS Stocktake & PO Receiving (`apps/flutter-mobile-pos`)**:
+  - Built `inventory_ops.dart` models (`StocktakeLine`, `PurchaseOrderItemLine`, `PurchaseOrderRecord`), `pos_inventory_ops_provider.dart`, and tabbed `InventoryOpsScreen` wired into `PosHomeScreen`.
+  - **Stocktake Audit Tab**: Continuous barcode scan input + quick test chips, live KPI strip (`Counted SKUs`, `Discrepancies`, `Net Variance`), expected-vs-counted steppers with `MATCHED / +OVER / -SHORT` badges, and 1-tap ERP adjustment sync.
+  - **PO Receiving Tab**: Open Purchase Orders list (`GET /api/v1/purchases`), barcode carton verification scanner, ordered-vs-verified steppers, and 1-tap goods receipt confirmation (`POST /api/v1/purchases/{uuid}/receive`).
+- [x] **100% Passing Automated Tests**:
+  - 3/3 tests in `StocktakeTest.php` passing (107/107 Laravel backend tests, 828 assertions).
+  - 3/3 tests in `pos_inventory_ops_test.dart` passing (61/61 Flutter handheld POS tests).
+  - 41/41 Desktop POS tests (`apps/windows-pos`) and 22/22 Consumer mobile tests (`apps/mobile-pos`).
+  - **Total: 231/231 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |

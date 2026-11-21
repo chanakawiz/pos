@@ -491,3 +491,12 @@ flowchart TD
 - **Key UI Components**:
   - Movement type selector (`Safe Cash Drop`, `Petty Cash Expense`, `Float Pay-In`), quick denomination chips (`LKR 1,000`–`25,000`), and reason presets.
   - Live expected drawer cash preview (`Current Expected` → `Updated Drawer`), `/api/v1/cash-sessions/movements` persistence, shift movement audit ledger, and ESC/POS cash voucher printing.
+
+---
+
+### Screen 31: Inventory Stocktake & Barcode PO Receiving Screen
+- **Class & File**: [`InventoryOpsScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/inventory_ops_screen.dart) in `lib/screens/inventory_ops_screen.dart`
+- **Purpose**: Back-of-house and floor inventory operations combining barcode cycle counting with supplier Purchase Order goods verification.
+- **Key UI Components**:
+  - **Stocktake Audit Tab**: Barcode scan input + quick test chips, live KPI strip (`Counted SKUs`, `Discrepancies`, `Net Var.`), expected-vs-counted steppers with variance badges (`MATCHED`, `+OVER`, `-SHORT`), and 1-tap `POST /api/v1/stocktakes` finalization.
+  - **PO Receiving Tab**: Open Purchase Orders list (`GET /api/v1/purchases`), barcode carton scanner, ordered-vs-verified steppers, and 1-tap goods receipt confirmation (`POST /api/v1/purchases/{uuid}/receive`).

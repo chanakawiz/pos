@@ -301,3 +301,16 @@
 - `GET /api/v1/promotions` (Authenticated) — Paginated list of all promotion campaigns and usage metrics.
 - `POST /api/v1/promotions` (Authenticated) — Create a new promotion rule (`percentage`, `fixed_amount`, `buy_x_get_y`).
 - `PATCH /api/v1/promotions/{uuid}/toggle` (Authenticated) — Pause or reactivate a campaign immediately.
+
+---
+
+## 10. Mobile Inventory Stocktake & Barcode PO Receiving
+
+### 10.1 Stocktake & Cycle Count Audits
+- `GET /api/v1/stocktakes` (Authenticated) — Paginated list of branch stocktake audits.
+- `POST /api/v1/stocktakes` (Authenticated) — Start a new stocktake session, optionally passing `items` and `finalize: true` for 1-shot mobile barcode audit sync.
+- `POST /api/v1/stocktakes/{uuid}/counts` (Authenticated) — Record or update barcode-scanned counted quantities and calculate expected vs. counted variances.
+- `POST /api/v1/stocktakes/{uuid}/finalize` (Authenticated) — Commit non-zero variances to `inventories` and `stock_movements` (`adjustment`) and broadcast updates via Reverb.
+
+### 10.2 Verified Barcode PO Receiving
+- `POST /api/v1/purchases/{uuid}/receive` (Authenticated) — Accepts optional `received_items: [{ product_id, quantity }]` barcode-verified quantity overrides from handheld terminals (defaults to ordered quantities if omitted).

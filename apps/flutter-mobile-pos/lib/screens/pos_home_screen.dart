@@ -11,6 +11,7 @@ import 'sales_history_screen.dart';
 import 'refund_dialog.dart';
 import 'branch_stock_dialog.dart';
 import 'cash_movement_dialog.dart';
+import 'inventory_ops_screen.dart';
 import 'sync_status_ribbon.dart';
 import 'shift_close_dialog.dart';
 import '../providers/pos_shift_provider.dart';
@@ -303,6 +304,21 @@ class PosHomeScreen extends ConsumerWidget {
                           context: context,
                           barrierColor: Colors.black.withValues(alpha: 0.75),
                           builder: (_) => const BranchStockDialog(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Mobile Inventory Stocktake & Barcode PO Receiving
+                    _buildFeatureCard(
+                      context,
+                      title: 'Inventory Stocktake & PO Receiving',
+                      subtitle: 'Barcode shelf cycle counts, variance reconciliation & supplier PO goods receiving.',
+                      icon: Icons.fact_check_outlined,
+                      accentColor: PosTheme.primaryGold,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const InventoryOpsScreen()),
                         );
                       },
                     ),

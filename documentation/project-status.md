@@ -4,7 +4,7 @@
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 5 Pillars (Consumer Mobile App + Handheld Staff Mobile POS + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (104 backend tests, 41 native Electron tests, 22 Flutter consumer tests, 58 Flutter staff POS tests = **225/225 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (107 backend tests, 41 native Electron tests, 22 Flutter consumer tests, 61 Flutter staff POS tests = **231/231 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -19,14 +19,14 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │   HANDHELD STAFF POS    │
 │     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │   ● OPERATIONAL (100%)  │
-│  104 Backend Tests Pass │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
-│  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  58 Automated Tests Pass│
+│  107 Backend Tests Pass │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
+│  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  61 Automated Tests Pass│
 │  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │  Fast-Touch Catalog Grid│
 │  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │  Laser Barcode Scanner  │
 │  Multi-Gateway SMS Logs │  VIP Gift Card & Promos │  Central Inbox API Sync │  Gift Cards & VIP Disc. │  Multi-Tender & Promos  │
-│  Promotions & Coupons   │  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Sales History & Refunds│
-│  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │  Cross-Store & VIP CRM  │
-│  Cash Drop Ledger APIs  │                         │                         │                         │  Milestones 23-29 Done  │
+│  Promotions & Stocktakes│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Sales History & Refunds│
+│  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │  Stocktake & PO Receive │
+│  Cash Drop Ledger APIs  │                         │                         │                         │  Milestones 23-30 Done  │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -96,6 +96,7 @@
 | **Cash Drawer Floats & Shift Reports** | `✅ DONE` | Mobile drawer float tracking, petty cash drops & float pay-ins (`CashMovementDialog`), mid-shift X-reports, and register closeout Z-reports (`ShiftCloseDialog` & `posShiftProvider`) synced to central EOD (Milestones 27–28). |
 | **Sales History, Reprint & Refunds** | `✅ DONE` | Merged local + cloud transaction history (`SalesHistoryScreen`), 1-tap ESC/POS thermal slip reprint, SMS receipt resend, and itemized in-store refunds with inventory restock & refund voucher printing (`RefundDialog`) (Milestone 28). |
 | **Cross-Store Stock & VIP CRM** | `✅ DONE` | Multi-boutique stock locator (`BranchStockDialog`) across Colombo/Kandy/Galle and VIP Customer CRM (`CustomerCrmDialog`) with quick registration and auto tier discounting (5% Gold Elite / 10% Black Diamond) (Milestone 28). |
+| **Stocktake & Barcode PO Receiving** | `✅ DONE` | Tabbed `InventoryOpsScreen` for barcode shelf cycle counts, variance reconciliation, and supplier PO verified receiving synced to ERP `StocktakeResource` (Milestone 30). |
 
 ---
 
@@ -105,11 +106,11 @@
 ======================================================================
 Channel                          Test Suite           Status
 ======================================================================
-Laravel 11 ERP & API Backend     php artisan test     104/104 PASSED (810 assertions)
+Laravel 11 ERP & API Backend     php artisan test     107/107 PASSED (828 assertions)
 Windows Desktop POS (Electron)   npm test             41/41 PASSED (0 regressions)
 Flutter Consumer Mobile App      flutter test         22/22 PASSED (0 regressions)
-Flutter Handheld Staff POS       flutter test         58/58 PASSED (0 regressions)
+Flutter Handheld Staff POS       flutter test         61/61 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         225/225 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         231/231 PASSED (100%)
 ======================================================================
 ```

@@ -111,6 +111,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/purchases/{uuid}', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'show']);
         Route::post('/purchases/{uuid}/receive', [\App\Http\Controllers\Api\v1\PurchaseController::class, 'receive']);
 
+        // Inventory Stocktake & Cycle Counts
+        Route::get('/stocktakes', [\App\Http\Controllers\Api\v1\StocktakeController::class, 'index']);
+        Route::post('/stocktakes', [\App\Http\Controllers\Api\v1\StocktakeController::class, 'store']);
+        Route::get('/stocktakes/{uuid}', [\App\Http\Controllers\Api\v1\StocktakeController::class, 'show']);
+        Route::post('/stocktakes/{uuid}/counts', [\App\Http\Controllers\Api\v1\StocktakeController::class, 'recordCounts']);
+        Route::post('/stocktakes/{uuid}/finalize', [\App\Http\Controllers\Api\v1\StocktakeController::class, 'finalize']);
+
         // Supply Chain — Inter-Branch Stock Transfers
         Route::get('/stock-transfers', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'index']);
         Route::post('/stock-transfers', [\App\Http\Controllers\Api\v1\StockTransferController::class, 'store']);
