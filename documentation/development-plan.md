@@ -592,6 +592,28 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 29: Omnichannel Promotions, Coupon Codes & Seasonal Campaigns Engine (`✅ COMPLETED`)
+- [x] **Enterprise Promotions & Redemptions Schema (`backend/laravel-api`)**:
+  - Migration `2026_11_21_000002_create_promotions_tables.php` establishing `promotions` and `promotion_redemptions` tables supporting `percentage` (with max cap), `fixed_amount`, and `buy_x_get_y` (cheapest free unit) rules, channel targeting (`web`, `mobile`, `pos`), VIP tier gating (`silver`, `gold`, `black`), category scoping, date windows, and global/per-customer usage limits.
+  - Eloquent models `Promotion` (with `live()` scope and `discount_label` accessor) and `PromotionRedemption`.
+- [x] **Promotion Calculation & Atomic Redemption Engine (`PromotionService`)**:
+  - `validateAndCalculate`: Validates eligibility, dates, limits, channel, VIP tier hierarchy, minimum spend, and calculates exact discount.
+  - `redeem`: Atomic row-locked (`lockForUpdate`) usage counter increment and redemption audit creation, automatically invoked from `BillingService::processSale` when `promotion_code` is provided.
+- [x] **REST APIs & Filament ERP Control Panel (`PromotionController` & `PromotionResource`)**:
+  - Public APIs: `GET /api/v1/promotions/active`, `POST /api/v1/promotions/validate`.
+  - Staff/ERP APIs: `GET /api/v1/promotions`, `POST /api/v1/promotions`, `PATCH /api/v1/promotions/{uuid}/toggle`.
+  - Filament v3 `PromotionResource` under *Sales & Fulfillment* with reactive rule form, redemption progress column, and 1-click **Pause / Activate** action.
+- [x] **Web Storefront & Handheld Staff POS Coupon Checkout**:
+  - Web Storefront cart drawer (`layout.blade.php` + `WebStoreController.php`): Live Promo / Coupon Code accordion validating against `/api/v1/promotions/validate` and stacking cleanly ahead of Gift Card redemptions.
+  - Handheld Staff POS (`pos_cart_provider.dart`, `pos_checkout_screen.dart`, `pos_payment_provider.dart`): Promo code dialog with quick campaign chips (`LUXE15`, `WELCOME2500`, `FLASH20`, `B2G1`), removable emerald applied discount badge, offline fallback evaluation, and `promotion_code` transmission on checkout.
+- [x] **100% Passing Automated Tests**:
+  - 5/5 tests in `PromotionTest.php` passing (104/104 Laravel backend tests, 810 assertions).
+  - 3/3 tests in `pos_promotion_test.dart` passing (58/58 Flutter handheld POS tests).
+  - 41/41 Desktop POS tests (`apps/windows-pos`) and 22/22 Consumer mobile tests (`apps/mobile-pos`).
+  - **Total: 225/225 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |

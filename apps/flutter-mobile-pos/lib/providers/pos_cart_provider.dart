@@ -16,6 +16,10 @@ class PosCartState {
   final String? vipTier;
   final double vipDiscountPercent;
   final int customerLoyaltyPoints;
+  final String? promoCode;
+  final String? promoLabel;
+  final double promoDiscountAmount;
+  final bool isValidatingPromo;
   final bool isHolding;
   final String? lastHoldReference;
   final String? errorMessage;
@@ -29,6 +33,10 @@ class PosCartState {
     this.vipTier,
     this.vipDiscountPercent = 0.0,
     this.customerLoyaltyPoints = 0,
+    this.promoCode,
+    this.promoLabel,
+    this.promoDiscountAmount = 0.0,
+    this.isValidatingPromo = false,
     this.isHolding = false,
     this.lastHoldReference,
     this.errorMessage,
@@ -39,7 +47,7 @@ class PosCartState {
   double get itemsDiscount => items.fold(0.0, (sum, i) => sum + i.discount);
   double get vipDiscountAmount => (subtotal * (vipDiscountPercent / 100.0));
   double get totalDiscount =>
-      (itemsDiscount + orderDiscount + vipDiscountAmount).clamp(0.0, subtotal);
+      (itemsDiscount + orderDiscount + vipDiscountAmount + promoDiscountAmount).clamp(0.0, subtotal);
   double get total => (subtotal - totalDiscount).clamp(0.0, double.infinity);
   bool get isEmpty => items.isEmpty;
   bool get isNotEmpty => items.isNotEmpty;
@@ -53,10 +61,15 @@ class PosCartState {
     String? vipTier,
     double? vipDiscountPercent,
     int? customerLoyaltyPoints,
+    String? promoCode,
+    String? promoLabel,
+    double? promoDiscountAmount,
+    bool? isValidatingPromo,
     bool? isHolding,
     String? lastHoldReference,
     String? errorMessage,
     bool clearCustomer = false,
+    bool clearPromo = false,
   }) {
     return PosCartState(
       items: items ?? this.items,
@@ -67,6 +80,10 @@ class PosCartState {
       vipTier: clearCustomer ? null : (vipTier ?? this.vipTier),
       vipDiscountPercent: clearCustomer ? 0.0 : (vipDiscountPercent ?? this.vipDiscountPercent),
       customerLoyaltyPoints: clearCustomer ? 0 : (customerLoyaltyPoints ?? this.customerLoyaltyPoints),
+      promoCode: clearPromo ? null : (promoCode ?? this.promoCode),
+      promoLabel: clearPromo ? null : (promoLabel ?? this.promoLabel),
+      promoDiscountAmount: clearPromo ? 0.0 : (promoDiscountAmount ?? this.promoDiscountAmount),
+      isValidatingPromo: isValidatingPromo ?? this.isValidatingPromo,
       isHolding: isHolding ?? this.isHolding,
       lastHoldReference: lastHoldReference ?? this.lastHoldReference,
       errorMessage: errorMessage,
@@ -170,9 +187,127 @@ class PosCartNotifier extends StateNotifier<PosCartState> {
       items: [],
       orderDiscount: 0.0,
       clearCustomer: true,
+      clearPromo: true,
       lastHoldReference: null,
       errorMessage: null,
     );
+  }
+
+  /// Validate and apply an omnichannel promo / coupon code via ERP or offline rules
+  Future<bool> applyPromoCode(String rawCode) async {
+    final code = rawCode.trim().toUpperCase();
+    if (code.isEmpty) return false;
+    if (state.isEmpty) {
+      state = state.copyWith(errorMessage: 'Add items to cart before applying a promo code.');
+      return false;
+    }
+
+    state = state.copyWith(isValidatingPromo: true, errorMessage: null);
+    final session = ref.read(posAuthProvider).session;
+
+    try {
+      final uri = Uri.parse('${session.apiUrl}/api/v1/promotions/validate');
+      final response = await http
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Device-UUID': session.deviceUuid,
+              if (session.apiToken != null) 'Authorization': 'Bearer ${session.apiToken}',
+            },
+            body: jsonEncode({
+              'code': code,
+              'subtotal': state.subtotal,
+              'channel': 'pos',
+              if (state.customerUuid != null) 'customer_uuid': state.customerUuid,
+              'items': state.items
+                  .map((i) => {'quantity': i.quantity, 'unit_price': i.unitPrice})
+                  .toList(),
+            }),
+          )
+          .timeout(const Duration(seconds: 4));
+
+      if (!mounted) return false;
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final data = decoded['data'];
+        if (data is Map) {
+          final discount = (data['discount_amount'] as num?)?.toDouble() ?? 0.0;
+          state = state.copyWith(
+            promoCode: data['code']?.toString() ?? code,
+            promoLabel: data['discount_label']?.toString() ?? 'Promo',
+            promoDiscountAmount: discount.clamp(0.0, state.subtotal),
+            isValidatingPromo: false,
+            errorMessage: null,
+          );
+          return true;
+        }
+      } else if (response.statusCode == 422) {
+        final decoded = jsonDecode(response.body);
+        state = state.copyWith(
+          isValidatingPromo: false,
+          errorMessage: decoded['message']?.toString() ?? 'Invalid promotion code.',
+        );
+        return false;
+      }
+    } catch (_) {
+      // Offline resilient fallback rules
+    }
+
+    if (!mounted) return false;
+
+    final offlineResult = _evaluateOfflinePromo(code);
+    if (offlineResult != null) {
+      state = state.copyWith(
+        promoCode: code,
+        promoLabel: offlineResult.$1,
+        promoDiscountAmount: offlineResult.$2.clamp(0.0, state.subtotal),
+        isValidatingPromo: false,
+        errorMessage: null,
+      );
+      return true;
+    }
+
+    state = state.copyWith(
+      isValidatingPromo: false,
+      errorMessage: 'Promo code "$code" is invalid or requirements not met.',
+    );
+    return false;
+  }
+
+  void clearPromoCode() {
+    state = state.copyWith(clearPromo: true, errorMessage: null);
+  }
+
+  (String, double)? _evaluateOfflinePromo(String code) {
+    final sub = state.subtotal;
+    switch (code) {
+      case 'LUXE15':
+        final amt = (sub * 0.15).clamp(0.0, 25000.0);
+        return ('15% OFF (Max 25K)', amt);
+      case 'WELCOME2500':
+        if (sub < 10000.0) return null;
+        return ('LKR 2,500 OFF', 2500.0);
+      case 'FLASH20':
+        if (sub < 50000.0) return null;
+        return ('20% FLASH', (sub * 0.20).clamp(0.0, 50000.0));
+      case 'B2G1':
+        final unitPrices = <double>[];
+        for (final item in state.items) {
+          for (var i = 0; i < item.quantity; i++) {
+            unitPrices.add(item.unitPrice);
+          }
+        }
+        if (unitPrices.length < 3) return null;
+        unitPrices.sort();
+        final freeCount = unitPrices.length ~/ 3;
+        final discount = unitPrices.take(freeCount).fold(0.0, (a, b) => a + b);
+        return ('Buy 2 Get 1 Free', discount);
+      default:
+        return null;
+    }
   }
 
   /// Line-Busting: Hold current cart to Cloud or local cache with unique reference

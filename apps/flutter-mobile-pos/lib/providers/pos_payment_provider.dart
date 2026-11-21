@@ -268,6 +268,8 @@ class PosPaymentNotifier extends StateNotifier<PosPaymentState> {
               'payments': apiPayments,
               'discount_amount': totalDiscount,
               if (cart.customerUuid != null) 'customer_uuid': cart.customerUuid,
+              if (cart.promoCode != null) 'promotion_code': cart.promoCode,
+              'channel': 'pos',
               'notes': 'Mobile Staff POS Register (${session.deviceCode})',
             }),
           )

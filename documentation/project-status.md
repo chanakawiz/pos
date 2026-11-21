@@ -4,7 +4,7 @@
 > **Brand & System**: OmniLuxe Store (`omniluxe-store`)  
 > **System Architecture**: 5 Pillars (Consumer Mobile App + Handheld Staff Mobile POS + Consumer Web Store + Dedicated In-Store Desktop POS + Central Cloud ERP)  
 > **Target Enterprise Tier**: High-End Flagship Multi-Department & Lifestyle Retailers (Smartphones & Tech, Designer Fashion & Apparel, Footwear & Sneakers, Fragrances & Cosmetics, Kids & Teens Apparel)  
-> **Overall Health**: Healthy, Fully Synced & Serving (99 backend tests, 41 native Electron tests, 22 Flutter consumer tests, 55 Flutter staff POS tests = **217/217 Passing Tests**)  
+> **Overall Health**: Healthy, Fully Synced & Serving (104 backend tests, 41 native Electron tests, 22 Flutter consumer tests, 58 Flutter staff POS tests = **225/225 Passing Tests**)  
 > **Aesthetic Theme**: Editorial Light Luxury (Ivory `#FBFBF9`, Warm Cream `#F4F2EB`, Forest Green `#233C32`, Deep Ink `#242B27`, Hairline `#E3E5DF`, Champagne Gold `#C29B38`)  
 > **Cart Terminology**: Standardized to **Cart** across all consumer touchpoints  
 > **Broadcasting**: Laravel Reverb WebSockets (Port 8080) + Firebase Cloud Messaging (FCM v1)  
@@ -19,14 +19,14 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │     BACKEND API & ERP   │    WEB STOREFRONT       │   CONSUMER MOBILE APP   │   DESKTOP CASHIER POS   │   HANDHELD STAFF POS    │
 │     ● ONLINE (Port 8000)│    ● ONLINE (Port 8000) │   ● LIVE (iOS Simulator)│   ● OPERATIONAL (100%)  │   ● OPERATIONAL (100%)  │
-│  99 Backend Tests Pass  │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
-│  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  55 Automated Tests Pass│
+│  104 Backend Tests Pass │  Unified MySQL Database │  Luxury Gold Splash     │  Counter Device Register│  Handheld Staff Terminal│
+│  Filament ERP (/admin)  │  Editorial Light Luxury │  VIP Club Card & Tiers  │  Cashier PIN Pad (1234) │  58 Automated Tests Pass│
 │  Laravel Reverb (8080)  │  Reverb WebSocket Toasts│  22 Automated Tests Pass│  Barcode Gun • Thermal  │  Fast-Touch Catalog Grid│
 │  Single MySQL DB (3306) │  Order Tracking & RMA   │  Cross-Store Stock Modal│  41 Native Tests Pass   │  Laser Barcode Scanner  │
-│  Multi-Gateway SMS Logs │  VIP Gift Card Accordion│  Central Inbox API Sync │  Gift Cards & VIP Disc. │  Multi-Tender Split Pay │
-│  Product Review Moderate│  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Sales History & Refunds│
+│  Multi-Gateway SMS Logs │  VIP Gift Card & Promos │  Central Inbox API Sync │  Gift Cards & VIP Disc. │  Multi-Tender & Promos  │
+│  Promotions & Coupons   │  Customer Star Reviews  │  Zero-Staff App Sandbox │  Instant SMS E-Receipts │  Sales History & Refunds│
 │  Automated EOD Closeout │  Digital SMS E-Receipts │                         │                         │  Cross-Store & VIP CRM  │
-│  Cash Drop Ledger APIs  │                         │                         │                         │  Milestones 23-28 Done  │
+│  Cash Drop Ledger APIs  │                         │                         │                         │  Milestones 23-29 Done  │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -43,6 +43,7 @@
 | **Customer Product Reviews & Moderation** | `✅ DONE` | `ReviewService` with verified purchaser detection against historical `SaleItem` records, rating breakdown aggregates, public REST APIs (`/api/v1/products/{id}/reviews`), and Filament moderation panel (`ReviewResource`) with quick approve/reject actions. |
 | **Automated EOD Closeout & Z-Reports** | `✅ DONE` | `EodCloseoutService` with automated register status audits, daily cash/card/discount consolidation, automated session closure, `pos:eod-closeout` scheduler running nightly at 23:59, executive SMS digests to store managers, and Filament ERP control panel (`EodReportResource`). |
 | **VIP Gift Card & Store Credit Engine** | `✅ DONE` | `GiftCardService` with atomic redemption (`lockForUpdate`), public balance verification, cashier tender, and Filament admin management under *Sales & Fulfillment*. |
+| **Omnichannel Promotions & Coupons** | `✅ DONE` | `PromotionService` supporting percentage (capped), fixed amount, and Buy X Get Y campaigns, VIP tier & channel gating, atomic `lockForUpdate` redemptions, `/api/v1/promotions/*` APIs, and Filament `PromotionResource` (Milestone 29). |
 | **Automated Loyalty Tier Engine** | `✅ DONE` | `LoyaltyTierService` with Silver (1.0x), Gold Elite (1.5x / 5% discount), and Black Diamond (2.0x / 10% discount) tiers automatically progressing on spend with SMS congratulatory alerts. |
 | **Multi-Gateway SMS & E-Receipts Engine** | `✅ DONE` | `SmsService` with Notify.lk, Twilio, Dialog Axiata eSMS, Log, and Mock drivers, E.164 normalization, privacy masking, automated POS/web sale receipts, courier dispatch tracking, and Filament delivery logs (`SmsLogResource`). |
 | **Order Tracking & Returns Portal** | `✅ DONE` | Public self-service tracking at `/track/{invoice}`, customer return request submissions, courier telemetry, and concierge review. |
@@ -104,11 +105,11 @@
 ======================================================================
 Channel                          Test Suite           Status
 ======================================================================
-Laravel 11 ERP & API Backend     php artisan test     99/99 PASSED (776 assertions)
+Laravel 11 ERP & API Backend     php artisan test     104/104 PASSED (810 assertions)
 Windows Desktop POS (Electron)   npm test             41/41 PASSED (0 regressions)
 Flutter Consumer Mobile App      flutter test         22/22 PASSED (0 regressions)
-Flutter Handheld Staff POS       flutter test         55/55 PASSED (0 regressions)
+Flutter Handheld Staff POS       flutter test         58/58 PASSED (0 regressions)
 ----------------------------------------------------------------------
-TOTAL ECOSYSTEM VERIFICATION:                         217/217 PASSED (100%)
+TOTAL ECOSYSTEM VERIFICATION:                         225/225 PASSED (100%)
 ======================================================================
 ```

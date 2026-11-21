@@ -119,6 +119,7 @@ class WebStoreController extends Controller
             'payment_method' => 'required|string|in:cod,card,bank_transfer',
             'cart_items' => 'required|string', // JSON array of [{product_id, quantity, price}]
             'gift_card_code' => 'nullable|string|max:64',
+            'promotion_code' => 'nullable|string|max:64',
         ]);
 
         $cartItems = json_decode($validated['cart_items'], true);
@@ -166,16 +167,37 @@ class WebStoreController extends Controller
             ];
         }
 
+        // Apply Omnichannel Promo / Coupon Code if provided
+        $promoDiscount = 0.00;
+        $appliedPromoCode = null;
+        if (! empty($validated['promotion_code'])) {
+            $promotionService = app(\App\Services\PromotionService::class);
+            $promoCheck = $promotionService->validateAndCalculate(
+                code: $validated['promotion_code'],
+                subtotal: $subtotal,
+                options: [
+                    'channel' => 'web',
+                    'customer' => $customer,
+                    'items' => $saleItems,
+                ]
+            );
+            if ($promoCheck['valid']) {
+                $promoDiscount = $promoCheck['discount_amount'];
+                $appliedPromoCode = $promoCheck['code'];
+            }
+        }
+
         // Apply VIP Gift Card / Store Credit if provided
         $giftCardDiscount = 0.00;
         $appliedCardCode = null;
-        if (!empty($validated['gift_card_code'])) {
+        $afterPromoTotal = max(0.00, round($subtotal - $promoDiscount, 2));
+        if (!empty($validated['gift_card_code']) && $afterPromoTotal > 0) {
             $giftCardService = app(\App\Services\GiftCardService::class);
             $check = $giftCardService->checkBalance($validated['gift_card_code']);
             if ($check['valid']) {
                 $redeemResult = $giftCardService->redeemCard(
                     code: $validated['gift_card_code'],
-                    amount: $subtotal,
+                    amount: $afterPromoTotal,
                     notes: 'Web Store checkout discount'
                 );
                 $giftCardDiscount = $redeemResult['redeemed_amount'];
@@ -183,7 +205,8 @@ class WebStoreController extends Controller
             }
         }
 
-        $remainingToPay = max(0.00, round($subtotal - $giftCardDiscount, 2));
+        $totalDiscount = round($promoDiscount + $giftCardDiscount, 2);
+        $remainingToPay = max(0.00, round($subtotal - $totalDiscount, 2));
         $fullyCoveredByCard = ($remainingToPay <= 0);
 
         $isOnlineCard = !$fullyCoveredByCard && $validated['payment_method'] === 'card';
@@ -198,9 +221,12 @@ class WebStoreController extends Controller
         $salePayload = [
             'transaction_uuid' => (string) Str::uuid(),
             'customer_id' => $customer->id,
-            'discount_amount' => $giftCardDiscount,
+            'discount_amount' => $totalDiscount,
+            'promotion_code' => $appliedPromoCode,
+            'channel' => 'web',
             'source' => 'online',
             'notes' => 'Web Store Order | Ship to: ' . $validated['shipping_address'] . ' (' . $validated['customer_name'] . ')'
+                . ($appliedPromoCode ? " | Promo: {$appliedPromoCode} (-Rs. {$promoDiscount})" : '')
                 . ($appliedCardCode ? " | Applied Gift Card: {$appliedCardCode} (Rs. {$giftCardDiscount})" : '')
                 . ($isOnlineCard ? ' | Pending Gateway Payment' : ''),
             'items' => $saleItems,

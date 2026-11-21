@@ -256,6 +256,57 @@
                             </select>
                         </div>
 
+                        <!-- Omnichannel Promo / Coupon Code Accordion -->
+                        <div x-data="{ open: false, promo: '', checking: false, applied: null, error: null }" class="border-t border-hairline pt-2">
+                            <button type="button" @click="open = !open" class="text-[11px] font-bold text-forest hover:underline flex items-center justify-between w-full py-1">
+                                <span>Have a Seasonal Promo or Coupon Code?</span>
+                                <span x-text="open ? '▲' : '▼'"></span>
+                            </button>
+                            <div x-show="open" x-cloak class="mt-2 p-2.5 bg-canvas border border-hairline rounded-lg space-y-2">
+                                <div class="flex gap-1.5">
+                                    <input type="text" x-model="promo" placeholder="e.g. LUXE15"
+                                        class="flex-1 bg-paper border border-hairline rounded px-2.5 py-1.5 text-xs uppercase font-mono tracking-wider focus:outline-none focus:border-forest">
+                                    <button type="button"
+                                        @click="
+                                            if (!promo.trim()) return;
+                                            checking = true; error = null; applied = null;
+                                            const rawCart = JSON.parse(localStorage.getItem('omniluxe_cart') || '[]');
+                                            const sub = rawCart.reduce((s, i) => s + (Number(i.price) * Number(i.quantity)), 0);
+                                            fetch('/api/v1/promotions/validate', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                                                body: JSON.stringify({ code: promo.trim(), subtotal: sub, channel: 'web', items: rawCart })
+                                            })
+                                            .then(r => r.json())
+                                            .then(data => {
+                                                checking = false;
+                                                if (data.status === 'success') {
+                                                    applied = data.data;
+                                                    document.getElementById('promoCodeInput').value = data.data.code;
+                                                } else {
+                                                    error = data.message || 'Invalid promo code';
+                                                }
+                                            })
+                                            .catch(() => { checking = false; error = 'Promo validation failed'; });
+                                        "
+                                        :disabled="checking"
+                                        class="px-3 py-1.5 bg-forest hover:bg-forestDark text-white text-xs font-semibold rounded disabled:opacity-50">
+                                        <span x-show="!checking">Apply</span>
+                                        <span x-show="checking">...</span>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="promotion_code" id="promoCodeInput" value="">
+                                <template x-if="error">
+                                    <p class="text-[10px] text-red-600 font-medium" x-text="error"></p>
+                                </template>
+                                <template x-if="applied">
+                                    <div class="text-[10px] text-forest font-medium bg-forest/5 p-1.5 rounded">
+                                        ✓ <strong x-text="applied.code"></strong> (<span x-text="applied.discount_label"></span>): -Rs. <span x-text="Number(applied.discount_amount).toLocaleString()"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <!-- Boutique VIP Gift Card / Voucher Accordion -->
                         <div x-data="{ open: false, code: '', verifying: false, info: null, error: null }" class="border-t border-hairline pt-2">
                             <button type="button" @click="open = !open" class="text-[11px] font-bold text-gold hover:underline flex items-center justify-between w-full py-1">

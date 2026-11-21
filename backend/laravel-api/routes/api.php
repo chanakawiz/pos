@@ -30,6 +30,10 @@ Route::prefix('v1')->group(function () {
     // Omnichannel VIP Gift Cards & Store Credit
     Route::post('/gift-cards/verify', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'verify']);
 
+    // Omnichannel Promotions & Coupon Engine
+    Route::get('/promotions/active', [\App\Http\Controllers\Api\v1\PromotionController::class, 'active']);
+    Route::post('/promotions/validate', [\App\Http\Controllers\Api\v1\PromotionController::class, 'validateCode']);
+
     // VIP Loyalty Tier System
     Route::get('/loyalty/tiers', [\App\Http\Controllers\Api\v1\CustomerController::class, 'tiers']);
 
@@ -119,6 +123,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/gift-cards', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'index']);
         Route::post('/gift-cards', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'store']);
         Route::post('/gift-cards/redeem', [\App\Http\Controllers\Api\v1\GiftCardController::class, 'redeem']);
+
+        // Omnichannel Promotions & Campaigns ERP Management
+        Route::get('/promotions', [\App\Http\Controllers\Api\v1\PromotionController::class, 'index']);
+        Route::post('/promotions', [\App\Http\Controllers\Api\v1\PromotionController::class, 'store']);
+        Route::patch('/promotions/{uuid}/toggle', [\App\Http\Controllers\Api\v1\PromotionController::class, 'toggle']);
 
         // Analytics & Reporting
         Route::get('/reports/sales-summary', [\App\Http\Controllers\Api\v1\ReportController::class, 'salesSummary']);

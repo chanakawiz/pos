@@ -272,3 +272,32 @@
 ### 8.2 List Active Shift Cash Movements
 - **Endpoint**: `GET /api/v1/cash-sessions/movements` (Authenticated)
 - **Response (200 OK)**: Returns chronological movements for the cashier's open cash session alongside the live shift summary.
+
+---
+
+## 9. Omnichannel Promotions, Coupons & Seasonal Campaigns
+
+### 9.1 List Live Active Campaigns
+- **Endpoint**: `GET /api/v1/promotions/active?channel=web|mobile|pos` (Public)
+- **Response (200 OK)**: Returns currently active, non-expired, non-exhausted promotions eligible for the requested channel.
+
+### 9.2 Validate Coupon & Calculate Basket Discount
+- **Endpoint**: `POST /api/v1/promotions/validate` (Public)
+- **Request Body**:
+  ```json
+  {
+    "code": "LUXE15",
+    "subtotal": 50000.00,
+    "channel": "web",
+    "vip_tier": "gold",
+    "items": [
+      { "quantity": 2, "unit_price": 25000.00 }
+    ]
+  }
+  ```
+- **Response (200 OK)**: Returns validated `discount_amount`, `discount_label`, and `final_total` (supports `percentage` with optional cap, `fixed_amount`, and `buy_x_get_y`).
+
+### 9.3 ERP Campaign Management
+- `GET /api/v1/promotions` (Authenticated) — Paginated list of all promotion campaigns and usage metrics.
+- `POST /api/v1/promotions` (Authenticated) — Create a new promotion rule (`percentage`, `fixed_amount`, `buy_x_get_y`).
+- `PATCH /api/v1/promotions/{uuid}/toggle` (Authenticated) — Pause or reactivate a campaign immediately.

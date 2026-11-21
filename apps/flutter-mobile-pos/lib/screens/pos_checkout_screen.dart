@@ -153,6 +153,83 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
     );
   }
 
+  void _promptPromoCode() {
+    final promoCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: PosTheme.surfaceDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: PosTheme.primaryGold, width: 1.5),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.local_offer_outlined, color: PosTheme.primaryGold),
+            SizedBox(width: 8),
+            Text('APPLY PROMO / COUPON', style: TextStyle(color: PosTheme.textWhite, fontSize: 15)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: promoCtrl,
+              textCapitalization: TextCapitalization.characters,
+              style: const TextStyle(color: PosTheme.textWhite, fontWeight: FontWeight.w700),
+              decoration: const InputDecoration(
+                hintText: 'Enter code (e.g. LUXE15)',
+                prefixIcon: Icon(Icons.confirmation_number_outlined, color: PosTheme.primaryGold, size: 18),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: const ['LUXE15', 'WELCOME2500', 'FLASH20', 'B2G1']
+                  .map(
+                    (code) => ActionChip(
+                      backgroundColor: PosTheme.cardDark,
+                      label: Text(code, style: const TextStyle(color: PosTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.w700)),
+                      onPressed: () => promoCtrl.text = code,
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL', style: TextStyle(color: PosTheme.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final code = promoCtrl.text.trim();
+              Navigator.pop(ctx);
+              if (code.isEmpty) return;
+              final ok = await ref.read(posCartProvider.notifier).applyPromoCode(code);
+              if (!mounted) return;
+              final latest = ref.read(posCartProvider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: ok ? PosTheme.statusSuccess : PosTheme.statusError,
+                  content: Text(
+                    ok
+                        ? 'Applied ${latest.promoCode} (${latest.promoLabel})!'
+                        : (latest.errorMessage ?? 'Could not apply promo code.'),
+                  ),
+                ),
+              );
+            },
+            child: const Text('APPLY'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openBranchStockLookup({PosProduct? product}) {
     showDialog(
       context: context,
@@ -746,6 +823,55 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
           ),
           child: Column(
             children: [
+              if (cartState.promoCode != null) ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: PosTheme.statusSuccess.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: PosTheme.statusSuccess.withValues(alpha: 0.45)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.local_offer, size: 14, color: PosTheme.statusSuccess),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${cartState.promoCode} (${cartState.promoLabel ?? "Promo"}): -${_currency.format(cartState.promoDiscountAmount)}',
+                          style: const TextStyle(
+                            color: PosTheme.statusSuccess,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => ref.read(posCartProvider.notifier).clearPromoCode(),
+                        child: const Icon(Icons.close, size: 15, color: PosTheme.statusSuccess),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else if (cartState.isNotEmpty) ...[
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: const Icon(Icons.local_offer_outlined, size: 14, color: PosTheme.primaryGold),
+                    label: const Text(
+                      'APPLY PROMO CODE',
+                      style: TextStyle(color: PosTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.w800),
+                    ),
+                    onPressed: _promptPromoCode,
+                  ),
+                ),
+                const SizedBox(height: 6),
+              ],
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

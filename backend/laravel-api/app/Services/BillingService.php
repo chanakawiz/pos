@@ -178,6 +178,27 @@ class BillingService
                 ]);
             }
 
+            // Record omnichannel promotion redemption if coupon code was used
+            if (! empty($data['promotion_code'])) {
+                try {
+                    $customerModel = $customerId ? Customer::find($customerId) : null;
+                    app(PromotionService::class)->redeem(
+                        code: (string) $data['promotion_code'],
+                        subtotal: $subtotal,
+                        sale: $sale,
+                        customer: $customerModel,
+                        channel: (string) ($data['channel'] ?? 'pos'),
+                        items: collect($saleItemsToInsert)->map(fn ($line) => [
+                            'category_id' => $line['product']->category_id,
+                            'quantity' => $line['quantity'],
+                            'unit_price' => $line['unit_price'],
+                        ])->all(),
+                    );
+                } catch (\Throwable) {
+                    // Preserve sale finality if an offline/legacy coupon was already discounted client-side
+                }
+            }
+
             // Customer loyalty point update & VIP tier progression
             if ($customerId) {
                 $customer = Customer::find($customerId);
