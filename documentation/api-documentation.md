@@ -249,3 +249,26 @@
 - **Endpoint**: `GET /health/ready` (or `/api/v1/health/ready`)
 - **Status Code**: `200 OK` (Healthy) or `503 Service Unavailable` (Degraded)
 - **Audited Components**: Database latency (ms), cache read/write, storage writeability, Reverb WebSockets configuration.
+
+---
+
+## 8. Cash Register Drawer Movements (Safe Drops, Petty Cash & Pay-Ins)
+
+### 8.1 Record Drawer Cash Movement
+- **Endpoint**: `POST /api/v1/cash-sessions/movements` (Authenticated)
+- **Request Body**:
+  ```json
+  {
+    "type": "cash_out",
+    "amount": 10000.00,
+    "reason": "Mid-Shift Safe Cash Drop",
+    "reference": "DRP-8A2C1F",
+    "notes": "Handed over to floor supervisor"
+  }
+  ```
+- **Allowed `type` values**: `cash_in` (Float Pay-In), `cash_out` (Safe Cash Drop), `petty_cash` (Petty Cash Expense).
+- **Response (201 Created)**: Returns the persisted `movement` record and recalculated shift `summary` (`cash_in_total`, `cash_drop_total`, `expected_cash`).
+
+### 8.2 List Active Shift Cash Movements
+- **Endpoint**: `GET /api/v1/cash-sessions/movements` (Authenticated)
+- **Response (200 OK)**: Returns chronological movements for the cashier's open cash session alongside the live shift summary.

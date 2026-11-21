@@ -7,6 +7,8 @@ import '../providers/pos_auth_provider.dart';
 import '../providers/pos_catalog_provider.dart';
 import '../providers/pos_cart_provider.dart';
 import 'barcode_scanner_dialog.dart';
+import 'branch_stock_dialog.dart';
+import 'customer_crm_dialog.dart';
 import 'held_bills_dialog.dart';
 import 'payment_tender_sheet.dart';
 import 'sync_status_ribbon.dart';
@@ -144,102 +146,18 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
   }
 
   void _promptCustomerLookup() {
-    final nameCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: PosTheme.surfaceDark,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: PosTheme.primaryGold, width: 1.5),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.person_add_alt_1, color: PosTheme.primaryGold),
-            SizedBox(width: 8),
-            Text('ATTACH VIP CUSTOMER', style: TextStyle(color: PosTheme.textWhite, fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              style: const TextStyle(color: PosTheme.textWhite),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: PosTheme.cardDark,
-                hintText: 'Customer Full Name...',
-                hintStyle: TextStyle(color: PosTheme.textMuted, fontSize: 12),
-                prefixIcon: const Icon(Icons.person, color: PosTheme.primaryGold, size: 20),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: phoneCtrl,
-              keyboardType: TextInputType.phone,
-              style: const TextStyle(color: PosTheme.textWhite),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: PosTheme.cardDark,
-                hintText: 'Phone / Loyalty Number...',
-                hintStyle: TextStyle(color: PosTheme.textMuted, fontSize: 12),
-                prefixIcon: const Icon(Icons.phone, color: PosTheme.primaryGold, size: 20),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Quick preset loyalty customers
-            Wrap(
-              spacing: 6,
-              children: [
-                ActionChip(
-                  backgroundColor: PosTheme.cardDark,
-                  label: const Text('Alexander Wright (Gold VIP)', style: TextStyle(fontSize: 11, color: PosTheme.primaryGold)),
-                  onPressed: () {
-                    nameCtrl.text = 'Alexander Wright';
-                    phoneCtrl.text = '+94 77 123 4567';
-                  },
-                ),
-                ActionChip(
-                  backgroundColor: PosTheme.cardDark,
-                  label: const Text('Natasha Perera (Platinum)', style: TextStyle(fontSize: 11, color: PosTheme.primaryGold)),
-                  onPressed: () {
-                    nameCtrl.text = 'Natasha Perera';
-                    phoneCtrl.text = '+94 71 987 6543';
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('CANCEL', style: TextStyle(color: PosTheme.textMuted)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: PosTheme.primaryGold,
-              foregroundColor: const Color(0xFF111413),
-            ),
-            onPressed: () {
-              if (nameCtrl.text.trim().isNotEmpty) {
-                ref.read(posCartProvider.notifier).attachCustomer(
-                      name: nameCtrl.text.trim(),
-                      phone: phoneCtrl.text.trim(),
-                      vipTier: 'Gold VIP',
-                    );
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text('ATTACH TO CART', style: TextStyle(fontWeight: FontWeight.w800)),
-          ),
-        ],
-      ),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (_) => const CustomerCrmDialog(),
+    );
+  }
+
+  void _openBranchStockLookup({PosProduct? product}) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (_) => BranchStockDialog(initialProduct: product),
     );
   }
 
@@ -341,6 +259,12 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
           ],
         ),
         actions: [
+          // Cross-branch stock lookup
+          IconButton(
+            icon: const Icon(Icons.store_mall_directory_outlined, color: PosTheme.statusSuccess),
+            tooltip: 'Cross-Branch Stock',
+            onPressed: () => _openBranchStockLookup(),
+          ),
           // Barcode scanner trigger
           IconButton(
             icon: const Icon(Icons.qr_code_scanner, color: PosTheme.primaryGold),
@@ -608,6 +532,15 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
                   ),
                 ),
               ),
+              InkWell(
+                borderRadius: BorderRadius.circular(6),
+                onTap: () => _openBranchStockLookup(product: product),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.storefront_outlined, size: 16, color: PosTheme.textMuted),
+                ),
+              ),
+              const SizedBox(width: 4),
               Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -693,7 +626,9 @@ class _PosCheckoutScreenState extends ConsumerState<PosCheckoutScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'VIP: ${cartState.customerName} (${cartState.vipTier ?? "Gold"})',
+                    cartState.vipDiscountPercent > 0
+                        ? 'VIP: ${cartState.customerName} (${cartState.vipTier ?? "Gold"} • ${cartState.vipDiscountPercent.toStringAsFixed(0)}% OFF)'
+                        : 'VIP: ${cartState.customerName} (${cartState.vipTier ?? "Gold"})',
                     style: const TextStyle(
                       color: PosTheme.primaryGold,
                       fontSize: 12,

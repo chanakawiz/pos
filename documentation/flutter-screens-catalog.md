@@ -275,15 +275,27 @@ flowchart TD
         PaymentTender["8. PaymentTenderSheet\n(payment_tender_sheet.dart)\nMulti-Tender Split Pay • Change Calc"]
         SaleSuccess["9. SaleSuccessDialog\n(sale_success_dialog.dart)\nInvoice • SMS Receipt • Thermal Reprint"]
         ShiftClose["10. ShiftCloseDialog\n(shift_close_dialog.dart)\nCash Count • Discrepancy • Z-Report"]
+        SalesHistory["11. SalesHistoryScreen\n(sales_history_screen.dart)\nReceipt Archive • Reprint • SMS Resend"]
+        RefundModal["12. RefundDialog\n(refund_dialog.dart)\nItemized Return • Restock • Voucher"]
+        BranchStock["13. BranchStockDialog\n(branch_stock_dialog.dart)\nColombo • Kandy • Galle Availability"]
+        CustomerCrm["14. CustomerCrmDialog\n(customer_crm_dialog.dart)\nVIP Search • Quick Enroll • Auto Tier %"]
+        CashMovement["15. CashMovementDialog\n(cash_movement_dialog.dart)\nSafe Drops • Petty Cash • Float Pay-In"]
     end
 
     PosHome -->|New Register Sale| CheckoutScreen
     PosHome -->|Line-Busting Recall| HeldBills
+    PosHome -->|Sales Archive| SalesHistory
+    PosHome -->|Direct Return| RefundModal
+    PosHome -->|Boutique Stock| BranchStock
+    PosHome -->|Cash Drops| CashMovement
     PosHome -->|Mid-Shift Audit| PosHome
     PosHome -->|Close Register| ShiftClose
     CheckoutScreen -->|Laser Scan| BarcodeScan
     CheckoutScreen -->|Hold Cart| HeldBills
+    CheckoutScreen -->|Check Branches| BranchStock
+    CheckoutScreen -->|Attach VIP| CustomerCrm
     CheckoutScreen -->|Tender Settlement| PaymentTender
+    SalesHistory -->|Process Return| RefundModal
     PaymentTender -->|Sale Paid| SaleSuccess
     SaleSuccess -->|New Transaction| CheckoutScreen
     ShiftClose -->|Z-Report Done| StaffPin
@@ -433,3 +445,49 @@ flowchart TD
   - Supervisor authorization / closing notes text field.
   - "CONFIRM COUNT & CLOSE REGISTER" action button calling `/api/v1/cash-sessions/close`.
   - Post-closeout Z-Report success summary card with thermal slip printing and "LOCK TERMINAL" button.
+
+---
+
+### Screen 26: Sales History & Receipt Reprint Screen
+- **Class & File**: [`SalesHistoryScreen`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/sales_history_screen.dart) in `lib/screens/sales_history_screen.dart`
+- **Purpose**: Unified local SQLite + cloud ERP sales archive for receipt reprinting, SMS e-receipt re-dispatch, and initiating customer returns.
+- **Key UI Components**:
+  - Live search bar (invoice #, VIP customer name, mobile, or cashier) and status filter chips (`All`, `Synced`, `Pending`, `Refunded`).
+  - Interactive sale details bottom sheet with purchased line items, tender breakdown, editable SMS mobile resend bar, 1-tap ESC/POS thermal reprint, and direct **Process Refund** trigger.
+
+---
+
+### Screen 27: In-Store Refund & Exchange Modal
+- **Class & File**: [`RefundDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/refund_dialog.dart) in `lib/screens/refund_dialog.dart`
+- **Purpose**: Itemized customer returns and exchanges with branch inventory restocking and thermal refund voucher issuance.
+- **Key UI Components**:
+  - Invoice lookup input (`/api/v1/sales/{uuid}`) plus 1-tap recent invoice quick-pick chips.
+  - Per-item return quantity steppers, return reason chips (`Size / Fit Exchange`, `Defective / Damaged`, `Customer Changed Mind`), and **Restock Items to Branch Inventory** switch.
+  - Live refund total banner, `/api/v1/sales/{uuid}/refund` submission, shift drawer balance adjustment, and binary ESC/POS Customer Refund Voucher printing.
+
+---
+
+### Screen 28: Cross-Branch Boutique Stock Locator Modal
+- **Class & File**: [`BranchStockDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/branch_stock_dialog.dart) in `lib/screens/branch_stock_dialog.dart`
+- **Purpose**: Real-time cross-store stock inquiry so floor associates can verify sibling boutique stock while assisting shoppers.
+- **Key UI Components**:
+  - SKU / barcode / product name search with quick product selector chips and total network stock summary banner.
+  - Per-boutique stock cards (`Colombo Flagship`, `Kandy Galleria`, `Galle Fort Boutique`) querying `/api/v1/products/{id}/cross-store-stock` with On-Hand, Reserved, Available metrics and color-coded availability badges.
+
+---
+
+### Screen 29: VIP Customer CRM & Quick Registration Modal
+- **Class & File**: [`CustomerCrmDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/customer_crm_dialog.dart) in `lib/screens/customer_crm_dialog.dart`
+- **Purpose**: VIP customer lookup, rapid on-floor enrollment (+100 welcome points), and automatic tier privilege discount application.
+- **Key UI Components**:
+  - Two tabs: **VIP Lookup** (`/api/v1/customers`) and **Quick Register (+100 Pts)** (`POST /api/v1/customers`).
+  - Displays tier badges (`Silver Privilege`, `Gold Elite • 5% OFF`, `Black Diamond • 10% OFF`), privacy-masked phone numbers, and loyalty points balance; attaching a VIP auto-applies their tier discount to `posCartProvider`.
+
+---
+
+### Screen 30: Petty Cash & Safe Drops Modal
+- **Class & File**: [`CashMovementDialog`](file:///Users/chanaka/Desktop/projects/pos/apps/flutter-mobile-pos/lib/screens/cash_movement_dialog.dart) in `lib/screens/cash_movement_dialog.dart`
+- **Purpose**: Mid-shift cash drawer control for safe cash drops, petty cash expenses, and change float top-ups.
+- **Key UI Components**:
+  - Movement type selector (`Safe Cash Drop`, `Petty Cash Expense`, `Float Pay-In`), quick denomination chips (`LKR 1,000`–`25,000`), and reason presets.
+  - Live expected drawer cash preview (`Current Expected` → `Updated Drawer`), `/api/v1/cash-sessions/movements` persistence, shift movement audit ledger, and ESC/POS cash voucher printing.

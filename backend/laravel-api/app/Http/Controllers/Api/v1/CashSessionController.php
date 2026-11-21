@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\CashSession;
+use App\Models\CashSessionMovement;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\Sale;
@@ -110,10 +111,90 @@ class CashSessionController extends Controller
                 'gross_sales' => $summary['gross_sales'],
                 'discount_total' => $summary['total_discounts'],
                 'refund_total' => $summary['total_refunds'],
+                'cash_in_total' => $summary['cash_in_total'],
+                'cash_drop_total' => $summary['cash_drop_total'],
                 'transactions_count' => $summary['transaction_count'],
                 'expected_cash_in_drawer' => $summary['expected_cash'],
             ],
         ]);
+    }
+
+    /**
+     * List cash drops and pay-in/pay-out movements for the active cash session.
+     */
+    public function movements(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $session = CashSession::where('cashier_id', $user->id)
+            ->where('status', 'open')
+            ->first();
+
+        if (!$session) {
+            return response()->json([
+                'status' => 'none',
+                'data' => [],
+            ]);
+        }
+
+        $movements = $session->movements()
+            ->with('user:id,name')
+            ->latest('recorded_at')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $movements,
+            'summary' => $this->calculateSessionSummary($session),
+        ]);
+    }
+
+    /**
+     * Record a petty cash expense, safe drop, or float pay-in on the active session.
+     */
+    public function recordMovement(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:cash_in,cash_out,petty_cash',
+            'amount' => 'required|numeric|min:0.01',
+            'reason' => 'required|string|max:255',
+            'reference' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $user = $request->user();
+
+        $session = CashSession::where('cashier_id', $user->id)
+            ->where('status', 'open')
+            ->first();
+
+        if (!$session) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No active open cash session found for this cashier.',
+            ], 422);
+        }
+
+        $movement = CashSessionMovement::create([
+            'cash_session_id' => $session->id,
+            'store_id' => $session->store_id,
+            'user_id' => $user->id,
+            'type' => $validated['type'],
+            'amount' => (float) $validated['amount'],
+            'reason' => $validated['reason'],
+            'reference' => $validated['reference'] ?? ('DRP-' . strtoupper(substr(md5((string) microtime(true)), 0, 6))),
+            'notes' => $validated['notes'] ?? null,
+            'recorded_at' => Carbon::now(),
+        ]);
+
+        $summary = $this->calculateSessionSummary($session);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Cash drawer movement recorded.',
+            'movement' => $movement,
+            'summary' => $summary,
+        ], 201);
     }
 
     /**
@@ -165,6 +246,8 @@ class CashSessionController extends Controller
                 'gross_sales' => $summary['gross_sales'],
                 'discount_total' => $summary['total_discounts'],
                 'refund_total' => $summary['total_refunds'],
+                'cash_in_total' => $summary['cash_in_total'],
+                'cash_drop_total' => $summary['cash_drop_total'],
                 'transactions_count' => $summary['transaction_count'],
                 'expected_cash' => $expected,
                 'actual_closing_cash' => $closing,
@@ -210,8 +293,18 @@ class CashSessionController extends Controller
             ->where('created_at', '<=', $closedAt)
             ->count();
 
+        $cashInTotal = (float) $session->movements()
+            ->where('type', 'cash_in')
+            ->sum('amount');
+
+        $cashDropTotal = (float) $session->movements()
+            ->whereIn('type', ['cash_out', 'petty_cash'])
+            ->sum('amount');
+
+        $movementsCount = $session->movements()->count();
+
         $openingFloat = (float) $session->opening_balance;
-        $expectedCash = round($openingFloat + $cashSales - $totalRefunds, 2);
+        $expectedCash = round($openingFloat + $cashSales + $cashInTotal - $cashDropTotal - $totalRefunds, 2);
 
         return [
             'transaction_count' => $transactionCount,
@@ -221,6 +314,9 @@ class CashSessionController extends Controller
             'card_sales' => $cardSales,
             'total_refunds' => $totalRefunds,
             'refund_count' => $refundCount,
+            'cash_in_total' => $cashInTotal,
+            'cash_drop_total' => $cashDropTotal,
+            'movements_count' => $movementsCount,
             'opening_float' => $openingFloat,
             'expected_cash' => $expectedCash,
         ];

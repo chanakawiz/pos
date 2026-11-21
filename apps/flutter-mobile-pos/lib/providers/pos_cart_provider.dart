@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../models/pos_cart_item.dart';
+import '../models/pos_customer.dart';
 import '../models/pos_product.dart';
 import 'pos_auth_provider.dart';
 
@@ -13,6 +14,8 @@ class PosCartState {
   final String? customerPhone;
   final String? customerUuid;
   final String? vipTier;
+  final double vipDiscountPercent;
+  final int customerLoyaltyPoints;
   final bool isHolding;
   final String? lastHoldReference;
   final String? errorMessage;
@@ -24,6 +27,8 @@ class PosCartState {
     this.customerPhone,
     this.customerUuid,
     this.vipTier,
+    this.vipDiscountPercent = 0.0,
+    this.customerLoyaltyPoints = 0,
     this.isHolding = false,
     this.lastHoldReference,
     this.errorMessage,
@@ -32,7 +37,9 @@ class PosCartState {
   int get totalQuantity => items.fold(0, (sum, i) => sum + i.quantity);
   double get subtotal => items.fold(0.0, (sum, i) => sum + i.subtotal);
   double get itemsDiscount => items.fold(0.0, (sum, i) => sum + i.discount);
-  double get totalDiscount => itemsDiscount + orderDiscount;
+  double get vipDiscountAmount => (subtotal * (vipDiscountPercent / 100.0));
+  double get totalDiscount =>
+      (itemsDiscount + orderDiscount + vipDiscountAmount).clamp(0.0, subtotal);
   double get total => (subtotal - totalDiscount).clamp(0.0, double.infinity);
   bool get isEmpty => items.isEmpty;
   bool get isNotEmpty => items.isNotEmpty;
@@ -44,6 +51,8 @@ class PosCartState {
     String? customerPhone,
     String? customerUuid,
     String? vipTier,
+    double? vipDiscountPercent,
+    int? customerLoyaltyPoints,
     bool? isHolding,
     String? lastHoldReference,
     String? errorMessage,
@@ -56,6 +65,8 @@ class PosCartState {
       customerPhone: clearCustomer ? null : (customerPhone ?? this.customerPhone),
       customerUuid: clearCustomer ? null : (customerUuid ?? this.customerUuid),
       vipTier: clearCustomer ? null : (vipTier ?? this.vipTier),
+      vipDiscountPercent: clearCustomer ? 0.0 : (vipDiscountPercent ?? this.vipDiscountPercent),
+      customerLoyaltyPoints: clearCustomer ? 0 : (customerLoyaltyPoints ?? this.customerLoyaltyPoints),
       isHolding: isHolding ?? this.isHolding,
       lastHoldReference: lastHoldReference ?? this.lastHoldReference,
       errorMessage: errorMessage,
@@ -125,12 +136,28 @@ class PosCartNotifier extends StateNotifier<PosCartState> {
     required String phone,
     String? uuid,
     String? vipTier,
+    double vipDiscountPercent = 0.0,
+    int loyaltyPoints = 0,
   }) {
     state = state.copyWith(
       customerName: name,
       customerPhone: phone,
       customerUuid: uuid,
       vipTier: vipTier ?? 'Gold Tier',
+      vipDiscountPercent: vipDiscountPercent,
+      customerLoyaltyPoints: loyaltyPoints,
+    );
+  }
+
+  /// Attach full VIP CRM profile with automatic tier privilege discount (5% Gold / 10% Black Diamond)
+  void attachPosCustomer(PosCustomer customer) {
+    attachCustomer(
+      name: customer.name,
+      phone: customer.phone,
+      uuid: customer.uuid,
+      vipTier: customer.tierTitle,
+      vipDiscountPercent: customer.tierDiscountPercent,
+      loyaltyPoints: customer.loyaltyPoints,
     );
   }
 

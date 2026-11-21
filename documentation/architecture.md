@@ -99,31 +99,6 @@ flowchart TB
 
     CentralEngine --> MasterMySQL
     CentralEngine --> RedisQueue
-```RM & VIP Loyalty Club\nPhone Masking • Points Engine (1 Pt = Rs. 10)"]
-        SmsEngine["SMS E-Receipt Gateway Engine\nNotify.lk • Twilio • Dialog • Mobitel Driver"]
-    end
-
-    subgraph StorageLayer["Data Persistence & Queues"]
-        MasterMySQL[("MySQL 8+ Primary Database\n25 Core Migrations • UUIDs")]
-        RedisQueue[("Redis Cache, Sessions & Queues")]
-    end
-
-    CustomerWeb --> CentralEngine
-    CustomerMobile <-->|REST API (/api/v1)| APIGateway
-    DesktopPOS <-->|Bidirectional Offline Sync| APIGateway
-
-    APIGateway --> BillingEngine
-    APIGateway --> InventoryLedger
-    APIGateway --> CustomerCRM
-    FilamentAdmin --> InventoryLedger
-    FilamentAdmin --> BillingEngine
-
-    BillingEngine --> SmsEngine
-    SmsEngine -.->|Verified SMS E-Receipt| Consumers
-    SmsEngine -.->|SMS Bill Link| InStoreStaff
-
-    CentralEngine --> MasterMySQL
-    CentralEngine --> RedisQueue
 ```
 
 ---

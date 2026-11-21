@@ -7,6 +7,10 @@ import '../providers/pos_auth_provider.dart';
 import 'staff_pin_screen.dart';
 import 'pos_checkout_screen.dart';
 import 'held_bills_dialog.dart';
+import 'sales_history_screen.dart';
+import 'refund_dialog.dart';
+import 'branch_stock_dialog.dart';
+import 'cash_movement_dialog.dart';
 import 'sync_status_ribbon.dart';
 import 'shift_close_dialog.dart';
 import '../providers/pos_shift_provider.dart';
@@ -248,8 +252,74 @@ class PosHomeScreen extends ConsumerWidget {
                       onTap: () {
                         showDialog(
                           context: context,
-                          barrierColor: Colors.black.withOpacity(0.75),
+                          barrierColor: Colors.black.withValues(alpha: 0.75),
                           builder: (_) => const HeldBillsDialog(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Sales History & Receipt Reprint
+                    _buildFeatureCard(
+                      context,
+                      title: 'Sales History & Receipt Reprint',
+                      subtitle: 'Review completed transactions, reprint ESC/POS slips, resend SMS bills, or start returns.',
+                      icon: Icons.receipt_long_outlined,
+                      accentColor: PosTheme.primaryGold,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // In-Store Refunds & Exchanges
+                    _buildFeatureCard(
+                      context,
+                      title: 'In-Store Refunds & Exchanges',
+                      subtitle: 'Look up any invoice, select returned units, restock branch inventory & print refund voucher.',
+                      icon: Icons.assignment_return_outlined,
+                      accentColor: PosTheme.accentRed,
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          barrierColor: Colors.black.withValues(alpha: 0.75),
+                          builder: (_) => const RefundDialog(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Cross-Branch Stock Locator
+                    _buildFeatureCard(
+                      context,
+                      title: 'Cross-Branch Boutique Stock Locator',
+                      subtitle: 'Check real-time availability across Colombo Flagship, Kandy Galleria & Galle Fort.',
+                      icon: Icons.store_mall_directory_outlined,
+                      accentColor: PosTheme.accentGreen,
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          barrierColor: Colors.black.withValues(alpha: 0.75),
+                          builder: (_) => const BranchStockDialog(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Petty Cash & Safe Drops
+                    _buildFeatureCard(
+                      context,
+                      title: 'Petty Cash & Safe Drops',
+                      subtitle: 'Record mid-shift safe cash drops, petty expenses & float pay-ins with thermal vouchers.',
+                      icon: Icons.savings_outlined,
+                      accentColor: PosTheme.accentAmber,
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          barrierColor: Colors.black.withValues(alpha: 0.75),
+                          builder: (_) => const CashMovementDialog(),
                         );
                       },
                     ),
@@ -388,6 +458,9 @@ class PosHomeScreen extends ConsumerWidget {
     final report = shiftState.activeSummary;
     final cashSales = report?.cashSales ?? 0.0;
     final cardSales = report?.cardSales ?? 0.0;
+    final cashInTotal = report?.cashInTotal ?? 0.0;
+    final cashDropTotal = report?.cashDropTotal ?? 0.0;
+    final refundTotal = report?.refundTotal ?? 0.0;
     final expectedCash = report?.expectedCash ?? session.openingFloat;
 
     showModalBottomSheet(
@@ -429,6 +502,12 @@ class PosHomeScreen extends ConsumerWidget {
               _buildReportRow('Opening Cash Float', 'LKR ${currencyFormat.format(session.openingFloat)}'),
               _buildReportRow('Total Cash Sales', 'LKR ${currencyFormat.format(cashSales)}'),
               _buildReportRow('Total Card Sales', 'LKR ${currencyFormat.format(cardSales)}'),
+              if (cashInTotal > 0)
+                _buildReportRow('Float Pay-Ins', '+LKR ${currencyFormat.format(cashInTotal)}'),
+              if (cashDropTotal > 0)
+                _buildReportRow('Safe Drops / Petty Cash', '-LKR ${currencyFormat.format(cashDropTotal)}'),
+              if (refundTotal > 0)
+                _buildReportRow('Refunds Deducted', '-LKR ${currencyFormat.format(refundTotal)}'),
               _buildReportRow('Expected Drawer Cash', 'LKR ${currencyFormat.format(expectedCash)}'),
               const SizedBox(height: 20),
               ElevatedButton.icon(

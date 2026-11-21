@@ -9,6 +9,7 @@ import '../services/esc_pos_service.dart';
 import '../services/pos_database_service.dart';
 import 'pos_auth_provider.dart';
 import 'pos_cart_provider.dart';
+import 'pos_sales_history_provider.dart';
 
 class PosPaymentState {
   final List<PaymentTender> tenders;
@@ -266,6 +267,7 @@ class PosPaymentNotifier extends StateNotifier<PosPaymentState> {
               'items': apiItems,
               'payments': apiPayments,
               'discount_amount': totalDiscount,
+              if (cart.customerUuid != null) 'customer_uuid': cart.customerUuid,
               'notes': 'Mobile Staff POS Register (${session.deviceCode})',
             }),
           )
@@ -319,7 +321,7 @@ class PosPaymentNotifier extends StateNotifier<PosPaymentState> {
       smsDispatched = await dispatchSmsReceipt(session, finalInvoiceNumber, totalPayable, phoneToUse);
     }
 
-    // If offline sale, persist to SQLite WAL database and enqueue
+    // Persist to local SQLite ledger (pending queue if offline, synced history if online)
     if (isOfflineSale) {
       await PosDatabaseService.instance.enqueueOfflineSale(
         receipt: receipt,
@@ -328,10 +330,16 @@ class PosPaymentNotifier extends StateNotifier<PosPaymentState> {
           'items': apiItems,
           'payments': apiPayments,
           'discount_amount': totalDiscount,
+          if (cart.customerUuid != null) 'customer_uuid': cart.customerUuid,
           'notes': 'Mobile Staff POS Register (${session.deviceCode})',
         },
       );
+    } else {
+      await PosDatabaseService.instance.recordCompletedSale(receipt);
     }
+
+    // Reflect immediately in Sales History provider
+    ref.read(posSalesHistoryProvider.notifier).prependCompletedSale(receipt);
 
     // Reset active cart
     ref.read(posCartProvider.notifier).clearCart();

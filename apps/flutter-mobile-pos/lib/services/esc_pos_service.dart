@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import '../models/payment_tender.dart';
+import '../models/sale_history_entry.dart';
 import '../models/shift_session_report.dart';
 
 enum PrinterPaperWidth {
@@ -168,7 +169,7 @@ class EscPosService {
 
     void addRaw(List<int> cmd) => bytes.add(cmd);
     void addLine(String text) {
-      bytes.add(latin1.encode(text));
+      bytes.add(const Latin1Codec(allowInvalid: true).encode(text));
       bytes.add(cmdLineFeed);
     }
 
@@ -220,6 +221,12 @@ class EscPosService {
     }
     addLine(padRow('Discounts Given:', '-${currency.format(report.discountTotal)}'));
     addLine(padRow('Refunds Deducted:', '-${currency.format(report.refundTotal)}'));
+    if (report.cashInTotal > 0) {
+      addLine(padRow('Float Pay-Ins:', '+${currency.format(report.cashInTotal)}'));
+    }
+    if (report.cashDropTotal > 0) {
+      addLine(padRow('Safe Drops / Petty Cash:', '-${currency.format(report.cashDropTotal)}'));
+    }
     addLine(padRow('Total Transactions:', '${report.transactionsCount} bills'));
     addLine(divider('-'));
 
@@ -257,6 +264,151 @@ class EscPosService {
       'ESC/POS Shift Report [${report.isZReport ? "Z-Report" : "X-Report"}] -> Terminal: ${report.terminalCode}, Bytes: ${resultBytes.length}',
     );
 
+    return resultBytes;
+  }
+
+  static Uint8List buildRefundReceiptBytes(
+    RefundRecord refund, {
+    PrinterPaperWidth width = PrinterPaperWidth.mm58,
+  }) {
+    final currency = NumberFormat('#,##0.00');
+    final dateFmt = DateFormat('yyyy-MM-dd HH:mm');
+    final bytes = BytesBuilder();
+    final max = width.maxChars;
+
+    void addRaw(List<int> cmd) => bytes.add(cmd);
+    void addLine(String text) {
+      bytes.add(const Latin1Codec(allowInvalid: true).encode(text));
+      bytes.add(cmdLineFeed);
+    }
+
+    String padRow(String left, String right) {
+      final totalSpace = max - left.length - right.length;
+      if (totalSpace < 1) return '$left $right';
+      return left + (' ' * totalSpace) + right;
+    }
+
+    String divider([String char = '-']) => char * max;
+
+    addRaw(cmdInit);
+    addRaw(cmdAlignCenter);
+    addRaw(cmdBoldOn);
+    addRaw(cmdDoubleSize);
+    addLine('OMNILUXE');
+    addRaw(cmdNormalSize);
+    addLine('CUSTOMER REFUND VOUCHER');
+    addRaw(cmdBoldOff);
+    addLine(refund.storeName.toUpperCase());
+    addLine(divider('='));
+
+    addRaw(cmdAlignLeft);
+    addLine(padRow('Refund No:', refund.refundNumber));
+    addLine(padRow('Orig Invoice:', refund.invoiceNumber));
+    addLine(padRow('Date:', dateFmt.format(refund.refundedAt)));
+    addLine(padRow('Terminal:', refund.terminalCode));
+    addLine(padRow('Cashier:', refund.cashierName));
+    addLine(padRow('Restocked:', refund.restocked ? 'YES (Inventory)' : 'NO (Damaged)'));
+    addLine(divider('-'));
+
+    addRaw(cmdBoldOn);
+    addLine(padRow('Returned Item', 'Amount (LKR)'));
+    addRaw(cmdBoldOff);
+    for (final item in refund.items) {
+      addLine(item.productName);
+      addLine(padRow('  ${item.quantity} x ${currency.format(item.unitPrice)}', currency.format(item.lineTotal)));
+    }
+    addLine(divider('-'));
+
+    addRaw(cmdBoldOn);
+    addLine(padRow('TOTAL REFUNDED:', 'LKR ${currency.format(refund.totalRefunded)}'));
+    addRaw(cmdBoldOff);
+    addLine('Reason: ${refund.reason}');
+    addLine(divider('='));
+
+    addRaw(cmdAlignCenter);
+    addRaw(cmdLineFeed);
+    addLine('Customer Sign: _____________________');
+    addRaw(cmdLineFeed);
+    addLine('Manager Sign:  _____________________');
+    addRaw(cmdLineFeed);
+    addLine('OmniLuxe Store - Verified Return');
+    addRaw(cmdLineFeed);
+    addRaw(cmdLineFeed);
+    addRaw(cmdCut);
+
+    final resultBytes = bytes.toBytes();
+    printAuditLog.add(
+      'ESC/POS Refund Slip [${width.name}] -> Refund: ${refund.refundNumber}, Invoice: ${refund.invoiceNumber}, Total: LKR ${currency.format(refund.totalRefunded)}',
+    );
+    return resultBytes;
+  }
+
+  static Uint8List buildCashMovementBytes(
+    CashMovementEntry movement, {
+    required String storeName,
+    required String terminalCode,
+    PrinterPaperWidth width = PrinterPaperWidth.mm58,
+  }) {
+    final currency = NumberFormat('#,##0.00');
+    final dateFmt = DateFormat('yyyy-MM-dd HH:mm');
+    final bytes = BytesBuilder();
+    final max = width.maxChars;
+
+    void addRaw(List<int> cmd) => bytes.add(cmd);
+    void addLine(String text) {
+      bytes.add(const Latin1Codec(allowInvalid: true).encode(text));
+      bytes.add(cmdLineFeed);
+    }
+
+    String padRow(String left, String right) {
+      final totalSpace = max - left.length - right.length;
+      if (totalSpace < 1) return '$left $right';
+      return left + (' ' * totalSpace) + right;
+    }
+
+    String divider([String char = '-']) => char * max;
+
+    addRaw(cmdInit);
+    addRaw(cmdAlignCenter);
+    addRaw(cmdBoldOn);
+    addRaw(cmdDoubleSize);
+    addLine('OMNILUXE');
+    addRaw(cmdNormalSize);
+    addLine('DRAWER ${movement.type.label.toUpperCase()}');
+    addRaw(cmdBoldOff);
+    addLine(storeName.toUpperCase());
+    addLine(divider('='));
+
+    addRaw(cmdAlignLeft);
+    addLine(padRow('Reference:', movement.reference));
+    addLine(padRow('Type:', movement.type.label));
+    addLine(padRow('Date:', dateFmt.format(movement.recordedAt)));
+    addLine(padRow('Terminal:', terminalCode));
+    addLine(padRow('Staff:', movement.cashierName));
+    addLine(divider('-'));
+
+    addRaw(cmdBoldOn);
+    addLine(padRow('AMOUNT:', '${movement.type.sign}LKR ${currency.format(movement.amount)}'));
+    addRaw(cmdBoldOff);
+    addLine('Reason: ${movement.reason}');
+    if (movement.notes != null && movement.notes!.isNotEmpty) {
+      addLine('Notes: ${movement.notes}');
+    }
+    addLine(divider('='));
+
+    addRaw(cmdAlignCenter);
+    addRaw(cmdLineFeed);
+    addLine('Cashier Sign:   ____________________');
+    addRaw(cmdLineFeed);
+    addLine('Supervisor Sign: ___________________');
+    addRaw(cmdLineFeed);
+    addRaw(cmdLineFeed);
+    addRaw(cmdCut);
+
+    final resultBytes = bytes.toBytes();
+    printAuditLog.add(
+      'ESC/POS Cash Movement [${movement.type.apiValue}] -> Ref: ${movement.reference}, Amount: ${movement.type.sign}LKR ${currency.format(movement.amount)}',
+    );
     return resultBytes;
   }
 }

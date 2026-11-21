@@ -175,7 +175,17 @@ class PosDatabaseService {
       _mockOfflineSales[receipt.uuid] = {
         'uuid': receipt.uuid,
         'invoice_number': receipt.invoiceNumber,
+        'device_code': receipt.terminalCode,
+        'cashier_name': receipt.cashierName,
+        'subtotal': receipt.subtotal,
+        'discount_amount': receipt.discountAmount,
+        'tax_amount': receipt.taxAmount,
         'total_amount': receipt.totalAmount,
+        'paid_amount': receipt.paidAmount,
+        'change_amount': receipt.changeAmount,
+        'customer_name': receipt.customerName,
+        'customer_phone': receipt.customerPhone,
+        'loyalty_points_earned': receipt.loyaltyPointsEarned,
         'status': 'pending',
         'sold_at': receipt.soldAt.toIso8601String(),
         'items_json': jsonEncode(receipt.items.map((i) => i.toJson()).toList()),
@@ -294,6 +304,79 @@ class PosDatabaseService {
         whereArgs: [recordUuid],
       );
     });
+  }
+
+  /// Record a completed online sale into local history ledger (without enqueueing sync)
+  Future<void> recordCompletedSale(SaleReceipt receipt) async {
+    final now = DateTime.now().toIso8601String();
+    final row = {
+      'uuid': receipt.uuid,
+      'invoice_number': receipt.invoiceNumber,
+      'transaction_uuid': receipt.uuid,
+      'device_code': receipt.terminalCode,
+      'cashier_name': receipt.cashierName,
+      'subtotal': receipt.subtotal,
+      'discount_amount': receipt.discountAmount,
+      'tax_amount': receipt.taxAmount,
+      'total_amount': receipt.totalAmount,
+      'paid_amount': receipt.paidAmount,
+      'change_amount': receipt.changeAmount,
+      'items_json': jsonEncode(receipt.items.map((i) => i.toJson()).toList()),
+      'payments_json': jsonEncode(receipt.payments.map((t) => t.toJson()).toList()),
+      'sold_at': receipt.soldAt.toIso8601String(),
+      'status': 'synced',
+      'created_at': now,
+    };
+
+    if (isMockMode) {
+      _mockOfflineSales[receipt.uuid] = {
+        ...row,
+        'customer_name': receipt.customerName,
+        'customer_phone': receipt.customerPhone,
+        'loyalty_points_earned': receipt.loyaltyPointsEarned,
+      };
+      return;
+    }
+
+    final db = await database;
+    if (db == null) return;
+    await db.insert('offline_sales', row, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  /// Retrieve local sales history ledger sorted newest-first
+  Future<List<Map<String, dynamic>>> getLocalSalesHistory({int limit = 50}) async {
+    if (isMockMode) {
+      final list = _mockOfflineSales.values.map((e) => Map<String, dynamic>.from(e)).toList();
+      list.sort((a, b) => (b['sold_at']?.toString() ?? '').compareTo(a['sold_at']?.toString() ?? ''));
+      return list.take(limit).toList();
+    }
+
+    final db = await database;
+    if (db == null) return [];
+    return await db.query(
+      'offline_sales',
+      orderBy: 'sold_at DESC',
+      limit: limit,
+    );
+  }
+
+  /// Mark a local sale as refunded
+  Future<void> markSaleRefunded(String saleUuid) async {
+    if (isMockMode) {
+      if (_mockOfflineSales.containsKey(saleUuid)) {
+        _mockOfflineSales[saleUuid]!['status'] = 'refunded';
+      }
+      return;
+    }
+
+    final db = await database;
+    if (db == null) return;
+    await db.update(
+      'offline_sales',
+      {'status': 'refunded'},
+      where: 'uuid = ?',
+      whereArgs: [saleUuid],
+    );
   }
 
   /// Checkpoint management for delta pull

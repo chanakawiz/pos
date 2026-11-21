@@ -568,6 +568,30 @@ The platform establishes strict separation across customer, cashier, and adminis
 
 ---
 
+### Milestone 28: Handheld Mobile POS Operations Parity (Sales History, Refunds, Cross-Store Stock, VIP CRM & Cash Drops) (`✅ COMPLETED`)
+- [x] **Backend Cash Drawer Movements Engine (`backend/laravel-api`)**:
+  - Migration `2026_11_21_000001_create_cash_session_movements_table.php` and `CashSessionMovement` model tracking `cash_in` (float pay-ins), `cash_out` (safe cash drops), and `petty_cash` (store expenses) per open shift.
+  - Added `GET /api/v1/cash-sessions/movements` and `POST /api/v1/cash-sessions/movements` to `CashSessionController` with live recalculation of `expected_cash = opening_float + cash_sales + cash_in_total - cash_drop_total - total_refunds` across current summaries, X-Reports, and Z-Reports.
+- [x] **Sales History, Thermal Reprint & SMS Re-Dispatch (`SalesHistoryScreen` & `posSalesHistoryProvider`)**:
+  - Merged local SQLite (`PosDatabaseService.recordCompletedSale` / `getLocalSalesHistory`) and cloud `/api/v1/sales` transaction ledger with invoice/customer search and `All / Synced / Pending / Refunded` filter chips.
+  - Detail bottom sheet with 1-tap 58mm/80mm ESC/POS thermal reprint, editable mobile SMS e-receipt resend (`/api/v1/sales/{uuid}/resend-sms`), and direct return initiation.
+- [x] **In-Store Refunds & Exchanges (`RefundDialog` & `EscPosService.buildRefundReceiptBytes`)**:
+  - Invoice lookup (`/api/v1/sales/{uuid}`) with 1-tap recent invoice selection, line-item return quantity steppers, preset return reason chips, branch inventory restock toggle, `/api/v1/sales/{uuid}/refund` dispatch, shift cash impact updates, and ESC/POS Customer Refund Voucher printing.
+- [x] **Cross-Branch Boutique Stock Locator (`BranchStockDialog` & `posBranchStockProvider`)**:
+  - Real-time multi-branch inventory modal querying `/api/v1/products/{id}/cross-store-stock` across Colombo Flagship, Kandy Galleria, and Galle Fort Boutique with on-hand, reserved, and available counts, accessible from both the Cashier Hub and every catalog product card.
+- [x] **VIP Customer CRM & Automatic Tier Discounting (`CustomerCrmDialog` & `posCustomerProvider`)**:
+  - Replaced basic customer prompt with tabbed VIP Directory Search (`/api/v1/customers`) and Quick Register (+100 welcome VIP points via `POST /api/v1/customers`).
+  - Automatically applies VIP tier privilege discounts on cart attachment (`Gold Elite 5% OFF`, `Black Diamond 10% OFF`) and cleanly resets on detach.
+- [x] **Petty Cash & Safe Drops Modal (`CashMovementDialog` & `EscPosService.buildCashMovementBytes`)**:
+  - Interactive modal for Safe Cash Drops, Petty Cash Expenses, and Float Pay-Ins with preset denomination chips, live expected drawer cash preview, shift movement ledger, and ESC/POS cash drop voucher printing.
+- [x] **100% Passing Automated Tests**:
+  - 12/12 new tests in `pos_operations_parity_test.dart` passing (55/55 Flutter handheld POS tests).
+  - 2/2 new backend tests in `CashSessionTest.php` passing (99/99 Laravel backend tests, 776 assertions).
+  - 41/41 Desktop POS tests (`apps/windows-pos`) and 22/22 Consumer mobile tests (`apps/mobile-pos`).
+  - **Total: 217/217 passing tests across the entire omnichannel ecosystem**.
+
+---
+
 ## 3. Technology Stack & Design Tokens
 
 | Channel | Framework / Stack | Styling / Theme | Key Dependencies |

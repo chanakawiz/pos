@@ -86,6 +86,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/cash-sessions/open', [CashSessionController::class, 'open']);
         Route::get('/cash-sessions/current', [CashSessionController::class, 'current']);
         Route::get('/cash-sessions/x-report', [CashSessionController::class, 'xReport']);
+        Route::get('/cash-sessions/movements', [CashSessionController::class, 'movements']);
+        Route::post('/cash-sessions/movements', [CashSessionController::class, 'recordMovement']);
         Route::post('/cash-sessions/close', [CashSessionController::class, 'close']);
 
         // Automated End-of-Day (EOD) Closeout & Z-Reports
